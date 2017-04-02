@@ -1,3 +1,10 @@
+## GitIgnores Specific to the Unity portion of FlightGoggles
+*.meta
+FlightGoggles/Assets/
+FlightGoggles/Library/
+FlightGoggles/ProjectSettings/
+ProjectSettings/
+Assets/
 
 
 ## Unity GitIgnores ##
