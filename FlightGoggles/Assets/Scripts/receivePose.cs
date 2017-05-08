@@ -23,7 +23,7 @@ public class receivePose : MonoBehaviour {
 	private StreamWriter writer;
 	private StreamReader reader;
 	private bool socketReady = false;
-	private bool firstPose = true;
+	private int poseN = 0;
 
 
     private Transform candidate_trans;
@@ -209,11 +209,18 @@ public class receivePose : MonoBehaviour {
 
                 // Do error checking by checking if the current transform is crazy different
                 float angle_deg_error = Quaternion.Angle(transform.rotation, candidate_trans.rotation);
-                if (firstPose)
+                if (poseN == 0)
                 {
-                    // Allow start up from any pose
-                    angle_deg_error = 0.0;
-                    firstPose = false;
+                    // First pose appears to be gibberish so skip it
+                    /// @todo Why is it gibberish??
+                    angle_deg_error = 1000.0f; // Set stupidly high value to skip
+                    ++poseN;
+                }
+                else if (poseN == 1)
+                {
+                    // We actually want to keep the second pose
+                    angle_deg_error = 0.0f;
+                    ++poseN;
                 }
                 // Ignore this update if the angle error is more than 20 deg
                 if (Math.Abs(angle_deg_error) <= 20.0 )
