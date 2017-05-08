@@ -20,9 +20,11 @@ public class receivePose : MonoBehaviour {
 	// Private variables for TCP connection
 	private TcpClient socket;
 	private NetworkStream stream;
-	private StreamWriter writer; 
+	private StreamWriter writer;
 	private StreamReader reader;
 	private bool socketReady = false;
+	private bool firstPose = true;
+
 
     private Transform candidate_trans;
 
@@ -30,8 +32,8 @@ public class receivePose : MonoBehaviour {
 
 
 
-    // Last time and pose 
-    [HideInInspector]
+       // Last time and pose
+       [HideInInspector]
 	public ulong time = 0;
 	[HideInInspector]
 	public float[] pos = new float[3];
@@ -207,7 +209,13 @@ public class receivePose : MonoBehaviour {
 
                 // Do error checking by checking if the current transform is crazy different
                 float angle_deg_error = Quaternion.Angle(transform.rotation, candidate_trans.rotation);
-                // Ignore this update if the angle error is more than 10 deg
+                if (firstPose)
+                {
+                    // Allow start up from any pose
+                    angle_deg_error = 0.0;
+                    firstPose = false;
+                }
+                // Ignore this update if the angle error is more than 20 deg
                 if (Math.Abs(angle_deg_error) <= 20.0 )
                 {
                     transform.position = candidate_trans.position;
@@ -223,7 +231,6 @@ public class receivePose : MonoBehaviour {
             }
 		}
 	}
-
 
 	void OnGUI (){
 
