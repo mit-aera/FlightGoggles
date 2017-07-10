@@ -185,7 +185,7 @@ public class renderToLCM : MonoBehaviour {
 		counter++;
 
 		// Report out the frame number, width, height, and size
-		Debug.Log ("Image(" + counter + ") "+  "; Image Size: " + textureBytes.Length.ToString () + "\n");
+		//Debug.Log ("Image(" + counter + ") "+  "; Image Size: " + textureBytes.Length.ToString () + "\n");
 
         // Pretend to be a shader by passing our image along to the screen
         Graphics.Blit(src,dest);

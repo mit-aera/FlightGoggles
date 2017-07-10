@@ -198,12 +198,12 @@ public class receivePose : MonoBehaviour {
                 candidate_trans.position = new Vector3(pos[0], pos[1], pos[2]);
                 candidate_trans.rotation = new Quaternion(ori[0], ori[1], ori[2], ori[3]);
                 // Rotate about the local X axis to face in the correct dir.
-                candidate_trans.RotateAround(Vector3.zero, Vector3.right, -90);
+                //candidate_trans.RotateAround(Vector3.zero, Vector3.right, -90);
                 // Rotate along the Y axis to face in the correct dir."
-                candidate_trans.RotateAround(Vector3.zero, Vector3.up, -90);
+                //candidate_trans.RotateAround(Vector3.zero, Vector3.up, -90);
 
                 // Fix fact that camera is facing backwards
-                candidate_trans.Rotate(0, 180, 0);
+                //candidate_trans.Rotate(0, 180, 0);
 
                 //transform.Rotate(Vector3.up, -90, Space.World);
 
@@ -230,7 +230,7 @@ public class receivePose : MonoBehaviour {
                     Debug.Log("Updated position \n");
                 } else
                 {
-                    Debug.Log("Threw away a bad position!! \n");
+                    Debug.Log("Threw away a bad position!!" + angle_deg_error + " \n");
                 }
 
          
