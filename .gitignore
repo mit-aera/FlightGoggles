@@ -1,11 +1,11 @@
 ## GitIgnores Specific to the Unity portion of FlightGoggles
 *.meta
-FlightGoggles/Assets/
-FlightGoggles/Library/
-FlightGoggles/ProjectSettings/
 ProjectSettings/
-Assets/
-FlightGoggles/Temp/
+Assets/*
+
+#Include script DIRS
+!Assets/Plugins/
+!Assets/Scripts/
 
 
 ## Unity GitIgnores ##
@@ -43,3 +43,8 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+
+# Ignores for Nano
+*.swp
+
