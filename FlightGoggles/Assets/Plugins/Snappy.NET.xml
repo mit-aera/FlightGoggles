@@ -1,0 +1,461 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Snappy.NET</name>
+    </assembly>
+    <members>
+        <member name="T:Snappy.SnappyCodec">
+            <summary>
+            Straightforward wrapper around the underlying native Snappy library.
+            You can compress, uncompress, and validate fixed-size buffers without framing overhead.
+            Methods of this class forward their parameters directly to the native code without unnecessary buffer copying.
+            </summary>
+        </member>
+        <member name="M:Snappy.SnappyCodec.Compress(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            Compresses byte buffer using Snappy compression.
+            </summary>
+            <param name="input">Input buffer containing data to be compressed.</param>
+            <param name="offset">Offset into the input buffer where input data is located.</param>
+            <param name="length">Size of input data in the input buffer. Zero-length input is allowed. There's no maximum input size.</param>
+            <param name="output">
+            Output buffer where compressed data will be stored.
+            Buffer length minus outOffset must be equal or higher than return value of GetMaxCompressedLength method.
+            </param>
+            <param name="outOffset">Offset into the output buffer where compressed data will be stored.</param>
+            <returns>Length of compressed data written into the output buffer.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.Compress(System.Byte[])">
+            <summary>
+            Compresses byte buffer using Snappy compression.
+            </summary>
+            <param name="input">Input buffer containing data to be compressed. Zero-length input is allowed.</param>
+            <returns>Compressed data.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.Uncompress(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            Decompresses data previously compressed with Snappy.
+            </summary>
+            <param name="input">Input buffer containing compressed data.</param>
+            <param name="offset">Offset of compressed data within the input buffer.</param>
+            <param name="length">Length of compressed data within the input buffer.</param>
+            <param name="output">
+            Output buffer where decompressed data will be written.
+            Buffer length minus outOffset must be equal or higher than return value of GetUncompressedLength method.
+            </param>
+            <param name="outOffset">Offset into the output buffer where decompressed data will be stored.</param>
+            <returns>Length of decompressed data written into the output buffer.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.Uncompress(System.Byte[])">
+            <summary>
+            Decompresses data previously compressed with Snappy.
+            </summary>
+            <param name="input">Input buffer containing compressed data.</param>
+            <returns>Decompressed data.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.GetMaxCompressedLength(System.Int32)">
+            <summary>
+            Estimates maximum length of compressed data.
+            Note that compressed data may be slightly larger than uncompressed data in some extreme cases of uncompressible data.
+            </summary>
+            <param name="inLength">Length of uncompressed data used as a basis for calculation of maximum length of compressed data.</param>
+            <returns>Maximum length of compressed data given input of length inLength.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.GetUncompressedLength(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Retrieves length of uncompressed data for given buffer of compressed data. This is O(1) lookup
+            that merely parses first few bytes of the compressed buffer where the length has been recorded during compression.
+            </summary>
+            <param name="input">Input buffer containing compressed data.</param>
+            <param name="offset">Offset where compressed data is located in the input buffer.</param>
+            <param name="length">Length of compressed data in the input buffer.</param>
+            <returns>Exact length of uncompressed data encoded in the input buffer.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.GetUncompressedLength(System.Byte[])">
+            <summary>
+            Retrieves length of uncompressed data for given buffer of compressed data. This is O(1) lookup
+            that merely parses first few bytes of the compressed buffer where the length has been recorded during compression.
+            </summary>
+            <param name="input">Input buffer containing compressed data.</param>
+            <returns>Exact length of uncompressed data encoded in the input buffer.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.Validate(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Checks integrity of compressed data. This method performs sanity checks that ensure that the buffer can be decompressed.
+            It doesn't check integrity of data. It merely ensures that decompression will succeed with _some_ result.
+            CRC or other data integrity checks can be provided by higher level protocols like the Snappy framing format.
+            </summary>
+            <param name="input">Input buffer containing compressed data.</param>
+            <param name="offset">Offset where compressed data is located in the input buffer.</param>
+            <param name="length">Length of compressed data in the input buffer.</param>
+            <returns>True if the buffer contains valid Snappy compressed block. False otherwise.</returns>
+        </member>
+        <member name="M:Snappy.SnappyCodec.Validate(System.Byte[])">
+            <summary>
+            Checks integrity of compressed data. This method performs sanity checks that ensure that the buffer can be decompressed.
+            It doesn't check integrity of data. It merely ensures that decompression will succeed with _some_ result.
+            CRC or other data integrity checks can be provided by higher level protocols like the Snappy framing format.
+            </summary>
+            <param name="input">Input buffer containing compressed data.</param>
+            <returns>True if the buffer contains valid Snappy compressed block. False otherwise.</returns>
+        </member>
+        <member name="T:Snappy.SnappyFrame">
+            <summary>
+            Represents single Snappy frame that conforms to Snappy framing format.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrame.MaxFrameSize">
+            <summary>
+            Maximum size of uncompressed data in Snappy frame. It's 64KB in current version of the format.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrame.StreamIdentifier">
+            <summary>
+            Stream identifier text. It is found in ASCII in identifier frame that leads the stream of Snappy frames.
+            </summary>
+        </member>
+        <member name="M:Snappy.SnappyFrame.#ctor">
+            <summary>
+            Create new Snappy frame. Frame is initialized to zero-length padding frame by default.
+            </summary>
+        </member>
+        <member name="M:Snappy.SnappyFrame.SetStreamIdentifier">
+            <summary>
+            Resets this frame to stream identifier frame. First frame in the stream must be identifier frame.
+            </summary>
+        </member>
+        <member name="M:Snappy.SnappyFrame.SetPadding(System.Int32)">
+            <summary>
+            Resets this frame to padding frame of specified size.
+            </summary>
+            <param name="size">Size of padding data excluding the 4 bytes of frame header. Maximum padding size is 16MB.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.SetCompressed(System.Byte[])">
+            <summary>
+            Resets this frame to contain compressed data.
+            </summary>
+            <param name="data">Uncompressed data that is compressed by this method before being stored in the frame. Maximum data size is 64KB.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.SetCompressed(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Resets this frame to contain compressed data.
+            </summary>
+            <param name="data">Input buffer containing uncompressed data that is compressed by this method before being stored in the frame.</param>
+            <param name="offset">Offset of uncompressed data in the input buffer.</param>
+            <param name="count">Size of uncompressed data in the input buffer. Maximum data size is 64KB.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.SetUncompressed(System.Byte[])">
+            <summary>
+            Resets this frame to contain uncompressed data.
+            </summary>
+            <param name="data">Uncompressed data to store in the frame. Maximum data size is 64KB.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.SetUncompressed(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Resets this frame to contain uncompressed data.
+            </summary>
+            <param name="data">Input buffer containing uncompressed data to be stored in this frame.</param>
+            <param name="offset">Offset of uncompressed data in the input buffer.</param>
+            <param name="count">Size of uncompressed data in the input buffer. Maximum data size is 64KB.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.GetData(System.Byte[])">
+            <summary>
+            Retrieves data from the frame. Data is uncompressed before being stored in the output buffer.
+            CRC of the data is checked and CRC failure results in exception.
+            </summary>
+            <param name="buffer">Output buffer where uncompressed data is stored. It must be at least DataLength bytes long.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.GetData(System.Byte[],System.Int32)">
+            <summary>
+            Retrieves data from the frame. Data is uncompressed before being stored in the output buffer.
+            CRC of the data is checked and CRC failure results in exception.
+            </summary>
+            <param name="buffer">Output buffer where uncompressed data is stored. Buffer length minus offset must be at least DataLength bytes.</param>
+            <param name="offset">Offset into the output buffer where uncompressed data will be stored.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.Read(System.IO.Stream)">
+            <summary>
+            Retrieves Snappy frame from underlying stream. Retrieved frame data is stored in properties of this object.
+            Return value indicates end of stream. Exceptions indicate data integrity errors and underlying stream errors.
+            </summary>
+            <param name="stream">Underlying stream that will be read by this method.</param>
+            <returns>
+            True if frame was successfully retrieved. False if there are no more frames in the stream, i.e. the end of stream has been reached.
+            Note that reaching the end of stream in the middle of the frame is considered an error and causes exception instead.
+            </returns>
+        </member>
+        <member name="M:Snappy.SnappyFrame.ReadAsync(System.IO.Stream)">
+            <summary>
+            Retrieves Snappy frame from underlying stream. Retrieved frame data is stored in properties of this object.
+            Return value indicates end of stream. Exceptions indicate data integrity errors and underlying stream errors.
+            </summary>
+            <param name="stream">Underlying stream that will be read by this method.</param>
+            <returns>
+            True if frame was successfully retrieved. False if there are no more frames in the stream, i.e. the end of stream has been reached.
+            Note that reaching the end of stream in the middle of the frame is considered an error and causes exception instead.
+            </returns>
+        </member>
+        <member name="M:Snappy.SnappyFrame.ReadAsync(System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves Snappy frame from underlying stream. Retrieved frame data is stored in properties of this object.
+            Return value indicates end of stream. Exceptions indicate data integrity errors and underlying stream errors.
+            </summary>
+            <param name="stream">Underlying stream that will be read by this method.</param>
+            <param name="cancellation">Cancellation token that can be used to cancel the read operation.</param>
+            <returns>
+            True if frame was successfully retrieved. False if there are no more frames in the stream, i.e. the end of stream has been reached.
+            Note that reaching the end of stream in the middle of the frame is considered an error and causes exception instead.
+            </returns>
+        </member>
+        <member name="M:Snappy.SnappyFrame.Write(System.IO.Stream)">
+            <summary>
+            Writes the frame into the underlying stream.
+            </summary>
+            <param name="stream">Underlying stream where the frame will be written.</param>
+        </member>
+        <member name="M:Snappy.SnappyFrame.WriteAsync(System.IO.Stream)">
+            <summary>
+            Writes the frame into the underlying stream.
+            </summary>
+            <param name="stream">Underlying stream where the frame will be written.</param>
+            <returns>Task object indicating completion of the write.</returns>
+        </member>
+        <member name="M:Snappy.SnappyFrame.WriteAsync(System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Writes the frame into the underlying stream.
+            </summary>
+            <param name="stream">Underlying stream where the frame will be written.</param>
+            <param name="cancellation">Cancellation token that can be used to cancel the write operation.</param>
+            <returns>Task object indicating completion of the write.</returns>
+        </member>
+        <member name="P:Snappy.SnappyFrame.Type">
+            <summary>
+            Type of Snappy frame. It contains decoded frame type upon deserialization. It is set automatically by Set* methods.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyFrame.Checksum">
+            <summary>
+            Data checksum is present in compressed and uncompressed frames. Otherwise it is zero.
+            It is computed automatically by Set* methods.
+            It is automatically checked when reading data through Data property or GetData method.
+            It is CRC-32C (Castagnoli) of the uncompressed data with final CRC obfuscated
+            with transformation ((crc &gt;&gt; 15) | (crc &lt;&lt; 17)) + 0xa282ead8.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyFrame.DataLength">
+            <summary>
+            Length of uncompressed data for data frames. Querying this property takes O(1) time.
+            For compressed and uncompressed data, data length is never larger than 64KB.
+            For padding frames, this property is equal to the length of padding data.
+            Identification frame has data length of 6.
+            Data length is automatically set by Set* methods and upon frame deserialization.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyFrame.Data">
+            <summary>
+            Uncompressed data in the frame. It is available only for frame type Compressed or Uncompressed.
+            Querying this property triggers CRC check of the data, which might cause exceptions.
+            Returned data is never larger than 64KB.
+            </summary>
+        </member>
+        <member name="T:Snappy.SnappyFrameType">
+            <summary>
+            Type of Snappy frame.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.Compressed">
+            <summary>
+            Supported compressed frame containing Snappy compressed data.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.Uncompressed">
+            <summary>
+            Supported uncompressed frame containing plain data.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.UnskippableFirst">
+            <summary>
+            Beginning of the range of unsupported frame types reserved for future use. Exception is thrown if any such frame type is encountered.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.UnskippableLast">
+            <summary>
+            End of the range of unsupported frame types reserved for future use. Exception is thrown if any such frame type is encountered.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.SkippableFirst">
+            <summary>
+            Beginning of the range of unsupported frame types that are safe to skip. If encountered on input, data in these frames is skipped.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.SkippableLast">
+            <summary>
+            End of the range of unsupported frame types that are safe to skip. If encountered on input, data in these frames is skipped.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.Padding">
+            <summary>
+            Padding frame. Data in this frame is ignored. Padding frames can be used for alignment purposes.
+            </summary>
+        </member>
+        <member name="F:Snappy.SnappyFrameType.StreamIdentifier">
+            <summary>
+            Stream identifier frame. This frame contains text "sNaPpY".
+            </summary>
+        </member>
+        <member name="T:Snappy.SnappyStream">
+            <summary>
+            Compression stream similar to GZipStream except this one uses Snappy compression.
+            This stream uses standard Snappy framing format that supports streams of unbounded size
+            and includes CRC checksums of all transmitted data.
+            This stream can operate in one of two modes: compression or decompression.
+            When compressing, use Write* methods. When decompressing, use Read* methods.
+            If SnappyStream is opened for compression and immediately closed, the resulting stream
+            will be a valid Snappy stream containing zero bytes of uncompressed data.
+            </summary>
+        </member>
+        <member name="M:Snappy.SnappyStream.#ctor(System.IO.Stream,System.IO.Compression.CompressionMode)">
+            <summary>
+            Creates new SnappyStream using specified mode of operation.
+            </summary>
+            <param name="stream">Underlying stream holding compressed data. It is automatically closed when SnappyStream is closed.</param>
+            <param name="mode">
+            Use mode Compress if SnappyStream is used to compress data and write it to the underlying stream.
+            Use mode Decompress if SnappyStream is used to decompress data that is retrieved in compressed form from the underlying stream.
+            </param>
+        </member>
+        <member name="M:Snappy.SnappyStream.#ctor(System.IO.Stream,System.IO.Compression.CompressionMode,System.Boolean)">
+            <summary>
+            Creates new SnappyStream using specified mode of operation with an option to leave the underlying stream open.
+            </summary>
+            <param name="stream">Underlying stream holding compressed data.</param>
+            <param name="mode">
+            Use mode Compress if SnappyStream is used to compress data and write it to the underlying stream.
+            Use mode Decompress if SnappyStream is used to decompress data that is retrieved in compressed form from the underlying stream.
+            </param>
+            <param name="leaveOpen">False to close the underlying stream when SnappyStream is closed. True to leave the underlying stream open.</param>
+        </member>
+        <member name="M:Snappy.SnappyStream.Dispose(System.Boolean)">
+            <summary>
+            Dispose the stream. Remaining data is flushed and underlying stream is closed.
+            </summary>
+            <param name="disposing">True to release both managed and unmanaged resources. False to release only unmanaged resources.</param>
+        </member>
+        <member name="M:Snappy.SnappyStream.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads uncompressed data from underlying compressed stream.
+            </summary>
+            <param name="buffer">Output buffer where uncompressed data will be written.</param>
+            <param name="offset">Offset into the output buffer where uncompressed data will be written.</param>
+            <param name="count">Maximum size of uncompressed data to read.</param>
+            <returns>
+            Amount of data actually stored in the output buffer.
+            This might be less than the count parameter if end of stream is encountered.
+            Return value is zero if there is no more data in the stream.
+            </returns>
+        </member>
+        <member name="M:Snappy.SnappyStream.ReadAsync(System.Byte[],System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads uncompressed data from underlying compressed stream.
+            </summary>
+            <param name="buffer">Output buffer where uncompressed data will be written.</param>
+            <param name="offset">Offset into the output buffer where uncompressed data will be written.</param>
+            <param name="count">Maximum size of uncompressed data to read.</param>
+            <param name="cancellation">Cancellation token that can be used to cancel the read operation.</param>
+            <returns>
+            Amount of data actually stored in the output buffer.
+            This might be less than the count parameter if end of stream is encountered.
+            Return value is zero if there is no more data in the stream.
+            </returns>
+        </member>
+        <member name="M:Snappy.SnappyStream.ReadByte">
+            <summary>
+            Reads single byte from the underlying stream.
+            </summary>
+            <returns>Byte read from the stream or -1 if end of stream has been reached.</returns>
+        </member>
+        <member name="M:Snappy.SnappyStream.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Compresses given uncompressed data and writes the compressed data to the underlying stream.
+            This method will buffer some of the data in order to compress 64KB at a time.
+            Use Flush method to write the data to the underlying stream immediately.
+            </summary>
+            <param name="buffer">Input buffer containing uncompressed data to be compressed and written to the underlying stream.</param>
+            <param name="offset">Offset into the input buffer where uncompressed data is located.</param>
+            <param name="count">Length of the uncompressed data in the input buffer. Zero-length data has no effect on the stream.</param>
+        </member>
+        <member name="M:Snappy.SnappyStream.WriteAsync(System.Byte[],System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Compresses given uncompressed data and writes the compressed data to the underlying stream.
+            This method will buffer some of the data in order to compress 64KB at a time.
+            Use FlushAsync method to write the data to the underlying stream immediately.
+            </summary>
+            <param name="buffer">Input buffer containing uncompressed data to be compressed and written to the underlying stream.</param>
+            <param name="offset">Offset into the input buffer where uncompressed data is located.</param>
+            <param name="count">Length of the uncompressed data in the input buffer. Zero-length data has no effect on the stream.</param>
+            <param name="cancellation">Cancellation token that can be used to cancel the write operation.</param>
+            <returns>Task object indicating completion of the write.</returns>
+        </member>
+        <member name="M:Snappy.SnappyStream.WriteByte(System.Byte)">
+            <summary>
+            Writes single byte of uncompressed data to the stream and queues it for compression.
+            This method will buffer data in order to compress 64KB at a time.
+            Use Flush method to write the data to the underlying stream immediately.
+            </summary>
+            <param name="value">Byte of uncompressed data to be added to the stream.</param>
+        </member>
+        <member name="M:Snappy.SnappyStream.Flush">
+            <summary>
+            Flushes all data buffered by previous calls to Write* methods.
+            Remaining data is compressed and written to the underlying stream.
+            </summary>
+        </member>
+        <member name="M:Snappy.SnappyStream.FlushAsync(System.Threading.CancellationToken)">
+            <summary>
+            Flushes all data buffered by previous calls to Write* methods.
+            Remaining data is compressed and written to the underlying stream.
+            </summary>
+            <param name="cancellation">Cancellation token that can be used to cancel the flush operation.</param>
+            <returns>Task object indicating completion of the flush.</returns>
+        </member>
+        <member name="M:Snappy.SnappyStream.SetLength(System.Int64)">
+            <summary>
+            Sets the length of the current stream. Not supported in SnappyStream.
+            </summary>
+            <param name="value">The desired length of the current stream in bytes.</param>
+        </member>
+        <member name="M:Snappy.SnappyStream.Seek(System.Int64,System.IO.SeekOrigin)">
+            <summary>
+            Sets the position within the current stream. Not supported in SnappyStream.
+            </summary>
+            <param name="offset">A byte offset relative to the origin parameter.</param>
+            <param name="origin">A value of type SeekOrigin indicating the reference point used to obtain the new position.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Snappy.SnappyStream.CanRead">
+            <summary>
+            Gets a value indicating whether the current stream supports reading. True for decompression stream.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyStream.CanWrite">
+            <summary>
+            Gets a value indicating whether the current stream supports writing. True for compression stream.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyStream.CanSeek">
+            <summary>
+            Gets a value indicating whether the current stream supports seeking. Always false for SnappyStream.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyStream.Length">
+            <summary>
+            Gets the length in bytes of the stream. Not supported in SnappyStream.
+            </summary>
+        </member>
+        <member name="P:Snappy.SnappyStream.Position">
+            <summary>
+            Gets or sets the position within the current stream. Not supported in SnappyStream.
+            </summary>
+        </member>
+    </members>
+</doc>
