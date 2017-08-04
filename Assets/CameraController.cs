@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Collections;
@@ -19,145 +20,186 @@ using System.Linq;
 
 // ZMQ
 using NetMQ;
-//using ImageSharp;
+
+// Include the fastest version of Snappy available for the arch
+using Snappy;
+using Snappy.Sharp;
+
 
 // Camera class for decoding the ZMQ messages.
 class CameraObj
 {
-	public string ID { get; set; }
-	public int render_order { get; set; }
-//	public Vector3 position { get; set; }
-//	public Quaternion rotation { get; set; }
-	//public long timestamp { get; set; }
-	public GameObject obj { get; set; }
-
-//	public string ToString(){
-//		return string.Format("Camera: [{0}; {1}; {2}; {3}]", ID, timestamp, position.ToString(), rotation.ToString());
-//	}
+    public string ID { get; set; }
+    public int render_order { get; set; }
+    public GameObject obj { get; set; }
 }
 
 public class CameraController : MonoBehaviour
 {
-	// Parameters
-	public string pose_host = "@tcp://localhost:10253";
-	public string video_host = "@tcp://localhost:10254";
-	public bool DEBUG = true;
-	public int num_cameras = 3;
-	public int width = 1024;
-	public int height = 768;
 
-	public GameObject camera_template;
+    // Parameters
+    public string pose_host = "tcp://192.168.0.103:10253";
+    public string video_host = "tcp://192.168.0.103:10254";
+    public bool DEBUG = true;
+    public int num_cameras = 3;
+    public int width = 1024;
+    public int height = 768;
+    public int max_framerate = 80;
+    public bool should_compress_video = true;
 
-	// instance vars
-	private NetMQ.Sockets.PullSocket pull_socket;
-	//private NetMQ.Sockets.PushSocket push_socket;
-	private int camera_frame_length = 8;
-	private long timestamp = 0;
-	private Dictionary<string, CameraObj> camera_objects;
-	private Texture2D rendered_frame;
+    public GameObject camera_template;
 
-    /// <summary>
-    /// Compresses byte array to new byte array.
-    /// </summary>
-    public static byte[] Compress(byte[] raw)
+    // instance vars
+    private NetMQ.Sockets.SubscriberSocket pull_socket;
+    private NetMQ.Sockets.PublisherSocket push_socket;
+    private int camera_frame_length = 8;
+    private long timestamp = 0;
+    private Dictionary<string, CameraObj> camera_objects;
+    private Texture2D rendered_frame;
+    private object socket_lock;
+
+    // Helper function for getting command line arguments
+    private static string GetArg(string name, string default_return)
     {
-        using (MemoryStream memory = new MemoryStream())
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++)
         {
-            using (GZipStream gzip = new GZipStream(memory,
-                CompressionMode.Compress, true))
+            if (args[i] == name && args.Length > i + 1)
             {
-                gzip.Write(raw, 0, raw.Length);
+                return args[i + 1];
             }
-            return memory.ToArray();
         }
+        return default_return;
     }
 
+    /* Use this for initialization
+     * Should create a worker thread that listens for ZMQ messages and saves the most recent one.
+     */
+
+    public IEnumerator Start()
+    {
+        // Check if the program should use CLI arguments (with defaults)
+        if (!Application.isEditor)
+        {
+            pose_host = GetArg("-pose-host", pose_host);
+            video_host = GetArg("-video-host", video_host);
+            width = int.Parse(GetArg("-screen-width", width.ToString()));
+            height = int.Parse(GetArg("-screen-height", height.ToString()));
+            max_framerate = int.Parse(GetArg("-max-framerate", max_framerate.ToString()));
+            should_compress_video = bool.Parse(GetArg("-should-compress-video", (!video_host.Contains("localhost")).ToString()));
+        }
 
 
-/* Use this for initialization
- * Should create a worker thread that listens for ZMQ messages and saves the most recent one.
- */
 
-public IEnumerator Start()
-	{
+        // Set the max framerate
+        Application.targetFrameRate = max_framerate;
+
         // Fixes for Unity/NetMQ conflict stupidity.
         AsyncIO.ForceDotNet.Force();
+        socket_lock = new object();
 
 
         // Connect sockets
         Debug.Log("Creating sockets.");
-		pull_socket = new NetMQ.Sockets.PullSocket (pose_host);
-		//push_socket = new NetMQ.Sockets.PushSocket (video_host);
-		Debug.Log("Sockets bound.");
+        pull_socket = new NetMQ.Sockets.SubscriberSocket();
+        //pull_socket.Options.ReceiveBuffer = 1000;
+        pull_socket.Options.ReceiveHighWatermark = 90;
+        pull_socket.Connect(pose_host);
+        pull_socket.Subscribe("Pose");
 
-		// Initialize Objects
-		camera_objects = new Dictionary<string, CameraObj> (){};
+        push_socket = new NetMQ.Sockets.PublisherSocket();
+        //push_socket.Options.SendHighWatermark = 10;
+        push_socket.Connect(video_host);
+        Debug.Log("Sockets bound.");
 
-		// initialize the display to fit all cameras
-		Display.main.SetRenderingResolution(width*num_cameras, height);
-		rendered_frame = new Texture2D(width*num_cameras, height, TextureFormat.RGBA32, false);
+        // Initialize Objects
+        camera_objects = new Dictionary<string, CameraObj>() { };
+
+        // initialize the display to a window that fits all cameras
+        Screen.SetResolution(width*num_cameras, height, false);
+        //Display.main.SetRenderingResolution(width * num_cameras, height);
+        rendered_frame = new Texture2D(width * num_cameras, height, TextureFormat.RGB24, false, true);
 
 
 
-		// Wait until end of frame to transmit images
-		while (true){
-			// Wait until all rendering + UI is done.
-			// Blocks until the frame is rendered.
-			yield return new WaitForEndOfFrame();
-     
+
+        // Wait until end of frame to transmit images
+        while (true)
+        {
+            // Wait until all rendering + UI is done.
+            // Blocks until the frame is rendered.
+            yield return new WaitForEndOfFrame();
+
+
             // Read pixels from the display.
-            rendered_frame.ReadPixels(new Rect(0,0,1,1), 0, 0);
-            rendered_frame.Apply();
+            rendered_frame.ReadPixels(new Rect(0, 0, width * num_cameras, height), 0, 0);
 
+            //Color32[] raw_colors = rendered_frame.GetPixels32();
+            rendered_frame.Apply();
             byte[] raw = rendered_frame.GetRawTextureData();
 
-            // Spawn a new thread
-            new Thread(() =>
+
+            // Compress and send the image in a different thread (if using windows).
+            Task.Run(() =>
             {
-                byte[] gzipped = Compress(raw);
-                Debug.LogFormat("Frame length {0}", gzipped.Length);
-            }).Start();
-            // Compress the image.
-            //Image<Rgba32> image = Image<Rgba32>.Load<Rgba32>(rendered_frame.GetRawTextureData());
+                //byte[] rgba = Color32ArrayToByteArray(raw_colors);
+                // Reorder the byte array such that the array is first all, R, then B, then G.
+                // This is probably easier to compress.
+                int raw_length = raw.Length;
+                int channel_length = raw_length / 3;
 
-            //Color32[] ColorBuffer = Display.main.colorBuffer.GetNativeRenderBufferPtr();
 
-            //Debug.LogFormat ("Got pointer to buffer of size {0}", ColorBuffer.Length);
+                // Get the grayscale image, flipping the rows such that the image is transmitted rightside up
+                byte[] raw_flipped_r = new byte[channel_length];
+                int row_length_px = width * num_cameras;
+                for (int y = 0; y < height; y++)
+                {
+                    int y_inv = height - y - 1;
+                    for (int x = 0; x < row_length_px; x++)
+                    {
+                        raw_flipped_r[(y_inv * row_length_px) + x] = raw[(y * row_length_px) * 3 + (x * 3)];
+                    }
+                }
 
-            ////			// Transmit new message back to LCM
-            //			var msg = new NetMQMessage();
-            ////
-            ////			/* Message format:
-            ////			 * timestamp
-            ////			 * <foreach camera>
-            ////			 * camera_id
-            ////			 * image_data
-            ////			 * <end foreach>
-            ////			 * */
-            //			msg.Append (timestamp);
-            ////
-            ////			// Add the camera images to the message.
-            //			foreach(KeyValuePair<string, CameraObj> cam in camera_objects) {
-            //				msg.Append (cam.Value.ID);
-            //				// Encode the texture to JPG
-            //				byte[] textureBytes = cam.Value.obj.GetComponent<renderToMemory> ().last_render.EncodeToJPG (50);
-            //
-            //				msg.Append (textureBytes);
-            //			}
-            ////
-            ////			// try to send, but drop the message if unsuccessful (don't block).
-            //			push_socket.TrySendMultipartMessage(msg);
-            //			Debug.Log ("Sent Frame to LCM!");
-            //
+                // Create the image data holder
+                byte[] image;
+                if (should_compress_video) {
+
+                    // Compress the image
+#if (UNITY_EDITOR_WINDOWS || UNITY_STANDALONE_WINDOWS)
+                    image =  SnappyCodec.Compress(raw_flipped_r);
+#else
+                    image = Snappy.Sharp.Snappy.Compress(raw_flipped_r);
+#endif
+                } else
+                {
+                    image = raw_flipped_r;
+                }
+                var msg = new NetMQMessage();
+                /* Message format:
+                    * timestamp
+                    * is_compressed?
+                    * image_data
+                    * <end foreach>
+                    * */
+                msg.Append(timestamp);
+                msg.Append(Convert.ToInt16(should_compress_video));
+                msg.Append(image);
+                lock (socket_lock)
+                {
+                    push_socket.TrySendMultipartMessage(msg);
+                }
+            }
+            );
 
         }
-		yield return null;
-	}
+    }
 
     private void OnApplicationQuit()
     {
         // Close ZMQ sockets
         pull_socket.Close();
+        push_socket.Close();
         Debug.Log("Terminated ZMQ sockets.");
         NetMQConfig.Cleanup();
     }
@@ -172,6 +214,7 @@ public IEnumerator Start()
 
 Pose Message format for ZMQ
 -- ZMQ Message start
+"Pose"
 timestamp
 [for each camera]
 Camera ID string.
@@ -191,72 +234,88 @@ quat[3]
     {
         //Debug.Log ("Entering Update");
 
-        // Receive message
+        // Receive most recent message
         var msg = new NetMQMessage();
+        var new_msg = new NetMQMessage();
+        // Blocking receive for a message
         msg = pull_socket.ReceiveMultipartMessage();
-            Debug.LogFormat (" Received ZMQ message with {0} frames!", msg.FrameCount);
+        // Check if this is the latest message
+        while (pull_socket.TryReceiveMultipartMessage(ref new_msg));
 
-            // Split message into camera objects
-            // Decode timestamp
-            long new_timestamp = long.Parse(msg[0].ConvertToString());
-            // sanity check the timestamp
-            if (!(new_timestamp > timestamp) && !DEBUG)
+        if (new_msg.FrameCount >= msg.FrameCount)
+        {
+            msg = new_msg;
+        }
+
+        //msg = pull_socket.ReceiveMultipartMessage();
+        Debug.LogFormat(" Received ZMQ message with {0} frames!", msg.FrameCount);
+        // Check for errors
+        if (msg.FrameCount == 0)
+        {
+            return;
+        }
+
+
+        // Split message into camera objects
+        // Decode timestamp
+        long new_timestamp = long.Parse(msg[1].ConvertToString());
+        // sanity check the timestamp
+        if (!(new_timestamp > timestamp) && !DEBUG)
+        {
+            // Skip this message
+            return;
+        }
+        // Update the timestamp
+        timestamp = new_timestamp;
+        // sanity check the message
+        int zmq_num_cameras = (msg.FrameCount - 2) / 8;
+        Debug.AssertFormat(zmq_num_cameras == num_cameras, "Number of cameras in ZMQ message {0} does not match Unity settings.", zmq_num_cameras);
+
+        // split the message into batches of 8 (eg. for each camera).
+        for (int i = 2; i < msg.FrameCount; i += camera_frame_length)
+        {
+
+            // Decode the camera message
+            string ID = msg[i].ConvertToString();
+            Vector3 position = new Vector3(
+                                    float.Parse(msg[i + 1].ConvertToString()),
+                                    float.Parse(msg[i + 2].ConvertToString()),
+                                    float.Parse(msg[i + 3].ConvertToString()));
+            Quaternion rotation = new Quaternion(
+                float.Parse(msg[i + 4].ConvertToString()),
+                float.Parse(msg[i + 5].ConvertToString()),
+                float.Parse(msg[i + 6].ConvertToString()),
+                float.Parse(msg[i + 7].ConvertToString()));
+
+            // Check if this camera exists.
+            if (camera_objects.ContainsKey(ID))
             {
-                // Skip this message
-                return;
+                // transform the gameobject
+                GameObject camera_obj = camera_objects[ID].obj;
+                camera_obj.transform.SetPositionAndRotation(position, rotation);
+                // Update timestamp
+
+                // Create the object if it does not exist.
             }
-            // Update the timestamp
-            timestamp = new_timestamp;
-            // sanity check the message
-            int zmq_num_cameras = (msg.FrameCount - 1) / 8;
-            Debug.AssertFormat(zmq_num_cameras == num_cameras, "Number of cameras in ZMQ message {0} does not match Unity settings.", zmq_num_cameras);
-
-            // split the message into batches of 8 (eg. for each camera).
-            for (int i = 1; i < msg.FrameCount; i += camera_frame_length)
+            else
             {
+                GameObject camera_obj = Instantiate(camera_template, position, rotation);
+                // Set the game object name to the camera ID.
+                camera_obj.name = ID;
+                int render_order = ((i - 1) / 8);
+                // Setup camera's position on screen.
+                camera_obj.GetComponent<Camera>().pixelRect = new Rect(width * render_order, 0, width * (render_order + 1), height);
 
-                // Decode the camera message
-                string ID = msg[i].ConvertToString();
-                Vector3 position = new Vector3(
-                                        float.Parse(msg[i + 1].ConvertToString()),
-                                        float.Parse(msg[i + 2].ConvertToString()),
-                                        float.Parse(msg[i + 3].ConvertToString()));
-                Quaternion rotation = new Quaternion(
-                    float.Parse(msg[i + 4].ConvertToString()),
-                    float.Parse(msg[i + 5].ConvertToString()),
-                    float.Parse(msg[i + 6].ConvertToString()),
-                    float.Parse(msg[i + 7].ConvertToString()));
-
-                // Check if this camera exists.
-                if (camera_objects.ContainsKey(ID))
-                {
-                    // transform the gameobject
-                    GameObject camera_obj = camera_objects[ID].obj;
-                    camera_obj.transform.SetPositionAndRotation(position, rotation);
-                    // Update timestamp
-
-                    // Create the object if it does not exist.
-                }
-                else
-                {
-                    GameObject camera_obj = Instantiate(camera_template, position, rotation);
-                    // Set the game object name to the camera ID.
-                    camera_obj.name = ID;
-                    int render_order = ((i - 1) / 8);
-                    // Setup camera's position on screen.
-                    camera_obj.GetComponent<Camera>().pixelRect = new Rect(width * render_order, 0, width * (render_order + 1), height);
-
-                    // enable Camera.
-                    camera_obj.SetActive(true);
-                    // Add the new camera to our dictionary of gameobjects
-                    camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_order });
-                }
+                // enable Camera.
+                camera_obj.SetActive(true);
+                // Add the new camera to our dictionary of gameobjects
+                camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_order });
+            }
 
 
-            };
+        };
 
-        
+
     }
-				
-}
 
+}
