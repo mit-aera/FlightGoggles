@@ -18,7 +18,7 @@ using System.Linq;
  *
  */
 
-// ZMQ
+// ZMQ/LCM
 using NetMQ;
 
 // Include the fastest version of Snappy available for the arch
@@ -38,8 +38,8 @@ public class CameraController : MonoBehaviour
 {
 
     // Parameters
-    public string pose_host = "tcp://192.168.0.103:10253";
-    public string video_host = "tcp://192.168.0.103:10254";
+    public string pose_host = "tcp://192.168.0.102:10253";
+    public string video_host = "tcp://192.168.0.102:10254";
     public bool DEBUG = true;
     public int num_cameras = 3;
     public int width = 1024;
@@ -53,10 +53,12 @@ public class CameraController : MonoBehaviour
     private NetMQ.Sockets.SubscriberSocket pull_socket;
     private NetMQ.Sockets.PublisherSocket push_socket;
     private int camera_frame_length = 8;
+    private int frame_headers = 2;
     private long timestamp = 0;
     private Dictionary<string, CameraObj> camera_objects;
     private Texture2D rendered_frame;
     private object socket_lock;
+    private bool system_initialized;
 
     // Helper function for getting command line arguments
     private static string GetArg(string name, string default_return)
@@ -76,6 +78,25 @@ public class CameraController : MonoBehaviour
      * Should create a worker thread that listens for ZMQ messages and saves the most recent one.
      */
 
+    private void ensureScreenSize()
+    {
+        if (!system_initialized)
+        {
+            // Set the max framerate
+            Application.targetFrameRate = max_framerate;
+            // Set number of cameras
+            num_cameras = camera_objects.Count;
+            // initialize the display to a window that fits all cameras
+            Screen.SetResolution(width * num_cameras, height, false);
+            // Set render texture to the correct size
+            rendered_frame = new Texture2D(width * num_cameras, height, TextureFormat.RGB24, false, true);
+            // Make sure that all cameras are drawing to the correct portion of the screen.
+
+            // Do not run this function again since we are initialized
+            system_initialized = true;
+        }
+    }
+
     public IEnumerator Start()
     {
         // Check if the program should use CLI arguments (with defaults)
@@ -83,16 +104,12 @@ public class CameraController : MonoBehaviour
         {
             pose_host = GetArg("-pose-host", pose_host);
             video_host = GetArg("-video-host", video_host);
-            width = int.Parse(GetArg("-screen-width", width.ToString()));
-            height = int.Parse(GetArg("-screen-height", height.ToString()));
+            width = int.Parse(GetArg("-width", width.ToString()));
+            height = int.Parse(GetArg("-height", height.ToString()));
             max_framerate = int.Parse(GetArg("-max-framerate", max_framerate.ToString()));
             should_compress_video = bool.Parse(GetArg("-should-compress-video", (!video_host.Contains("localhost")).ToString()));
         }
 
-
-
-        // Set the max framerate
-        Application.targetFrameRate = max_framerate;
 
         // Fixes for Unity/NetMQ conflict stupidity.
         AsyncIO.ForceDotNet.Force();
@@ -108,17 +125,13 @@ public class CameraController : MonoBehaviour
         pull_socket.Subscribe("Pose");
 
         push_socket = new NetMQ.Sockets.PublisherSocket();
-        //push_socket.Options.SendHighWatermark = 10;
+        ////push_socket.Options.SendHighWatermark = 10;
         push_socket.Connect(video_host);
+        
         Debug.Log("Sockets bound.");
 
         // Initialize Objects
         camera_objects = new Dictionary<string, CameraObj>() { };
-
-        // initialize the display to a window that fits all cameras
-        Screen.SetResolution(width*num_cameras, height, false);
-        //Display.main.SetRenderingResolution(width * num_cameras, height);
-        rendered_frame = new Texture2D(width * num_cameras, height, TextureFormat.RGB24, false, true);
 
 
 
@@ -189,6 +202,7 @@ public class CameraController : MonoBehaviour
                 {
                     push_socket.TrySendMultipartMessage(msg);
                 }
+                //bot_core.image_t msg = new bot_core.image_t();
             }
             );
 
@@ -268,11 +282,11 @@ quat[3]
         // Update the timestamp
         timestamp = new_timestamp;
         // sanity check the message
-        int zmq_num_cameras = (msg.FrameCount - 2) / 8;
+        int zmq_num_cameras = (msg.FrameCount - frame_headers) / camera_frame_length;
         Debug.AssertFormat(zmq_num_cameras == num_cameras, "Number of cameras in ZMQ message {0} does not match Unity settings.", zmq_num_cameras);
 
         // split the message into batches of 8 (eg. for each camera).
-        for (int i = 2; i < msg.FrameCount; i += camera_frame_length)
+        for (int i = frame_headers; i < msg.FrameCount; i += camera_frame_length)
         {
 
             // Decode the camera message
@@ -302,18 +316,22 @@ quat[3]
                 GameObject camera_obj = Instantiate(camera_template, position, rotation);
                 // Set the game object name to the camera ID.
                 camera_obj.name = ID;
-                int render_order = ((i - 1) / 8);
+
+                int render_index = ((i - frame_headers) / camera_frame_length); // 0,1,2...
                 // Setup camera's position on screen.
-                camera_obj.GetComponent<Camera>().pixelRect = new Rect(width * render_order, 0, width * (render_order + 1), height);
+                camera_obj.GetComponent<Camera>().pixelRect = new Rect(width * render_index, 0, width, height);
 
                 // enable Camera.
                 camera_obj.SetActive(true);
                 // Add the new camera to our dictionary of gameobjects
-                camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_order });
+                camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_index });
             }
 
 
         };
+
+        // After decoding the packet, initialize the screen size and render textures (if necessary)
+        ensureScreenSize();
 
 
     }
