@@ -20,6 +20,12 @@ using System.Linq;
 
 // ZMQ/LCM
 using NetMQ;
+using LCM.LCM;
+
+// LCM types
+using bot_core;
+using agile;
+
 
 // Include the fastest version of Snappy available for the arch
 using Snappy;
@@ -41,12 +47,10 @@ public class CameraController : MonoBehaviour
     public string pose_host = "tcp://192.168.0.102:10253";
     public string video_host = "tcp://192.168.0.102:10254";
     public bool DEBUG = true;
-    public int num_cameras = 3;
-    public int width = 1024;
-    public int height = 768;
+    public int cam_width = 1024;
+    public int cam_height = 768;
     public int max_framerate = 80;
     public bool should_compress_video = true;
-
     public GameObject camera_template;
 
     // instance vars
@@ -54,6 +58,9 @@ public class CameraController : MonoBehaviour
     private NetMQ.Sockets.PublisherSocket push_socket;
     private int camera_frame_length = 8;
     private int frame_headers = 2;
+    private int num_cameras = 3;
+    private int rendered_image_width;
+    private int rendered_image_height;
     private long timestamp = 0;
     private Dictionary<string, CameraObj> camera_objects;
     private Texture2D rendered_frame;
@@ -86,11 +93,22 @@ public class CameraController : MonoBehaviour
             Application.targetFrameRate = max_framerate;
             // Set number of cameras
             num_cameras = camera_objects.Count;
+            // Calculate dimensions of rendered image <3H, W, C>
+            rendered_image_width = cam_width;
+            rendered_image_height = num_cameras * cam_height;
             // initialize the display to a window that fits all cameras
-            Screen.SetResolution(width * num_cameras, height, false);
+            Screen.SetResolution(rendered_image_width, rendered_image_height, false);
             // Set render texture to the correct size
-            rendered_frame = new Texture2D(width * num_cameras, height, TextureFormat.RGB24, false, true);
+            rendered_frame = new Texture2D(rendered_image_width, rendered_image_height, TextureFormat.RGB24, false, true);
             // Make sure that all cameras are drawing to the correct portion of the screen.
+            foreach (KeyValuePair<string, CameraObj> entry in camera_objects)
+            {
+                GameObject camera_obj = entry.Value.obj;
+                // Make sure camera renders to the correct portion of the screen.
+                camera_obj.GetComponent<Camera>().pixelRect = new Rect(0, cam_width*entry.Value.render_order, cam_width, cam_height);
+                // enable Camera.
+                camera_obj.SetActive(true);
+            }
 
             // Do not run this function again since we are initialized
             system_initialized = true;
@@ -104,8 +122,8 @@ public class CameraController : MonoBehaviour
         {
             pose_host = GetArg("-pose-host", pose_host);
             video_host = GetArg("-video-host", video_host);
-            width = int.Parse(GetArg("-width", width.ToString()));
-            height = int.Parse(GetArg("-height", height.ToString()));
+            cam_width = int.Parse(GetArg("-cam-width", cam_width.ToString()));
+            cam_height = int.Parse(GetArg("-cam-height", cam_height.ToString()));
             max_framerate = int.Parse(GetArg("-max-framerate", max_framerate.ToString()));
             should_compress_video = bool.Parse(GetArg("-should-compress-video", (!video_host.Contains("localhost")).ToString()));
         }
@@ -119,21 +137,16 @@ public class CameraController : MonoBehaviour
         // Connect sockets
         Debug.Log("Creating sockets.");
         pull_socket = new NetMQ.Sockets.SubscriberSocket();
-        //pull_socket.Options.ReceiveBuffer = 1000;
         pull_socket.Options.ReceiveHighWatermark = 90;
         pull_socket.Connect(pose_host);
         pull_socket.Subscribe("Pose");
 
         push_socket = new NetMQ.Sockets.PublisherSocket();
-        ////push_socket.Options.SendHighWatermark = 10;
         push_socket.Connect(video_host);
-        
         Debug.Log("Sockets bound.");
 
         // Initialize Objects
         camera_objects = new Dictionary<string, CameraObj>() { };
-
-
 
 
         // Wait until end of frame to transmit images
@@ -143,69 +156,72 @@ public class CameraController : MonoBehaviour
             // Blocks until the frame is rendered.
             yield return new WaitForEndOfFrame();
 
-
-            // Read pixels from the display.
-            rendered_frame.ReadPixels(new Rect(0, 0, width * num_cameras, height), 0, 0);
-
-            //Color32[] raw_colors = rendered_frame.GetPixels32();
-            rendered_frame.Apply();
-            byte[] raw = rendered_frame.GetRawTextureData();
-
-
-            // Compress and send the image in a different thread (if using windows).
-            Task.Run(() =>
+            if (system_initialized)
             {
-                //byte[] rgba = Color32ArrayToByteArray(raw_colors);
-                // Reorder the byte array such that the array is first all, R, then B, then G.
-                // This is probably easier to compress.
-                int raw_length = raw.Length;
-                int channel_length = raw_length / 3;
+
+                // Read pixels from the display.
+                rendered_frame.ReadPixels(new Rect(0, 0, rendered_image_width, rendered_image_height), 0, 0);
+                rendered_frame.Apply();
+                byte[] raw = rendered_frame.GetRawTextureData();
 
 
-                // Get the grayscale image, flipping the rows such that the image is transmitted rightside up
-                byte[] raw_flipped_r = new byte[channel_length];
-                int row_length_px = width * num_cameras;
-                for (int y = 0; y < height; y++)
+                // Compress and send the image in a different thread (if using windows).
+                Task.Run(() =>
                 {
-                    int y_inv = height - y - 1;
-                    for (int x = 0; x < row_length_px; x++)
+                    const int channels = 3;
+
+                    // Get the grayscale image, flipping the rows such that the image is transmitted rightside up
+                    byte[] raw_flipped_r = new byte[raw.Length/channels];
+
+                    for (int y = 0; y < rendered_image_height; y++)
                     {
-                        raw_flipped_r[(y_inv * row_length_px) + x] = raw[(y * row_length_px) * 3 + (x * 3)];
+                        int y_inv = rendered_image_height - y - 1;
+                        for (int x = 0; x < rendered_image_width; x++)
+                        {
+                            raw_flipped_r[(y_inv * rendered_image_width) + x] = raw[((y * rendered_image_width) + x) * channels];
+                        }
                     }
-                }
 
-                // Create the image data holder
-                byte[] image;
-                if (should_compress_video) {
+                    // Create the image data holder
+                    byte[] image;
+                    if (should_compress_video)
+                    {
 
-                    // Compress the image
+                        // Compress the image using the fastest system package available.
 #if (UNITY_EDITOR_WINDOWS || UNITY_STANDALONE_WINDOWS)
-                    image =  SnappyCodec.Compress(raw_flipped_r);
+                        image =  SnappyCodec.Compress(raw_flipped_r);
 #else
-                    image = Snappy.Sharp.Snappy.Compress(raw_flipped_r);
+                        image = Snappy.Sharp.Snappy.Compress(raw_flipped_r);
 #endif
-                } else
-                {
-                    image = raw_flipped_r;
-                }
-                var msg = new NetMQMessage();
-                /* Message format:
-                    * timestamp
-                    * is_compressed?
-                    * image_data
-                    * <end foreach>
-                    * */
-                msg.Append(timestamp);
-                msg.Append(Convert.ToInt16(should_compress_video));
-                msg.Append(image);
-                lock (socket_lock)
-                {
-                    push_socket.TrySendMultipartMessage(msg);
-                }
-                //bot_core.image_t msg = new bot_core.image_t();
-            }
-            );
+                    }
+                    else
+                    {
+                        image = raw_flipped_r;
+                    }
 
+                    // Send the image back using NetMQ
+                    SendNetMQImage(timestamp, ref image, should_compress_video);
+                });
+
+            }
+        }
+    }
+
+    /* Message format:
+    * timestamp
+    * is_compressed?
+    * image_data
+    * <end foreach>
+    * */
+    private void SendNetMQImage(long utime, ref byte[] im, bool is_compressed)
+    {
+        var msg = new NetMQMessage();
+        msg.Append(utime);
+        msg.Append(Convert.ToInt16(is_compressed));
+        msg.Append(im);
+        lock (socket_lock)
+        {
+            push_socket.TrySendMultipartMessage(msg);
         }
     }
 
@@ -307,24 +323,15 @@ quat[3]
                 // transform the gameobject
                 GameObject camera_obj = camera_objects[ID].obj;
                 camera_obj.transform.SetPositionAndRotation(position, rotation);
-                // Update timestamp
-
-                // Create the object if it does not exist.
             }
             else
             {
+                // Instatiate the object
                 GameObject camera_obj = Instantiate(camera_template, position, rotation);
                 // Set the game object name to the camera ID.
                 camera_obj.name = ID;
-
-                int render_index = ((i - frame_headers) / camera_frame_length); // 0,1,2...
-                // Setup camera's position on screen.
-                camera_obj.GetComponent<Camera>().pixelRect = new Rect(width * render_index, 0, width, height);
-
-                // enable Camera.
-                camera_obj.SetActive(true);
-                // Add the new camera to our dictionary of gameobjects
-                camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_index });
+                int render_order = ((i - frame_headers) / camera_frame_length); // 0,1,2...
+                camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_order });
             }
 
 
@@ -332,8 +339,6 @@ quat[3]
 
         // After decoding the packet, initialize the screen size and render textures (if necessary)
         ensureScreenSize();
-
-
     }
 
 }
