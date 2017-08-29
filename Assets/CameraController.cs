@@ -98,7 +98,7 @@ public class CameraController : MonoBehaviour
             // Set the max framerate
             Application.targetFrameRate = max_framerate;
             // Get number of cameras by counting the number of objects have "camera" in the name
-            num_cameras = simulation_objects.Count(kv => kv.Key.ToLower().Contains("camera"));
+            num_cameras = simulation_objects.Count(kv => kv.Key.ToLower().Contains("cam"));
             Debug.LogFormat("Number of cameras: {0}", num_cameras);
             // Calculate dimensions of rendered image <3H, W, C>
             rendered_image_width = cam_width;
@@ -108,7 +108,7 @@ public class CameraController : MonoBehaviour
             // Set render texture to the correct size
             rendered_frame = new Texture2D(rendered_image_width, rendered_image_height, TextureFormat.RGB24, false, true);
             // Make sure that all cameras are drawing to the correct portion of the screen.
-            foreach (KeyValuePair<string, SimulationObj> entry in simulation_objects.Where(kv => kv.Key.ToLower().Contains("camera")))
+            foreach (KeyValuePair<string, SimulationObj> entry in simulation_objects.Where(kv => kv.Key.ToLower().Contains("cam")))
             {
                 Debug.LogFormat("Turning on camera ID: {0}", entry.Key);
                 GameObject camera_obj = entry.Value.obj;
@@ -346,7 +346,7 @@ quat[3]
             else
             {
                 // Check if we got a Window or Camera pose.
-                bool is_camera = ID.ToLower().Contains("camera");
+                bool is_camera = ID.ToLower().Contains("cam");
                 GameObject template = is_camera ? camera_template : window_template;
                 // Instantiate the object using the desired pose.
                 GameObject obj = Instantiate(template, position, rotation);
