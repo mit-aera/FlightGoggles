@@ -62,7 +62,7 @@ public class CameraController : MonoBehaviour
 
     // Calculated varables
     private int camera_frame_length = 8;
-    private int frame_headers = 2;
+    private int frame_headers = 7;
     private int num_cameras = 3;
     private int rendered_image_width;
     private int rendered_image_height;
@@ -72,6 +72,7 @@ public class CameraController : MonoBehaviour
     private object socket_lock;
     private bool screen_initialized = false;
     private bool connected = false;
+    private Vector3 window_dimensions;
 
     // Helper function for getting command line arguments
     private static string GetArg(string name, string default_return)
@@ -319,6 +320,14 @@ quat[3]
         }
         // Update the timestamp
         timestamp = new_timestamp;
+
+        // Get metadata
+        cam_width = int.Parse(msg[2].ConvertToString());
+        cam_height = int.Parse(msg[3].ConvertToString());
+        window_dimensions = new Vector3(
+                                    float.Parse(msg[4 + 0].ConvertToString()),
+                                    float.Parse(msg[4 + 1].ConvertToString()),
+                                    float.Parse(msg[4 + 2].ConvertToString()));
         
         // split the message into batches of 8 (eg. poses for each object).
         for (int i = frame_headers; i < msg.FrameCount; i += camera_frame_length)
@@ -347,6 +356,8 @@ quat[3]
             {
                 // Check if we got a Window or Camera pose.
                 bool is_camera = ID.ToLower().Contains("cam");
+                bool is_window = !is_camera;
+
                 GameObject template = is_camera ? camera_template : window_template;
                 // Instantiate the object using the desired pose.
                 GameObject obj = Instantiate(template, position, rotation);
@@ -354,6 +365,13 @@ quat[3]
                 obj.name = ID;
                 // remember the order that this object was given to us in.
                 int render_index = ((i - frame_headers) / camera_frame_length); // 0,1,2...
+                if (is_window){
+                    // Set window size
+                    obj.transform.localscale = window_dimensions;
+                    // set window color
+                    // @TODO
+                }
+
                 // Save the object.
                 simulation_objects.Add(ID, new SimulationObj() { ID = ID, obj = obj, render_index = render_index });
 
