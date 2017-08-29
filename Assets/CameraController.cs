@@ -367,9 +367,9 @@ quat[3]
                 int render_index = ((i - frame_headers) / camera_frame_length); // 0,1,2...
                 if (is_window){
                     // Set window size
-                    obj.transform.localscale = window_dimensions;
+                    obj.transform.localScale = window_dimensions;
                     // set window color
-                    // @TODO
+                    /// @TODO
                 }
 
                 // Save the object.
