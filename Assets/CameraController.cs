@@ -33,10 +33,10 @@ using Snappy.Sharp;
 
 
 // Camera class for decoding the ZMQ messages.
-class CameraObj
+class SimulationObj
 {
     public string ID { get; set; }
-    public int render_order { get; set; }
+    public int render_index { get; set; }
     public GameObject obj { get; set; }
 }
 
@@ -52,20 +52,26 @@ public class CameraController : MonoBehaviour
     public int max_framerate = 80;
     public bool should_compress_video = true;
     public GameObject camera_template;
+    public GameObject window_template;
 
     // instance vars
+    // NETWORK
     private NetMQ.Sockets.SubscriberSocket pull_socket;
     private NetMQ.Sockets.PublisherSocket push_socket;
+    //private LCM.LCM.LCM myLCM;
+
+    // Calculated varables
     private int camera_frame_length = 8;
     private int frame_headers = 2;
     private int num_cameras = 3;
     private int rendered_image_width;
     private int rendered_image_height;
     private long timestamp = 0;
-    private Dictionary<string, CameraObj> camera_objects;
+    private Dictionary<string, SimulationObj> simulation_objects;
     private Texture2D rendered_frame;
     private object socket_lock;
-    private bool system_initialized;
+    private bool screen_initialized = false;
+    private bool connected = false;
 
     // Helper function for getting command line arguments
     private static string GetArg(string name, string default_return)
@@ -87,12 +93,13 @@ public class CameraController : MonoBehaviour
 
     private void ensureScreenSize()
     {
-        if (!system_initialized)
+        if (!screen_initialized && connected)
         {
             // Set the max framerate
             Application.targetFrameRate = max_framerate;
-            // Set number of cameras
-            num_cameras = camera_objects.Count;
+            // Get number of cameras by counting the number of objects have "camera" in the name
+            num_cameras = simulation_objects.Count(kv => kv.Key.ToLower().Contains("camera"));
+            Debug.LogFormat("Number of cameras: {0}", num_cameras);
             // Calculate dimensions of rendered image <3H, W, C>
             rendered_image_width = cam_width;
             rendered_image_height = num_cameras * cam_height;
@@ -101,17 +108,18 @@ public class CameraController : MonoBehaviour
             // Set render texture to the correct size
             rendered_frame = new Texture2D(rendered_image_width, rendered_image_height, TextureFormat.RGB24, false, true);
             // Make sure that all cameras are drawing to the correct portion of the screen.
-            foreach (KeyValuePair<string, CameraObj> entry in camera_objects)
+            foreach (KeyValuePair<string, SimulationObj> entry in simulation_objects.Where(kv => kv.Key.ToLower().Contains("camera")))
             {
+                Debug.LogFormat("Turning on camera ID: {0}", entry.Key);
                 GameObject camera_obj = entry.Value.obj;
                 // Make sure camera renders to the correct portion of the screen.
-                camera_obj.GetComponent<Camera>().pixelRect = new Rect(0, cam_width*entry.Value.render_order, cam_width, cam_height);
+                camera_obj.GetComponent<Camera>().pixelRect = new Rect(0, cam_height*(num_cameras-entry.Value.render_index-1), cam_width, cam_height);
                 // enable Camera.
                 camera_obj.SetActive(true);
             }
 
             // Do not run this function again since we are initialized
-            system_initialized = true;
+            screen_initialized = true;
         }
     }
 
@@ -139,6 +147,8 @@ public class CameraController : MonoBehaviour
         pull_socket = new NetMQ.Sockets.SubscriberSocket();
         pull_socket.Options.ReceiveHighWatermark = 90;
         pull_socket.Connect(pose_host);
+
+        // Setup subscriptions.
         pull_socket.Subscribe("Pose");
 
         push_socket = new NetMQ.Sockets.PublisherSocket();
@@ -146,7 +156,7 @@ public class CameraController : MonoBehaviour
         Debug.Log("Sockets bound.");
 
         // Initialize Objects
-        camera_objects = new Dictionary<string, CameraObj>() { };
+        simulation_objects = new Dictionary<string, SimulationObj>() { };
 
 
         // Wait until end of frame to transmit images
@@ -156,7 +166,7 @@ public class CameraController : MonoBehaviour
             // Blocks until the frame is rendered.
             yield return new WaitForEndOfFrame();
 
-            if (system_initialized)
+            if (screen_initialized)
             {
 
                 // Read pixels from the display.
@@ -204,6 +214,9 @@ public class CameraController : MonoBehaviour
                 });
 
             }
+
+            // Last thing to do in this frame is to ensure that the screen resolution is correctly set for the next frame
+            ensureScreenSize();
         }
     }
 
@@ -214,6 +227,18 @@ public class CameraController : MonoBehaviour
     * <end foreach>
     * */
     private void SendNetMQImage(long utime, ref byte[] im, bool is_compressed)
+    {
+        var msg = new NetMQMessage();
+        msg.Append(utime);
+        msg.Append(Convert.ToInt16(is_compressed));
+        msg.Append(im);
+        lock (socket_lock)
+        {
+            push_socket.TrySendMultipartMessage(msg);
+        }
+    }
+
+    private void SendLCMImage(long utime, ref byte[] im, bool is_compressed)
     {
         var msg = new NetMQMessage();
         msg.Append(utime);
@@ -263,7 +288,6 @@ quat[3]
     void Update()
     {
         //Debug.Log ("Entering Update");
-
         // Receive most recent message
         var msg = new NetMQMessage();
         var new_msg = new NetMQMessage();
@@ -285,8 +309,6 @@ quat[3]
             return;
         }
 
-
-        // Split message into camera objects
         // Decode timestamp
         long new_timestamp = long.Parse(msg[1].ConvertToString());
         // sanity check the timestamp
@@ -297,16 +319,13 @@ quat[3]
         }
         // Update the timestamp
         timestamp = new_timestamp;
-        // sanity check the message
-        int zmq_num_cameras = (msg.FrameCount - frame_headers) / camera_frame_length;
-        Debug.AssertFormat(zmq_num_cameras == num_cameras, "Number of cameras in ZMQ message {0} does not match Unity settings.", zmq_num_cameras);
-
-        // split the message into batches of 8 (eg. for each camera).
+        
+        // split the message into batches of 8 (eg. poses for each object).
         for (int i = frame_headers; i < msg.FrameCount; i += camera_frame_length)
         {
-
-            // Decode the camera message
+            // Get the Object ID.
             string ID = msg[i].ConvertToString();
+            // Decode the pose message
             Vector3 position = new Vector3(
                                     float.Parse(msg[i + 1].ConvertToString()),
                                     float.Parse(msg[i + 2].ConvertToString()),
@@ -317,28 +336,35 @@ quat[3]
                 float.Parse(msg[i + 6].ConvertToString()),
                 float.Parse(msg[i + 7].ConvertToString()));
 
-            // Check if this camera exists.
-            if (camera_objects.ContainsKey(ID))
+            // Check if this object exists.
+            if (simulation_objects.ContainsKey(ID))
             {
                 // transform the gameobject
-                GameObject camera_obj = camera_objects[ID].obj;
-                camera_obj.transform.SetPositionAndRotation(position, rotation);
+                GameObject obj = simulation_objects[ID].obj;
+                obj.transform.SetPositionAndRotation(position, rotation);
             }
             else
             {
-                // Instatiate the object
-                GameObject camera_obj = Instantiate(camera_template, position, rotation);
-                // Set the game object name to the camera ID.
-                camera_obj.name = ID;
-                int render_order = ((i - frame_headers) / camera_frame_length); // 0,1,2...
-                camera_objects.Add(ID, new CameraObj() { ID = ID, obj = camera_obj, render_order = render_order });
+                // Check if we got a Window or Camera pose.
+                bool is_camera = ID.ToLower().Contains("camera");
+                GameObject template = is_camera ? camera_template : window_template;
+                // Instantiate the object using the desired pose.
+                GameObject obj = Instantiate(template, position, rotation);
+                // Set the game object name
+                obj.name = ID;
+                // remember the order that this object was given to us in.
+                int render_index = ((i - frame_headers) / camera_frame_length); // 0,1,2...
+                // Save the object.
+                simulation_objects.Add(ID, new SimulationObj() { ID = ID, obj = obj, render_index = render_index });
+
             }
 
 
         };
 
-        // After decoding the packet, initialize the screen size and render textures (if necessary)
-        ensureScreenSize();
+        // Make sure that the rest of the program knows that we are connected.
+        connected = true;
     }
+
 
 }
