@@ -182,14 +182,21 @@ public class CameraController : MonoBehaviour
                     const int channels = 3;
 
                     // Get the grayscale image, flipping the rows such that the image is transmitted rightside up
-                    byte[] raw_flipped_r = new byte[raw.Length/channels];
+                    // @TODO: Use REAL grayscale conversion.
+                    byte[] raw_flipped_gray = new byte[raw.Length/channels];
 
                     for (int y = 0; y < rendered_image_height; y++)
                     {
                         int y_inv = rendered_image_height - y - 1;
                         for (int x = 0; x < rendered_image_width; x++)
                         {
-                            raw_flipped_r[(y_inv * rendered_image_width) + x] = raw[((y * rendered_image_width) + x) * channels];
+                            float R = raw[((y * rendered_image_width) + x) * channels];
+                            float G = raw[((y * rendered_image_width) + x) * channels + 1];
+                            float B = raw[((y * rendered_image_width) + x) * channels + 2];
+                            
+                            // Grayscale conversion.
+                            // https://www.mathworks.com/help/matlab/ref/rgb2gray.html
+                            raw_flipped_gray[(y_inv * rendered_image_width) + x] = byte(0.2989 * R + 0.5870 * G + 0.1140 * B)  ;
                         }
                     }
 
@@ -200,14 +207,14 @@ public class CameraController : MonoBehaviour
 
                         // Compress the image using the fastest system package available.
 #if (UNITY_EDITOR_WINDOWS || UNITY_STANDALONE_WINDOWS)
-                        image =  SnappyCodec.Compress(raw_flipped_r);
+                        image =  SnappyCodec.Compress(raw_flipped_gray);
 #else
-                        image = Snappy.Sharp.Snappy.Compress(raw_flipped_r);
+                        image = Snappy.Sharp.Snappy.Compress(raw_flipped_gray);
 #endif
                     }
                     else
                     {
-                        image = raw_flipped_r;
+                        image = raw_flipped_gray;
                     }
 
                     // Send the image back using NetMQ
