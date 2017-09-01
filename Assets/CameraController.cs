@@ -62,7 +62,7 @@ public class CameraController : MonoBehaviour
 
     // Calculated varables
     private int camera_frame_length = 8;
-    private int frame_headers = 7;
+    private int frame_headers = 10;
     private int num_cameras = 3;
     private int rendered_image_width;
     private int rendered_image_height;
@@ -73,6 +73,7 @@ public class CameraController : MonoBehaviour
     private bool screen_initialized = false;
     private bool connected = false;
     private Vector3 window_dimensions;
+    private Vector3 window_hsv;
 
     // Helper function for getting command line arguments
     private static string GetArg(string name, string default_return)
@@ -185,18 +186,23 @@ public class CameraController : MonoBehaviour
                     // @TODO: Use REAL grayscale conversion.
                     byte[] raw_flipped_gray = new byte[raw.Length/channels];
 
+                    // Temp vars
+                    byte R, G, B;
+
                     for (int y = 0; y < rendered_image_height; y++)
                     {
                         int y_inv = rendered_image_height - y - 1;
                         for (int x = 0; x < rendered_image_width; x++)
                         {
-                            float R = raw[((y * rendered_image_width) + x) * channels];
-                            float G = raw[((y * rendered_image_width) + x) * channels + 1];
-                            float B = raw[((y * rendered_image_width) + x) * channels + 2];
-                            
+                            R = raw[((y * rendered_image_width) + x) * channels];
+                            G = raw[((y * rendered_image_width) + x) * channels + 1];
+                            B = raw[((y * rendered_image_width) + x) * channels + 2];
+
                             // Grayscale conversion.
                             // https://www.mathworks.com/help/matlab/ref/rgb2gray.html
-                            raw_flipped_gray[(y_inv * rendered_image_width) + x] = byte(0.2989 * R + 0.5870 * G + 0.1140 * B)  ;
+                            // Use of Math.Min for overflow handling without try/catch statement.
+                            // NOTE: This does not round correctly (just truncates), since rounding is SLOW (-10FPS)
+                            raw_flipped_gray[(y_inv * rendered_image_width) + x] = (byte) Math.Min(0.2989 * R + 0.5870 * G + 0.1140 * B, byte.MaxValue);
                         }
                     }
 
@@ -331,11 +337,17 @@ quat[3]
         // Get metadata
         cam_width = int.Parse(msg[2].ConvertToString());
         cam_height = int.Parse(msg[3].ConvertToString());
+        // Window dimensions
         window_dimensions = new Vector3(
                                     float.Parse(msg[4 + 0].ConvertToString()),
                                     float.Parse(msg[4 + 1].ConvertToString()),
                                     float.Parse(msg[4 + 2].ConvertToString()));
-        
+
+        window_hsv = new Vector3(
+                            float.Parse(msg[7 + 0].ConvertToString()),
+                            float.Parse(msg[7 + 1].ConvertToString()),
+                            float.Parse(msg[7 + 2].ConvertToString()));
+
         // split the message into batches of 8 (eg. poses for each object).
         for (int i = frame_headers; i < msg.FrameCount; i += camera_frame_length)
         {
@@ -376,7 +388,8 @@ quat[3]
                     // Set window size
                     obj.transform.localScale = window_dimensions;
                     // set window color
-                    /// @TODO
+                    Color hsv_color = Color.HSVToRGB(window_hsv[0], window_hsv[1], window_hsv[2]);
+                    obj.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", hsv_color);
                 }
 
                 // Save the object.
