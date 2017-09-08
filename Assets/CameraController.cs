@@ -49,6 +49,7 @@ public class CameraController : MonoBehaviour
     public bool DEBUG = true;
     public int cam_width = 1024;
     public int cam_height = 768;
+    public float cam_vertical_fov = 70.0;
     public int max_framerate = 80;
     public bool should_compress_video = true;
     public GameObject camera_template;
@@ -62,7 +63,7 @@ public class CameraController : MonoBehaviour
 
     // Calculated varables
     private int camera_frame_length = 8;
-    private int frame_headers = 10;
+    private int frame_headers = 11;
     private int num_cameras = 3;
     private int rendered_image_width;
     private int rendered_image_height;
@@ -116,6 +117,8 @@ public class CameraController : MonoBehaviour
                 GameObject camera_obj = entry.Value.obj;
                 // Make sure camera renders to the correct portion of the screen.
                 camera_obj.GetComponent<Camera>().pixelRect = new Rect(0, cam_height*(num_cameras-entry.Value.render_index-1), cam_width, cam_height);
+                // Ensure FOV is set for camera.
+                camera_obj.GetComponent<Camera>().fieldOfView = cam_vertical_fov;
                 // enable Camera.
                 camera_obj.SetActive(true);
             }
@@ -323,8 +326,11 @@ quat[3]
             return;
         }
 
+        // Metadata index.
+        int f = 1;
+
         // Decode timestamp
-        long new_timestamp = long.Parse(msg[1].ConvertToString());
+        long new_timestamp = long.Parse(msg[f++].ConvertToString());
         // sanity check the timestamp
         if (!(new_timestamp > timestamp) && !DEBUG)
         {
@@ -335,18 +341,19 @@ quat[3]
         timestamp = new_timestamp;
 
         // Get metadata
-        cam_width = int.Parse(msg[2].ConvertToString());
-        cam_height = int.Parse(msg[3].ConvertToString());
+        cam_width = int.Parse(msg[f++].ConvertToString());
+        cam_height = int.Parse(msg[f++].ConvertToString());
+        cam_vertical_fov = float.Parse(msg[f++].ConvertToString());
         // Window dimensions
         window_dimensions = new Vector3(
-                                    float.Parse(msg[4 + 0].ConvertToString()),
-                                    float.Parse(msg[4 + 1].ConvertToString()),
-                                    float.Parse(msg[4 + 2].ConvertToString()));
+                                    float.Parse(msg[f++].ConvertToString()),
+                                    float.Parse(msg[f++].ConvertToString()),
+                                    float.Parse(msg[f++].ConvertToString()));
 
         window_hsv = new Vector3(
-                            float.Parse(msg[7 + 0].ConvertToString()),
-                            float.Parse(msg[7 + 1].ConvertToString()),
-                            float.Parse(msg[7 + 2].ConvertToString()));
+                            float.Parse(msg[f++].ConvertToString()),
+                            float.Parse(msg[f++].ConvertToString()),
+                            float.Parse(msg[f++].ConvertToString()));
 
         // split the message into batches of 8 (eg. poses for each object).
         for (int i = frame_headers; i < msg.FrameCount; i += camera_frame_length)
