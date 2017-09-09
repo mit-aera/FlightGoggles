@@ -49,7 +49,7 @@ public class CameraController : MonoBehaviour
     public bool DEBUG = true;
     public int cam_width = 1024;
     public int cam_height = 768;
-    public float cam_vertical_fov = 70.0;
+    public float cam_vertical_fov = 70.0f;
     public int max_framerate = 80;
     public bool should_compress_video = true;
     public GameObject camera_template;
