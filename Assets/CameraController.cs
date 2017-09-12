@@ -72,6 +72,7 @@ public class CameraController : MonoBehaviour
     private Texture2D rendered_frame;
     private object socket_lock;
     private bool screen_initialized = false;
+    private bool cameras_initialized = false;
     private bool connected = false;
     private Vector3 window_dimensions;
     private Vector3 window_hsv;
@@ -96,8 +97,7 @@ public class CameraController : MonoBehaviour
 
     private void ensureScreenSize()
     {
-        if (!screen_initialized && connected)
-        {
+        if (!screen_initialized && connected) {
             // Set the max framerate
             Application.targetFrameRate = max_framerate;
             // Get number of cameras by counting the number of objects have "camera" in the name
@@ -110,6 +110,12 @@ public class CameraController : MonoBehaviour
             Screen.SetResolution(rendered_image_width, rendered_image_height, false);
             // Set render texture to the correct size
             rendered_frame = new Texture2D(rendered_image_width, rendered_image_height, TextureFormat.RGB24, false, true);
+            // Screen is initialized, but the cameras are not.
+            screen_initialized = true;
+            return;
+        }
+        // Initialize the cameras (on next frame)
+        if (screen_initialized && connected && !cameras_initialized){
             // Make sure that all cameras are drawing to the correct portion of the screen.
             foreach (KeyValuePair<string, SimulationObj> entry in simulation_objects.Where(kv => kv.Key.ToLower().Contains("cam")))
             {
@@ -122,9 +128,8 @@ public class CameraController : MonoBehaviour
                 // enable Camera.
                 camera_obj.SetActive(true);
             }
+            cameras_initialized = true;
 
-            // Do not run this function again since we are initialized
-            screen_initialized = true;
         }
     }
 
@@ -171,7 +176,7 @@ public class CameraController : MonoBehaviour
             // Blocks until the frame is rendered.
             yield return new WaitForEndOfFrame();
 
-            if (screen_initialized)
+            if (screen_initialized && cameras_initialized)
             {
 
                 // Read pixels from the display.
