@@ -102,7 +102,7 @@ public class CameraController : MonoBehaviour
             Application.targetFrameRate = max_framerate;
             // Get number of cameras by counting the number of objects have "camera" in the name
             num_cameras = simulation_objects.Count(kv => kv.Key.ToLower().Contains("cam"));
-            Debug.LogFormat("Number of cameras: {0}", num_cameras);
+            //Debug.LogFormat("Number of cameras: {0}", num_cameras);
             // Calculate dimensions of rendered image <3H, W, C>
             rendered_image_width = cam_width;
             rendered_image_height = num_cameras * cam_height;
@@ -119,7 +119,7 @@ public class CameraController : MonoBehaviour
             // Make sure that all cameras are drawing to the correct portion of the screen.
             foreach (KeyValuePair<string, SimulationObj> entry in simulation_objects.Where(kv => kv.Key.ToLower().Contains("cam")))
             {
-                Debug.LogFormat("Turning on camera ID: {0}", entry.Key);
+                //Debug.LogFormat("Turning on camera ID: {0}", entry.Key);
                 GameObject camera_obj = entry.Value.obj;
                 // Make sure camera renders to the correct portion of the screen.
                 camera_obj.GetComponent<Camera>().pixelRect = new Rect(0, cam_height*(num_cameras-entry.Value.render_index-1), cam_width, cam_height);
@@ -324,7 +324,7 @@ quat[3]
         }
 
         //msg = pull_socket.ReceiveMultipartMessage();
-        Debug.LogFormat(" Received ZMQ message with {0} frames!", msg.FrameCount);
+        //Debug.LogFormat(" Received ZMQ message with {0} frames!", msg.FrameCount);
         // Check for errors
         if (msg.FrameCount == 0)
         {
