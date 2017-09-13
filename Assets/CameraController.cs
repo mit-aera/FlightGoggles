@@ -232,13 +232,21 @@ public class CameraController : MonoBehaviour
                     }
 
                     // Send the image back using NetMQ
-                    SendNetMQImage(timestamp, ref image, should_compress_video);
+                    // SendNetMQImage(timestamp, ref image, should_compress_video);
+                    var msg = new NetMQMessage();
+                    msg.Append(timestamp);
+                    msg.Append(Convert.ToInt16(should_compress_video));
+                    msg.Append(image);
+                    lock (socket_lock)
+                    {
+                        push_socket.TrySendMultipartMessage(msg);
+                    }
                 });
 
+                
+            } else {
+                ensureScreenSize();
             }
-
-            // Last thing to do in this frame is to ensure that the screen resolution is correctly set for the next frame
-            ensureScreenSize();
         }
     }
 
@@ -248,29 +256,29 @@ public class CameraController : MonoBehaviour
     * image_data
     * <end foreach>
     * */
-    private void SendNetMQImage(long utime, ref byte[] im, bool is_compressed)
-    {
-        var msg = new NetMQMessage();
-        msg.Append(utime);
-        msg.Append(Convert.ToInt16(is_compressed));
-        msg.Append(im);
-        lock (socket_lock)
-        {
-            push_socket.TrySendMultipartMessage(msg);
-        }
-    }
+    // private void SendNetMQImage(long utime, ref byte[] im, bool is_compressed)
+    // {
+    //     var msg = new NetMQMessage();
+    //     msg.Append(utime);
+    //     msg.Append(Convert.ToInt16(is_compressed));
+    //     msg.Append(im);
+    //     lock (socket_lock)
+    //     {
+    //         push_socket.TrySendMultipartMessage(msg);
+    //     }
+    // }
 
-    private void SendLCMImage(long utime, ref byte[] im, bool is_compressed)
-    {
-        var msg = new NetMQMessage();
-        msg.Append(utime);
-        msg.Append(Convert.ToInt16(is_compressed));
-        msg.Append(im);
-        lock (socket_lock)
-        {
-            push_socket.TrySendMultipartMessage(msg);
-        }
-    }
+    // private void SendLCMImage(long utime, ref byte[] im, bool is_compressed)
+    // {
+    //     var msg = new NetMQMessage();
+    //     msg.Append(utime);
+    //     msg.Append(Convert.ToInt16(is_compressed));
+    //     msg.Append(im);
+    //     lock (socket_lock)
+    //     {
+    //         push_socket.TrySendMultipartMessage(msg);
+    //     }
+    // }
 
     private void OnApplicationQuit()
     {
