@@ -41,8 +41,3 @@ sysinfo.txt
 
 #  for Nano
 *.swp
-
-# Ignore other assets
-*
-!FlightGoggles
-!FlightGoggles.meta
