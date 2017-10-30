@@ -1,14 +1,7 @@
-## GitIgnores Specific to the Unity portion of FlightGoggles
-*.meta
-ProjectSettings/
-Assets/*
 
-#Include script DIRS
-!Assets/Plugins/
-!Assets/Scripts/
+# Created by https://www.gitignore.io/api/unity
 
-
-## Unity GitIgnores ##
+### Unity ###
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
@@ -44,7 +37,8 @@ sysinfo.txt
 *.apk
 *.unitypackage
 
+# End of https://www.gitignore.io/api/unity
 
-# Ignores for Nano
+#  for Nano
 *.swp
 
