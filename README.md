@@ -4,10 +4,18 @@ A lightweight framework for hardware-in-the-loop agile flight simulation using U
 @TODO: Video Link
 
 ## Getting Started
+
+### Requirements
+
+* Unity Editor version >= `2017.3.0b6` running on Windows or Linux. You can download the latest beta version of Unity [here](https://unity3d.com/unity/beta).
+* Unity must have experimental .NET APIs enabled in the graphics project:
+	+ `Edit -> Project Settings -> Player -> Scripting Runtime Version = 4.6`
+
+
 Clone this repo and some required repos into your Unity Project's `Assets` folder using the following commands:
 
 ```bash
-cd <UNITY_PROJECT_DIRECTORY>/Assets
+cd <UNITY_PROJECT_DIRECTORY>
 # Clone repos
 git clone --recursive git@github.com:AgileDrones/FlightGoggles.git
 ```
