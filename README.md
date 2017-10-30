@@ -9,12 +9,7 @@ Clone this repo and some required repos into your Unity Project's `Assets` folde
 ```bash
 cd <UNITY_PROJECT_DIRECTORY>/Assets
 # Clone repos
-git clone git@github.com:AgileDrones/FlightGoggles.git
-git clone https://github.com/Unity-Technologies/PostProcessing.git
-# Use v2 of the Unity PostProcessing stack
-cd PostProcessing
-git checkout v2
-cd ../
+git clone --recursive git@github.com:AgileDrones/FlightGoggles.git
 ```
 
 ## Citation
