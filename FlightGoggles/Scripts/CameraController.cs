@@ -1,55 +1,81 @@
-﻿
-using System;
-using System.IO;
-using System.IO.Compression;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-
-// Array ops
-using System.Linq;
-
-/*
+﻿/*
  * Camera Controller
  * Listens for ZMQ camera poses on a separate thread and creates/moves cameras to match.
  *
  */
 
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.Threading.Tasks;
+
+// Array ops
+using System.Linq;
+
 // ZMQ/LCM
 using NetMQ;
-using LCM.LCM;
 
-// LCM types
-using bot_core;
-using agile;
+// Message definitions
+class StateMessage_t
+{
+    // Metadata
+    public double utime { get; set; }
+    public int cam_width { get; set; }
+    public int cam_height { get; set; }
+    public float cam_vertical_fov { get; set; }
+    // Object state update
+    public IList<Camera_t> Cameras { get; set; }
+    public IList<Window_t> Windows { get; set; }
 
-
-// Include the fastest version of Snappy available for the arch
-using Snappy;
-using Snappy.Sharp;
-
+    // Additional getters
+    public int num_cameras { get {return Cameras.Count();} }
+    public int rendered_image_width { get { return cam_width; } }
+    public int rendered_image_height { get { return cam_height*num_cameras; } }
+}
 
 // Camera class for decoding the ZMQ messages.
-class SimulationObj
+class Camera_t
 {
     public string ID { get; set; }
-    public int render_index { get; set; }
-    public GameObject obj { get; set; }
+    public IList<double> translation { get; set; }
+    public IList<double> quaternion { get; set; }
+    // Metadata
+    public bool has_depth { get; set; }
+    public int is_grayscale { get; set; }
+    // Additional getters
+    public GameObject get_gameobject(Dictionary<string, GameObject> dict)
+    {
+        return dict[ID];
+    }
 }
+
+// Window class for decoding the ZMQ messages.
+class Window_t
+{
+    public string ID { get; set; }
+    public IList<double> translation { get; set; }
+    public IList<double> quaternion { get; set; }
+    // Metadata
+    public IList<double> color { get; set; }
+    public IList<double> size { get; set; }
+    public GameObject get_gameobject(Dictionary<string, GameObject> dict)
+    {
+        return dict[ID];
+    }
+}
+
+
 
 public class CameraController : MonoBehaviour
 {
 
-    // Parameters
+    // Public Parameters
     public string pose_host = "tcp://192.168.0.102:10253";
     public string video_host = "tcp://192.168.0.102:10254";
     public bool DEBUG = true;
-    public int cam_width = 1024;
-    public int cam_height = 768;
-    public float cam_vertical_fov = 70.0f;
+
     public int max_framerate = 80;
     public bool should_compress_video = true;
     public GameObject camera_template;
@@ -59,23 +85,16 @@ public class CameraController : MonoBehaviour
     // NETWORK
     private NetMQ.Sockets.SubscriberSocket pull_socket;
     private NetMQ.Sockets.PublisherSocket push_socket;
-    //private LCM.LCM.LCM myLCM;
+    private StateMessage_t state;
 
-    // Calculated varables
-    private int camera_frame_length = 8;
-    private int frame_headers = 11;
-    private int num_cameras = 3;
-    private int rendered_image_width;
-    private int rendered_image_height;
-    private long timestamp = 0;
-    private Dictionary<string, SimulationObj> simulation_objects;
+    // Internal state & storage variables
+    private Dictionary<string, GameObject> simulation_objects;
     private Texture2D rendered_frame;
     private object socket_lock;
     private bool screen_initialized = false;
     private bool cameras_initialized = false;
     private bool connected = false;
-    private Vector3 window_dimensions;
-    private Vector3 window_hsv;
+
 
     // Helper function for getting command line arguments
     private static string GetArg(string name, string default_return)
@@ -100,16 +119,10 @@ public class CameraController : MonoBehaviour
         if (!screen_initialized && connected) {
             // Set the max framerate
             Application.targetFrameRate = max_framerate;
-            // Get number of cameras by counting the number of objects have "camera" in the name
-            num_cameras = simulation_objects.Count(kv => kv.Key.ToLower().Contains("cam"));
-            //Debug.LogFormat("Number of cameras: {0}", num_cameras);
-            // Calculate dimensions of rendered image <3H, W, C>
-            rendered_image_width = cam_width;
-            rendered_image_height = num_cameras * cam_height;
             // initialize the display to a window that fits all cameras
-            Screen.SetResolution(rendered_image_width, rendered_image_height, false);
+            Screen.SetResolution(state.rendered_image_width, state.rendered_image_height, false);
             // Set render texture to the correct size
-            rendered_frame = new Texture2D(rendered_image_width, rendered_image_height, TextureFormat.RGB24, false, true);
+            rendered_frame = new Texture2D(state.rendered_image_width, state.rendered_image_height, TextureFormat.RGB24, false, true);
             // Screen is initialized, but the cameras are not.
             screen_initialized = true;
             return;
@@ -250,36 +263,6 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    /* Message format:
-    * timestamp
-    * is_compressed?
-    * image_data
-    * <end foreach>
-    * */
-    // private void SendNetMQImage(long utime, ref byte[] im, bool is_compressed)
-    // {
-    //     var msg = new NetMQMessage();
-    //     msg.Append(utime);
-    //     msg.Append(Convert.ToInt16(is_compressed));
-    //     msg.Append(im);
-    //     lock (socket_lock)
-    //     {
-    //         push_socket.TrySendMultipartMessage(msg);
-    //     }
-    // }
-
-    // private void SendLCMImage(long utime, ref byte[] im, bool is_compressed)
-    // {
-    //     var msg = new NetMQMessage();
-    //     msg.Append(utime);
-    //     msg.Append(Convert.ToInt16(is_compressed));
-    //     msg.Append(im);
-    //     lock (socket_lock)
-    //     {
-    //         push_socket.TrySendMultipartMessage(msg);
-    //     }
-    // }
-
     private void OnApplicationQuit()
     {
         // Close ZMQ sockets
@@ -296,24 +279,7 @@ public class CameraController : MonoBehaviour
 	 * Update is called once per frame
 	 * Take the most recent ZMQ message and use it to position the cameras.
 	 * If there has not been a recent message, the renderer should probably pause rendering until a new request is received. 
-
-Pose Message format for ZMQ
--- ZMQ Message start
-"Pose"
-timestamp
-[for each camera]
-Camera ID string.
-pose[0]
-pose[1]
-pose[2]
-quat[0]
-quat[1]
-quat[2]
-quat[3]
-[end for each camera]
--- ZMQ Message end.
-
-	*/
+    */
 
     void Update()
     {
@@ -326,19 +292,23 @@ quat[3]
         // Check if this is the latest message
         while (pull_socket.TryReceiveMultipartMessage(ref new_msg));
 
+        // Check that we got the whole message
         if (new_msg.FrameCount >= msg.FrameCount)
         {
             msg = new_msg;
         }
 
-        //msg = pull_socket.ReceiveMultipartMessage();
-        //Debug.LogFormat(" Received ZMQ message with {0} frames!", msg.FrameCount);
-        // Check for errors
         if (msg.FrameCount == 0)
         {
             return;
         }
 
+        // Get metadata
+        Object metadata = JsonConvert.DeserializeObject<Movie>(json)
+
+
+
+        /*
         // Metadata index.
         int f = 1;
 
@@ -419,6 +389,7 @@ quat[3]
 
 
         };
+        */
 
         // Make sure that the rest of the program knows that we are connected.
         connected = true;
