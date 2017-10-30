@@ -4,7 +4,18 @@ A lightweight framework for hardware-in-the-loop agile flight simulation using U
 @TODO: Video Link
 
 ## Getting Started
-This repo is split into folders that need to be imported into Unity and LCM projects.
+Clone this repo and some required repos into your Unity Project's `Assets` folder using the following commands:
+
+```bash
+cd <UNITY_PROJECT_DIRECTORY>/Assets
+# Clone repos
+git clone git@github.com:AgileDrones/FlightGoggles.git
+git clone https://github.com/Unity-Technologies/PostProcessing.git
+# Use v2 of the Unity PostProcessing stack
+cd PostProcessing
+git checkout v2
+cd ../
+```
 
 ## Citation
 If you find this work useful for your research, please cite:
