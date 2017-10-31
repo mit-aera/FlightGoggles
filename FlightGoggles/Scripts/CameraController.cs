@@ -114,7 +114,7 @@ public class CameraController : MonoBehaviour
 
                 // Read pixels from screen backbuffer (expensive).
                 rendered_frame.ReadPixels(new Rect(0, 0, state.screen_width, state.screen_height), 0, 0);
-                rendered_frame.Apply();
+                rendered_frame.Apply(); // Might not actually be needed since only applies setpixel changes.
                 byte[] raw = rendered_frame.GetRawTextureData();
 
 
@@ -135,13 +135,14 @@ public class CameraController : MonoBehaviour
                     // Append images to message
                     images.ForEach(image => msg.Append(image));
 
+                    // Send the message.
+                    lock (socket_lock)
+                    {
+                        push_socket.TrySendMultipartMessage(msg);
+                    }
+                });
 
-                msg.Append(image);
-                lock (socket_lock)
-                {
-                    push_socket.TrySendMultipartMessage(msg);
-                }
-            });
+            }
         }
     }
 
