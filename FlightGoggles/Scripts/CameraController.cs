@@ -109,11 +109,11 @@ public class CameraController : MonoBehaviour
             yield return new WaitForEndOfFrame();
 
             // Check if this frame should be rendered.
-            if (internal_state.screen_initialized && internal_state.screen_skip_frames == 0)
+            if (internal_state.screenInitialized && internal_state.screenSkipFrames == 0)
             {
 
                 // Read pixels from screen backbuffer (expensive).
-                rendered_frame.ReadPixels(new Rect(0, 0, state.screen_width, state.screen_height), 0, 0);
+                rendered_frame.ReadPixels(new Rect(0, 0, state.screenWidth, state.screenHeight), 0, 0);
                 rendered_frame.Apply(); // Might not actually be needed since only applies setpixel changes.
                 byte[] raw = rendered_frame.GetRawTextureData();
 
@@ -130,7 +130,7 @@ public class CameraController : MonoBehaviour
 
                     // Process each camera's image, compress the image, and serialize the result.
                     // Compression is disabled for now...
-                    List<byte[]> images = state.Cameras.AsParallel().Select(cam => get_raw_image(cam, raw)).ToList();
+                    List<byte[]> images = state.cameras.AsParallel().Select(cam => get_raw_image(cam, raw)).ToList();
 
                     // Append images to message
                     images.ForEach(image => msg.Append(image));
@@ -160,37 +160,33 @@ public class CameraController : MonoBehaviour
     {
         // Allocate variables
         byte R, G, B;
-        byte[] output = new byte[cam.channels * state.cam_width * state.cam_height];
+        byte[] output = new byte[cam.channels * state.camWidth * state.camHeight];
         
         // Figure out where camera data starts and ends
-        int y_start = cam.output_index * state.cam_height;
-        int y_end = (cam.output_index+1) * state.cam_height;
+        int y_start = cam.outputIndex * state.camHeight;
+        int y_end = (cam.outputIndex+1) * state.camHeight;
 
         // Iterate through pixels in the source image
         for (int y = y_start; y < y_end; y++)
         {
-            int y_inv = state.screen_height - y - 1;
-            for (int x = 0; x < state.screen_width; x++)
+            int y_inv = state.screenHeight - y - 1;
+            for (int x = 0; x < state.screenWidth; x++)
             {
                 // Get RGB values
-                R = raw[((y * state.screen_width) + x) * 3];
-                G = raw[((y * state.screen_width) + x) * 3 + 1];
-                B = raw[((y * state.screen_width) + x) * 3 + 2];
+                R = raw[((y * state.screenWidth) + x) * 3];
+                G = raw[((y * state.screenWidth) + x) * 3 + 1];
+                B = raw[((y * state.screenWidth) + x) * 3 + 2];
 
                 // Grayscale conversion.
                 // https://www.mathworks.com/help/matlab/ref/rgb2gray.html
                 // Use of Math.Min for overflow handling without try/catch statement.
                 // NOTE: This does not round correctly (just truncates), since rounding is SLOW (-10FPS)
-                output[(y_inv * state.screen_width) + x] = (byte)Math.Min(0.2989 * R + 0.5870 * G + 0.1140 * B, byte.MaxValue);
+                output[(y_inv * state.screenWidth) + x] = (byte)Math.Min(0.2989 * R + 0.5870 * G + 0.1140 * B, byte.MaxValue);
             }
         }
 
         return output;
     }
-
-
-
-
 
     /* 
 	 * Update is called once per frame
@@ -233,20 +229,20 @@ public class CameraController : MonoBehaviour
     void updateObjectPositions()
     {
         // Update camera positions
-        foreach (Camera_t obj_state in state.Cameras)
+        foreach (Camera_t obj_state in state.cameras)
         {
             // Get camera game object 
-            GameObject obj = internal_state.get_gameobject(obj_state.ID, camera_template);
+            GameObject obj = internal_state.getGameobject(obj_state.ID, camera_template);
             // Apply translation and rotation
             obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
 
         }
 
         // Update Window positions
-        foreach (Window_t obj_state in state.Windows)
+        foreach (Window_t obj_state in state.windows)
         {
             // Get camera game object 
-            GameObject obj = internal_state.get_gameobject(obj_state.ID, window_template);
+            GameObject obj = internal_state.getGameobject(obj_state.ID, window_template);
             // Apply translation and rotation
             obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
 
@@ -259,28 +255,28 @@ public class CameraController : MonoBehaviour
     {
 
         // Initialize Screen & keep track of frames to skip
-        internal_state.screen_skip_frames = Math.Max(0, internal_state.screen_skip_frames - 1);
+        internal_state.screenSkipFrames = Math.Max(0, internal_state.screenSkipFrames - 1);
 
-        if (!internal_state.screen_initialized)
+        if (!internal_state.screenInitialized)
         {
             // Set the max framerate
             Application.targetFrameRate = max_framerate;
             // initialize the display to a window that fits all cameras
-            Screen.SetResolution(state.screen_width, state.screen_height, false);
+            Screen.SetResolution(state.screenWidth, state.screenHeight, false);
             // Set render texture to the correct size
-            rendered_frame = new Texture2D(state.screen_width, state.screen_height, TextureFormat.RGB24, false, true);
+            rendered_frame = new Texture2D(state.screenWidth, state.screenHeight, TextureFormat.RGB24, false, true);
             // Discard this frame, since changes do not take effect until the next frame.
-            internal_state.screen_skip_frames += 1;
-            internal_state.screen_initialized = true;
+            internal_state.screenSkipFrames += 1;
+            internal_state.screenInitialized = true;
         }
 
         // Initialize windows
-        state.Windows.Where(obj => !internal_state.is_initialized(obj.ID)).ToList().ForEach(
+        state.windows.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
             obj_state =>
             {
                 // Get objects
-                ObjectState_t internal_object_state = internal_state.get_wrapper_object(obj_state.ID, window_template);
-                GameObject obj = internal_object_state.game_obj;
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, window_template);
+                GameObject obj = internal_object_state.gameObj;
                 // Set window size
                 obj.transform.localScale = ListToVector3(obj_state.size);
                 // set window color
@@ -291,18 +287,18 @@ public class CameraController : MonoBehaviour
         );
 
         // Initialize Camera objects if screen is ready to render.
-        if (internal_state.screen_initialized && internal_state.screen_skip_frames == 0)
+        if (internal_state.screenInitialized && internal_state.screenSkipFrames == 0)
         {
-            state.Cameras.Where(obj => !internal_state.is_initialized(obj.ID)).ToList().ForEach(
+            state.cameras.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
                 obj_state =>
                 {
                     // Get object
-                    ObjectState_t internal_object_state = internal_state.get_wrapper_object(obj_state.ID, camera_template);
-                    GameObject obj = internal_object_state.game_obj;
+                    ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                    GameObject obj = internal_object_state.gameObj;
                     // Make sure camera renders to the correct portion of the screen.
-                    obj.GetComponent<Camera>().pixelRect = new Rect(0, state.cam_height * (state.num_cameras - obj_state.output_index - 1), state.cam_width, state.cam_height);
+                    obj.GetComponent<Camera>().pixelRect = new Rect(0, state.camHeight * (state.numCameras - obj_state.outputIndex - 1), state.camWidth, state.camHeight);
                     // Ensure FOV is set for camera.
-                    obj.GetComponent<Camera>().fieldOfView = state.cam_vertical_fov;
+                    obj.GetComponent<Camera>().fieldOfView = state.cameraVerticalFOV;
                     // @TODO: Ensure that post-processing profiles are correct (RGB vs Gray)
 
                     // enable Camera.

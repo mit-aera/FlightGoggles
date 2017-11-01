@@ -19,12 +19,12 @@ namespace MessageSpec
         private Dictionary<string, ObjectState_t> objects;
 
         // Screen state
-        public bool screen_initialized { get; set; } = false;
-        public int screen_skip_frames { get; set; } = 0;
+        public bool screenInitialized { get; set; } = false;
+        public int screenSkipFrames { get; set; } = 0;
 
         // Advanced getters/setters
         // Ensure object exists.
-        public void ensure_object_exists(string ID, GameObject template)
+        public void ensureObjectExists(string ID, GameObject template)
         {
             if (!objects.ContainsKey(ID)) {
                 // Create and save object from template
@@ -33,25 +33,25 @@ namespace MessageSpec
         }
 
         // Get Wrapper object
-        public ObjectState_t get_wrapper_object(string ID, GameObject template)
+        public ObjectState_t getWrapperObject(string ID, GameObject template)
         {
-            ensure_object_exists(ID, template);
+            ensureObjectExists(ID, template);
             return objects[ID];
         }
         // Get Wrapper object
-        public GameObject get_gameobject(string ID, GameObject template)
+        public GameObject getGameobject(string ID, GameObject template)
         {
-            return get_wrapper_object(ID, template).game_obj;
+            return getWrapperObject(ID, template).gameObj;
         }
         // Check if object is initialized
-        public bool is_initialized(string ID)
+        public bool isInitialized(string ID)
         {
-            bool is_initialized = false;
+            bool isInitialized = false;
             if (objects.ContainsKey(ID))
             {
-                is_initialized = objects[ID].initialized;
+                isInitialized = objects[ID].initialized;
             }
-            return is_initialized;
+            return isInitialized;
         }
         // Constructor
         public UnityState_t()
@@ -64,12 +64,12 @@ namespace MessageSpec
     public class ObjectState_t
     {
         public bool initialized { get; set; } = false;
-        public GameObject game_obj { get; set; }
+        public GameObject gameObj { get; set; }
         public GameObject template { get; set; }
         // Constructor
         public ObjectState_t(GameObject template)
         {
-            this.game_obj = GameObject.Instantiate(template);
+            this.gameObj = GameObject.Instantiate(template);
             this.template = template;
         }
 
@@ -82,17 +82,17 @@ namespace MessageSpec
     {
         // Metadata
         public double utime { get; set; }
-        public int cam_width { get; set; }
-        public int cam_height { get; set; }
-        public float cam_vertical_fov { get; set; }
-        public bool compress_image { get; set; }
+        public int camWidth { get; set; }
+        public int camHeight { get; set; }
+        public float cameraVerticalFOV   { get; set; }
+        public bool compressImage { get; set; }
         // Object state update
-        public IList<Camera_t> Cameras { get; set; }
-        public IList<Window_t> Windows { get; set; }
+        public IList<Camera_t> cameras { get; set; }
+        public IList<Window_t> windows { get; set; }
         // Additional getters
-        public int num_cameras { get { return Cameras.Count(); } }
-        public int screen_width { get { return cam_width; } }
-        public int screen_height { get { return cam_height * num_cameras; } }
+        public int numCameras { get { return cameras.Count(); } }
+        public int screenWidth { get { return camWidth; } }
+        public int screenHeight { get { return camHeight * numCameras; } }
 
 
     }
@@ -105,11 +105,12 @@ namespace MessageSpec
         public IList<float> rotation { get; set; }
         // Metadata
         public int channels { get; set; }
-        public bool has_depth { get; set; }
-        public int output_index { get; set; }
+        public bool hasDepth { get; set; }
+        public int outputIndex { get; set; }
+        public bool useAA { get; set; } = false;
 
         // Additional getters
-        public bool is_grayscale { get { return (channels == 1) && (!has_depth); } }
+        public bool isGrayscale { get { return (channels == 1) && (!hasDepth); } }
 
     }
 
@@ -134,21 +135,21 @@ namespace MessageSpec
     {
         // Metadata
         public double utime { get; set; }
-        public bool is_compressed { get; set; }
-        public int cam_width { get; set; }
-        public int cam_height { get; set; }
+        public bool isCompressed { get; set; }
+        public int camWidth { get; set; }
+        public int camHeight { get; set; }
         // Additional metadata for helping with the deserialization process.
-        public IList<string> camera_IDs { get; set; }
+        public IList<string> cameraIDs { get; set; }
         public IList<int> channels { get; set; }
 
         public RenderMetadata_t(StateMessage_t state)
         {
             utime = state.utime;
-            is_compressed = state.compress_image;
-            cam_width = state.cam_width;
-            cam_height = state.cam_height;
-            camera_IDs = state.Cameras.Select(obj => obj.ID).ToList();
-            channels = state.Cameras.Select(obj => obj.channels).ToList();
+            isCompressed = state.compressImage;
+            camWidth = state.camWidth;
+            camHeight = state.camHeight;
+            cameraIDs = state.cameras.Select(obj => obj.ID).ToList();
+            channels = state.cameras.Select(obj => obj.channels).ToList();
         }
     }
 
