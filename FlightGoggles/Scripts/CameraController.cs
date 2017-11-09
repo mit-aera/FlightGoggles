@@ -95,7 +95,7 @@ public class CameraController : MonoBehaviour
 
 
         push_socket = new NetMQ.Sockets.PublisherSocket();
-        //push_socket.Connect(video_host);
+        push_socket.Connect(video_host);
         Debug.Log("Sockets bound.");
 
         // Initialize Internal State
@@ -161,7 +161,9 @@ public class CameraController : MonoBehaviour
     public byte[] get_raw_image(Camera_t cam, byte[] raw)
     {
 
-        int num_bytes_to_copy = cam.channels * state.camWidth * state.camHeight;
+        //int num_bytes_to_copy = cam.channels * state.camWidth * state.camHeight;
+        int num_bytes_to_copy = 3 * state.camWidth * state.camHeight;
+
         byte[] output = new byte[num_bytes_to_copy];
         
         // Figure out where camera data starts and ends
@@ -171,6 +173,12 @@ public class CameraController : MonoBehaviour
         // Calculate start and end byte
         int byte_start = (y_start * state.screenWidth) * 3;
         int byte_end = (y_end * state.screenWidth) * 3;
+
+        // Sanity check chunk length.
+        if ((byte_end - byte_start) != num_bytes_to_copy)
+        {
+            throw new System.InvalidOperationException("Calculated image packet size is not correct.");
+        }
 
         // Create a copy of the array
         Array.Copy(raw, byte_start, output, 0, num_bytes_to_copy);
