@@ -84,7 +84,7 @@ namespace MessageSpec
         public double utime { get; set; }
         public int camWidth { get; set; }
         public int camHeight { get; set; }
-        public float cameraVerticalFOV   { get; set; }
+        public float camFOV   { get; set; }
         public bool compressImage { get; set; }
         // Object state update
         public IList<Camera_t> cameras { get; set; }
@@ -105,12 +105,12 @@ namespace MessageSpec
         public IList<float> rotation { get; set; }
         // Metadata
         public int channels { get; set; }
-        public bool hasDepth { get; set; }
+        public bool isDepth { get; set; }
         public int outputIndex { get; set; }
         public bool useAA { get; set; } = false;
 
         // Additional getters
-        public bool isGrayscale { get { return (channels == 1) && (!hasDepth); } }
+        public bool isGrayscale { get { return (channels == 1) && (!isDepth); } }
 
     }
 

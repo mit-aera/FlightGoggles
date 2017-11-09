@@ -93,8 +93,9 @@ public class CameraController : MonoBehaviour
         // Setup subscriptions.
         pull_socket.Subscribe("Pose");
 
+
         push_socket = new NetMQ.Sockets.PublisherSocket();
-        push_socket.Connect(video_host);
+        //push_socket.Connect(video_host);
         Debug.Log("Sockets bound.");
 
         // Initialize Internal State
@@ -130,6 +131,7 @@ public class CameraController : MonoBehaviour
 
                     // Process each camera's image, compress the image, and serialize the result.
                     // Compression is disabled for now...
+                    // Stride is also disabled for now. Outputs RGB blocks with stride 3.
                     List<byte[]> images = state.cameras.AsParallel().Select(cam => get_raw_image(cam, raw)).ToList();
 
                     // Append images to message
@@ -155,35 +157,23 @@ public class CameraController : MonoBehaviour
         NetMQConfig.Cleanup();
     }
 
-    // @TODO: Make allow for images to be RGB. Currently only allows for Gray output.
+    // Get RGB image block.
     public byte[] get_raw_image(Camera_t cam, byte[] raw)
     {
-        // Allocate variables
-        byte R, G, B;
-        byte[] output = new byte[cam.channels * state.camWidth * state.camHeight];
+
+        int num_bytes_to_copy = cam.channels * state.camWidth * state.camHeight;
+        byte[] output = new byte[num_bytes_to_copy];
         
         // Figure out where camera data starts and ends
         int y_start = cam.outputIndex * state.camHeight;
         int y_end = (cam.outputIndex+1) * state.camHeight;
+        
+        // Calculate start and end byte
+        int byte_start = (y_start * state.screenWidth) * 3;
+        int byte_end = (y_end * state.screenWidth) * 3;
 
-        // Iterate through pixels in the source image
-        for (int y = y_start; y < y_end; y++)
-        {
-            int y_inv = state.screenHeight - y - 1;
-            for (int x = 0; x < state.screenWidth; x++)
-            {
-                // Get RGB values
-                R = raw[((y * state.screenWidth) + x) * 3];
-                G = raw[((y * state.screenWidth) + x) * 3 + 1];
-                B = raw[((y * state.screenWidth) + x) * 3 + 2];
-
-                // Grayscale conversion.
-                // https://www.mathworks.com/help/matlab/ref/rgb2gray.html
-                // Use of Math.Min for overflow handling without try/catch statement.
-                // NOTE: This does not round correctly (just truncates), since rounding is SLOW (-10FPS)
-                output[(y_inv * state.screenWidth) + x] = (byte)Math.Min(0.2989 * R + 0.5870 * G + 0.1140 * B, byte.MaxValue);
-            }
-        }
+        // Create a copy of the array
+        Array.Copy(raw, byte_start, output, 0, num_bytes_to_copy);
 
         return output;
     }
@@ -217,7 +207,8 @@ public class CameraController : MonoBehaviour
         }
 
         // Get scene state from LCM
-        StateMessage_t state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
+        state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
+
 
         // Update position of game objects.
         updateObjectPositions();
@@ -228,6 +219,7 @@ public class CameraController : MonoBehaviour
 
     void updateObjectPositions()
     {
+
         // Update camera positions
         foreach (Camera_t obj_state in state.cameras)
         {
@@ -298,7 +290,7 @@ public class CameraController : MonoBehaviour
                     // Make sure camera renders to the correct portion of the screen.
                     obj.GetComponent<Camera>().pixelRect = new Rect(0, state.camHeight * (state.numCameras - obj_state.outputIndex - 1), state.camWidth, state.camHeight);
                     // Ensure FOV is set for camera.
-                    obj.GetComponent<Camera>().fieldOfView = state.cameraVerticalFOV;
+                    obj.GetComponent<Camera>().fieldOfView = state.camFOV;
                     // @TODO: Ensure that post-processing profiles are correct (RGB vs Gray)
 
                     // enable Camera.
