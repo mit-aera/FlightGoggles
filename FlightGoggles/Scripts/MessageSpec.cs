@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.PostProcessing;
+
+//[RequireComponent(typeof(PostProcessingBehaviour))]
 
 // Array ops
 using System.Linq;
@@ -66,6 +69,7 @@ namespace MessageSpec
         public bool initialized { get; set; } = false;
         public GameObject gameObj { get; set; }
         public GameObject template { get; set; }
+        public PostProcessingProfile postProcessingProfile { get; set; }
         // Constructor
         public ObjectState_t(GameObject template)
         {
@@ -85,6 +89,7 @@ namespace MessageSpec
         public int camWidth { get; set; }
         public int camHeight { get; set; }
         public float camFOV   { get; set; }
+        public float camDepthScale { get; set; }
         public bool compressImage { get; set; }
         // Object state update
         public IList<Camera_t> cameras { get; set; }
@@ -138,6 +143,7 @@ namespace MessageSpec
         public bool isCompressed { get; set; }
         public int camWidth { get; set; }
         public int camHeight { get; set; }
+        public float camDepthScale { get; set; }
         // Additional metadata for helping with the deserialization process.
         public IList<string> cameraIDs { get; set; }
         public IList<int> channels { get; set; }
@@ -148,6 +154,7 @@ namespace MessageSpec
             isCompressed = state.compressImage;
             camWidth = state.camWidth;
             camHeight = state.camHeight;
+            camDepthScale = state.camDepthScale;
             cameraIDs = state.cameras.Select(obj => obj.ID).ToList();
             channels = state.cameras.Select(obj => obj.channels).ToList();
         }

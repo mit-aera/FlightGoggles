@@ -23,6 +23,9 @@ using Newtonsoft.Json;
 // Include message types
 using MessageSpec;
 
+// Include postprocessing
+using UnityEngine.PostProcessing;
+
 public class CameraController : MonoBehaviour
 {
 
@@ -157,7 +160,7 @@ public class CameraController : MonoBehaviour
         NetMQConfig.Cleanup();
     }
 
-    // Get RGB image block.
+    // Get image block.
     public byte[] get_raw_image(Camera_t cam, byte[] raw)
     {
 
@@ -299,7 +302,19 @@ public class CameraController : MonoBehaviour
                     obj.GetComponent<Camera>().pixelRect = new Rect(0, state.camHeight * (state.numCameras - obj_state.outputIndex - 1), state.camWidth, state.camHeight);
                     // Ensure FOV is set for camera.
                     obj.GetComponent<Camera>().fieldOfView = state.camFOV;
+                    
                     // @TODO: Ensure that post-processing profiles are correct (RGB vs Gray)
+                    // Copy and save postProcessingProfile into internal_object_state.
+                    var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
+                    internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
+                    postBehaviour.profile = internal_object_state.postProcessingProfile;
+                    // Enable depth if needed.
+                    if (obj_state.isDepth) {
+                        var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+                        debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+                        debugSettings.depth.scale = state.camDepthScale;
+                        internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+                    }
 
                     // enable Camera.
                     obj.SetActive(true);
