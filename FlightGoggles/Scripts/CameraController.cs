@@ -303,7 +303,6 @@ public class CameraController : MonoBehaviour
                     // Ensure FOV is set for camera.
                     obj.GetComponent<Camera>().fieldOfView = state.camFOV;
                     
-                    // @TODO: Ensure that post-processing profiles are correct (RGB vs Gray)
                     // Copy and save postProcessingProfile into internal_object_state.
                     var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
                     internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
