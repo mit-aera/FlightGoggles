@@ -135,7 +135,7 @@ public class CameraController : MonoBehaviour
                     // Process each camera's image, compress the image, and serialize the result.
                     // Compression is disabled for now...
                     // Stride is also disabled for now. Outputs RGB blocks with stride 3.
-                    List<byte[]> images = state.cameras.AsParallel().Select(cam => get_raw_image(cam, raw)).ToList();
+                    List<byte[]> images = state.cameras.AsParallel().Select(cam => get_raw_image(cam, raw, metadata.cameraIDs.Count())).ToList();
 
                     // Append images to message
                     images.ForEach(image => msg.Append(image));
@@ -161,17 +161,20 @@ public class CameraController : MonoBehaviour
     }
 
     // Get image block.
-    public byte[] get_raw_image(Camera_t cam, byte[] raw)
+    public byte[] get_raw_image(Camera_t cam, byte[] raw, int numCams)
     {
 
         //int num_bytes_to_copy = cam.channels * state.camWidth * state.camHeight;
         int num_bytes_to_copy = 3 * state.camWidth * state.camHeight;
 
         byte[] output = new byte[num_bytes_to_copy];
-        
+
+        // Reverse camera indexing since the camera output is globally flipped on the Y axis.
+        int outputIndex = numCams - 1 - cam.outputIndex;
+
         // Figure out where camera data starts and ends
-        int y_start = cam.outputIndex * state.camHeight;
-        int y_end = (cam.outputIndex+1) * state.camHeight;
+        int y_start = outputIndex * state.camHeight;
+        int y_end = (outputIndex+1) * state.camHeight;
         
         // Calculate start and end byte
         int byte_start = (y_start * state.screenWidth) * 3;
@@ -225,6 +228,8 @@ public class CameraController : MonoBehaviour
         updateObjectPositions();
         // Make sure that all objects are initialized properly
         initializeObjects();
+        // Ensure that dynamic object settings such as depth-scaling and color are set correctly.
+        ensureCorrectObjectSettings();
     }
 
 
@@ -322,6 +327,34 @@ public class CameraController : MonoBehaviour
                 }
             );
         }
+
     }
 
+    void ensureCorrectObjectSettings()
+    {
+
+        // Check camera settings are correct.
+        if (internal_state.screenInitialized && internal_state.screenSkipFrames == 0)
+        {
+            state.cameras.Where(obj => internal_state.isInitialized(obj.ID) && obj.isDepth).ToList().ForEach(
+                obj_state =>
+                {
+                    // Get object
+                    ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                    GameObject obj = internal_object_state.gameObj;
+
+                    // Scale depth.
+                    if (internal_object_state.postProcessingProfile.debugViews.settings.depth.scale != state.camDepthScale)
+                    {
+                        var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+                        debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+                        debugSettings.depth.scale = state.camDepthScale;
+                        internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+                    }
+                
+                }
+            );
+        }
+
+    }
 }
