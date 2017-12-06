@@ -86,14 +86,14 @@ namespace MessageSpec
     {
         // Startup parameters. They should only change once.
         public int maxFramerate { get; set; }
-        public string sceneFile { get; set; }
+        public string sceneFilename { get; set; }
+        public bool compressImage { get; set; }
         // Frame Metadata
         public double utime { get; set; }
         public int camWidth { get; set; }
         public int camHeight { get; set; }
         public float camFOV   { get; set; }
         public float camDepthScale { get; set; }
-        public bool compressImage { get; set; }
         // Object state update
         public IList<Camera_t> cameras { get; set; }
         public IList<Window_t> windows { get; set; }

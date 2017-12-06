@@ -269,7 +269,7 @@ public class CameraController : MonoBehaviour
         if (!internal_state.screenInitialized)
         {
             // Load external scene if necessary
-            if (!string.IsNullOrEmpty(state.sceneFile))
+            if (state.sceneFilename.Length != 0)
             {
                 // Delete default scene objects
                 foreach (Transform child in defaultSceneObject.transform)
@@ -289,12 +289,13 @@ public class CameraController : MonoBehaviour
                     assetLoaderOptions.DontLoadMaterials = false;
                     assetLoaderOptions.AutoPlayAnimations = true;
                     // Loads our model.
-                    assetLoader.LoadFromFile(state.sceneFile, assetLoaderOptions, defaultSceneObject);
-                    // Set our model as static
-                    StaticBatchingUtility.Combine(defaultSceneObject);
+                    assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions, defaultSceneObject);
                 }
 
             }
+
+            // Set our scene as static
+            StaticBatchingUtility.Combine(defaultSceneObject);
 
             // Set the max framerate
             Application.targetFrameRate = state.maxFramerate;
