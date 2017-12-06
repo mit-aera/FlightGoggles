@@ -84,7 +84,10 @@ namespace MessageSpec
     // =============================
     public class StateMessage_t
     {
-        // Metadata
+        // Startup parameters. They should only change once.
+        public int maxFramerate { get; set; }
+        public string sceneFile { get; set; }
+        // Frame Metadata
         public double utime { get; set; }
         public int camWidth { get; set; }
         public int camHeight { get; set; }

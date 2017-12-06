@@ -25,6 +25,9 @@ using MessageSpec;
 
 // Include postprocessing
 using UnityEngine.PostProcessing;
+// TriLib dynamic model loader.
+using TriLib;
+using System.IO;
 
 public class CameraController : MonoBehaviour
 {
@@ -32,12 +35,11 @@ public class CameraController : MonoBehaviour
     // Public Parameters
     public string pose_host = "tcp://192.168.0.102:10253";
     public string video_host = "tcp://192.168.0.102:10254";
-    public bool DEBUG = true;
-
-    public int max_framerate = 80;
-    public bool should_compress_video = true;
+    public bool DEBUG = false;
+    public bool should_compress_video = false;
     public GameObject camera_template;
     public GameObject window_template;
+    public GameObject defaultSceneObject;
 
     // instance vars
     // NETWORK
@@ -77,8 +79,8 @@ public class CameraController : MonoBehaviour
         {
             pose_host = GetArg("-pose-host", pose_host);
             video_host = GetArg("-video-host", video_host);
-            max_framerate = int.Parse(GetArg("-max-framerate", max_framerate.ToString()));
-            should_compress_video = bool.Parse(GetArg("-should-compress-video", (!video_host.Contains("localhost")).ToString()));
+            //max_framerate = int.Parse(GetArg("-max-framerate", max_framerate.ToString()));
+            //should_compress_video = bool.Parse(GetArg("-should-compress-video", (!video_host.Contains("localhost")).ToString()));
         }
 
 
@@ -223,7 +225,6 @@ public class CameraController : MonoBehaviour
         // Get scene state from LCM
         state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
 
-
         // Update position of game objects.
         updateObjectPositions();
         // Make sure that all objects are initialized properly
@@ -267,8 +268,36 @@ public class CameraController : MonoBehaviour
 
         if (!internal_state.screenInitialized)
         {
+            // Load external scene if necessary
+            if (!string.IsNullOrEmpty(state.sceneFile))
+            {
+                // Delete default scene objects
+                foreach (Transform child in defaultSceneObject.transform)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+
+                // Load in new scene model using TriLib
+                using (var assetLoader = new AssetLoader())
+                { // Initializes our Asset Loader.
+                    // Creates an Asset Loader Options object.
+                    var assetLoaderOptions = ScriptableObject.CreateInstance<AssetLoaderOptions>();
+                    // Specify loading options.
+                    assetLoaderOptions.DontLoadAnimations = false;
+                    assetLoaderOptions.DontLoadCameras = true;
+                    assetLoaderOptions.DontLoadLights = false;
+                    assetLoaderOptions.DontLoadMaterials = false;
+                    assetLoaderOptions.AutoPlayAnimations = true;
+                    // Loads our model.
+                    assetLoader.LoadFromFile(state.sceneFile, assetLoaderOptions, defaultSceneObject);
+                    // Set our model as static
+                    StaticBatchingUtility.Combine(defaultSceneObject);
+                }
+
+            }
+
             // Set the max framerate
-            Application.targetFrameRate = max_framerate;
+            Application.targetFrameRate = state.maxFramerate;
             // initialize the display to a window that fits all cameras
             Screen.SetResolution(state.screenWidth, state.screenHeight, false);
             // Set render texture to the correct size
