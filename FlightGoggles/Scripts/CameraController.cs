@@ -1,7 +1,10 @@
 ﻿/*
- * Camera Controller
+ * FlightGoggles Camera Controller.
+ * Top-level logic script for FlightGoggles. 
  * Listens for ZMQ camera poses on a separate thread and creates/moves cameras to match.
- *
+ * 
+ * Author: Winter Guerra <winterg@mit.edu> 
+ * Date: January 2017.
  */
 
 
@@ -25,6 +28,7 @@ using MessageSpec;
 
 // Include postprocessing
 using UnityEngine.PostProcessing;
+
 // TriLib dynamic model loader.
 using TriLib;
 using System.IO;
@@ -39,7 +43,9 @@ public class CameraController : MonoBehaviour
     public bool should_compress_video = false;
     public GameObject camera_template;
     public GameObject window_template;
-    public GameObject defaultSceneObject;
+    // default scenes
+    public Scene defaultScene;
+    public Scene defaultLightingScene;
 
     // instance vars
     // NETWORK
@@ -79,8 +85,6 @@ public class CameraController : MonoBehaviour
         {
             pose_host = GetArg("-pose-host", pose_host);
             video_host = GetArg("-video-host", video_host);
-            //max_framerate = int.Parse(GetArg("-max-framerate", max_framerate.ToString()));
-            //should_compress_video = bool.Parse(GetArg("-should-compress-video", (!video_host.Contains("localhost")).ToString()));
         }
 
 
@@ -97,15 +101,12 @@ public class CameraController : MonoBehaviour
 
         // Setup subscriptions.
         pull_socket.Subscribe("Pose");
-
-
         push_socket = new NetMQ.Sockets.PublisherSocket();
         push_socket.Connect(video_host);
         Debug.Log("Sockets bound.");
 
         // Initialize Internal State
         internal_state = new UnityState_t();
-
 
         // Wait until end of frame to transmit images
         while (true)
@@ -202,7 +203,6 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        //Debug.Log ("Entering Update");
         // Receive most recent message
         var msg = new NetMQMessage();
         var new_msg = new NetMQMessage();
@@ -266,16 +266,28 @@ public class CameraController : MonoBehaviour
         // Initialize Screen & keep track of frames to skip
         internal_state.screenSkipFrames = Math.Max(0, internal_state.screenSkipFrames - 1);
 
-        if (!internal_state.screenInitialized)
+        if (!internal_state.sceneInitialized)
         {
-            // Load external scene if necessary
-            if (state.sceneFilename.Length != 0)
-            {
-                // Delete default scene objects
-                foreach (Transform child in defaultSceneObject.transform)
-                {
-                    GameObject.Destroy(child.gameObject);
-                }
+            // Load a scene, either from internal selection or external .obj or .dae file.
+            if (state.sceneIsInternal || state.sceneIsDefault){
+                // Load scene from internal scene selection
+                // Get the scene name.
+                string sceneName = (state.sceneIsDefault)? defaultScene.name : state.sceneFilename;
+                // Load the scene. 
+                SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames += 1;
+                // Skip rest of initialization until next frame.
+                internal_state.sceneInitialized = true;
+                return;
+
+
+            // Load external scene
+            } else {
+                // Load default lighting scene.
+                SceneManager.LoadScene(defaultLightingScene.name, LoadSceneMode.Additive);
+                // Make new empty scene for holding the .obj data.
+                Scene externallyLoadedScene = SceneManager.CreateScene("Externally_Loaded_Scene");
 
                 // Load in new scene model using TriLib
                 using (var assetLoader = new AssetLoader())
@@ -288,15 +300,23 @@ public class CameraController : MonoBehaviour
                     assetLoaderOptions.DontLoadLights = false;
                     assetLoaderOptions.DontLoadMaterials = false;
                     assetLoaderOptions.AutoPlayAnimations = true;
-                    // Loads our model.
-                    assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions, defaultSceneObject);
+                    // Loads scene model into container scene.
+                    assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions, externallyLoadedScene);
                 }
+                // Set our loaded scene as static
+                StaticBatchingUtility.Combine(externallyLoadedScene);
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames += 1;
+                // Skip rest of initialization until next frame.
+                internal_state.sceneInitialized = true;
+                return;
 
             }
+        }
 
-            // Set our scene as static
-            StaticBatchingUtility.Combine(defaultSceneObject);
-
+        // Initialize screen if scene is fully loaded and ready.
+        if (!internal_state.screenInitialized && internal_state.sceneInitialized && !internal_state.screenSkipFrames)
+        {
             // Set the max framerate
             Application.targetFrameRate = state.maxFramerate;
             // initialize the display to a window that fits all cameras
@@ -308,25 +328,26 @@ public class CameraController : MonoBehaviour
             internal_state.screenInitialized = true;
         }
 
-        // Initialize windows
-        state.windows.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
-            obj_state =>
-            {
-                // Get objects
-                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, window_template);
-                GameObject obj = internal_object_state.gameObj;
-                // Set window size
-                obj.transform.localScale = ListToVector3(obj_state.size);
-                // set window color
-                obj.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", ListHSVToColor(obj_state.color));
-                // Mark initialized.
-                internal_object_state.initialized = true;
-            }
-        );
+        // Initialize gameobjects if screen is ready to render.
+        if (internal_state.screenInitialized && !internal_state.screenSkipFrames){
 
-        // Initialize Camera objects if screen is ready to render.
-        if (internal_state.screenInitialized && internal_state.screenSkipFrames == 0)
-        {
+            // Initialize windows
+            state.windows.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
+                obj_state =>
+                {
+                    // Get objects
+                    ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, window_template);
+                    GameObject obj = internal_object_state.gameObj;
+                    // Set window size
+                    obj.transform.localScale = ListToVector3(obj_state.size);
+                    // set window color
+                    obj.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", ListHSVToColor(obj_state.color));
+                    // Mark initialized.
+                    internal_object_state.initialized = true;
+                }
+            );
+
+            // Initialize Camera objects.
             state.cameras.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
                 obj_state =>
                 {

@@ -23,6 +23,7 @@ namespace MessageSpec
 
         // Screen state
         public bool screenInitialized { get; set; } = false;
+        public bool sceneInitialized { get; set; } = false;
         public int screenSkipFrames { get; set; } = 0;
 
         // Advanced getters/setters
@@ -86,6 +87,7 @@ namespace MessageSpec
     {
         // Startup parameters. They should only change once.
         public int maxFramerate { get; set; }
+        public string sceneIsInternal { get; set; }
         public string sceneFilename { get; set; }
         public bool compressImage { get; set; }
         // Frame Metadata
@@ -97,12 +99,12 @@ namespace MessageSpec
         // Object state update
         public IList<Camera_t> cameras { get; set; }
         public IList<Window_t> windows { get; set; }
-        // Additional getters
+        // Additional getters (for convenience)
         public int numCameras { get { return cameras.Count(); } }
         public int screenWidth { get { return camWidth; } }
         public int screenHeight { get { return camHeight * numCameras; } }
-
-
+        public bool sceneIsDefault { get { return sceneFilename.Length == 0; } }
+        
     }
 
     // Camera class for decoding the ZMQ messages.
