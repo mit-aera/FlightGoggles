@@ -33,6 +33,9 @@ using UnityEngine.PostProcessing;
 using TriLib;
 using System.IO;
 
+// Dynamic scene management
+using UnityEngine.SceneManagement;
+
 public class CameraController : MonoBehaviour
 {
 
@@ -44,8 +47,8 @@ public class CameraController : MonoBehaviour
     public GameObject camera_template;
     public GameObject window_template;
     // default scenes
-    public Scene defaultScene;
-    public Scene defaultLightingScene;
+    public string defaultScene;
+    public string defaultLightingScene;
 
     // instance vars
     // NETWORK
@@ -272,7 +275,7 @@ public class CameraController : MonoBehaviour
             if (state.sceneIsInternal || state.sceneIsDefault){
                 // Load scene from internal scene selection
                 // Get the scene name.
-                string sceneName = (state.sceneIsDefault)? defaultScene.name : state.sceneFilename;
+                string sceneName = (state.sceneIsDefault)? defaultScene : state.sceneFilename;
                 // Load the scene. 
                 SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
                 // Takes one frame to take effect.
@@ -285,9 +288,11 @@ public class CameraController : MonoBehaviour
             // Load external scene
             } else {
                 // Load default lighting scene.
-                SceneManager.LoadScene(defaultLightingScene.name, LoadSceneMode.Additive);
+                SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
                 // Make new empty scene for holding the .obj data.
                 Scene externallyLoadedScene = SceneManager.CreateScene("Externally_Loaded_Scene");
+                // Tell Unity to put new objects into the newly created container scene.
+                SceneManager.SetActiveScene(externallyLoadedScene);
 
                 // Load in new scene model using TriLib
                 using (var assetLoader = new AssetLoader())
@@ -301,10 +306,11 @@ public class CameraController : MonoBehaviour
                     assetLoaderOptions.DontLoadMaterials = false;
                     assetLoaderOptions.AutoPlayAnimations = true;
                     // Loads scene model into container scene.
-                    assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions, externallyLoadedScene);
+                    assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions);
                 }
                 // Set our loaded scene as static
-                StaticBatchingUtility.Combine(externallyLoadedScene);
+                // @TODO
+                // StaticBatchingUtility.Combine(externallyLoadedScene);
                 // Takes one frame to take effect.
                 internal_state.screenSkipFrames += 1;
                 // Skip rest of initialization until next frame.
@@ -315,7 +321,7 @@ public class CameraController : MonoBehaviour
         }
 
         // Initialize screen if scene is fully loaded and ready.
-        if (!internal_state.screenInitialized && internal_state.sceneInitialized && !internal_state.screenSkipFrames)
+        if (!internal_state.screenInitialized && internal_state.sceneInitialized && internal_state.screenSkipFrames==0)
         {
             // Set the max framerate
             Application.targetFrameRate = state.maxFramerate;
@@ -329,7 +335,7 @@ public class CameraController : MonoBehaviour
         }
 
         // Initialize gameobjects if screen is ready to render.
-        if (internal_state.screenInitialized && !internal_state.screenSkipFrames){
+        if (internal_state.screenInitialized && internal_state.screenSkipFrames==0){
 
             // Initialize windows
             state.windows.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(

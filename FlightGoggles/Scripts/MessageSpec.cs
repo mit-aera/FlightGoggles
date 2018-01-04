@@ -87,7 +87,7 @@ namespace MessageSpec
     {
         // Startup parameters. They should only change once.
         public int maxFramerate { get; set; }
-        public string sceneIsInternal { get; set; }
+        public bool sceneIsInternal { get; set; }
         public string sceneFilename { get; set; }
         public bool compressImage { get; set; }
         // Frame Metadata

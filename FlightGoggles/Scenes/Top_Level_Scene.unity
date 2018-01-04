@@ -236,6 +236,16 @@ Prefab:
       propertyPath: defaultSceneObject
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: defaultScene
+      value: Butterfly_World
+      objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: defaultLightingScene
+      value: Base_Lighting_Scene
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 3d374c37885fb074d93f8b9bb965164c, type: 2}
   m_IsPrefabParent: 0
