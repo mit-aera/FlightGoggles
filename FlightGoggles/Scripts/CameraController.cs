@@ -323,6 +323,12 @@ public class CameraController : MonoBehaviour
         // Initialize screen if scene is fully loaded and ready.
         if (!internal_state.screenInitialized && internal_state.sceneInitialized && internal_state.screenSkipFrames==0)
         {
+            // Disable object colliders in scene
+            foreach(Collider c in FindObjectsOfType<Collider>())
+            {
+                c.enabled = false;
+            }
+
             // Set the max framerate
             Application.targetFrameRate = state.maxFramerate;
             // initialize the display to a window that fits all cameras
