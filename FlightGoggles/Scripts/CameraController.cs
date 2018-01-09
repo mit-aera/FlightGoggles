@@ -104,7 +104,7 @@ public class CameraController : MonoBehaviour
             yield return new WaitForEndOfFrame();
 
             // Check if this frame should be rendered.
-            if (internal_state.screenInitialized && internal_state.screenSkipFrames == 0)
+            if (internal_state.readyToRender)
             {
                 // Read the frame from the GPU backbuffer and send it via ZMQ.
                 sendFrameOnWire();
@@ -146,18 +146,262 @@ public class CameraController : MonoBehaviour
         // Get scene state from LCM
         state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
 
-        // Update position of game objects.
-        updateObjectPositions();
         // Make sure that all objects are initialized properly
         initializeObjects();
         // Ensure that dynamic object settings such as depth-scaling and color are set correctly.
-        ensureCorrectObjectSettings();
+        updateDynamicObjectSettings();
+        // Update position of game objects.
+        updateObjectPositions();
     }
 
+
     /* ==================================
-     * FlightGoggles Subroutine Functions 
+     * FlightGoggles High Level Functions 
      * ==================================
      */
+
+
+    // Tries to initialize uninitialized objects multiple times until the object is initialized.
+    // When everything is initialized, this function will NOP.
+    void initializeObjects()
+    {
+
+        // Initialize Screen & keep track of frames to skip
+        internal_state.screenSkipFrames = Math.Max(0, internal_state.screenSkipFrames - 1);
+
+        // NOP if Unity wants us to skip this frame.
+        if (internal_state.screenSkipFrames > 0){
+            return;
+        }
+        
+        // Run initialization steps in order.
+        switch (internal_state.initializationStep)
+        {
+            // Load scene if needed.
+            0:
+                loadScene();
+                internal_state.initializationStep++;
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames++;
+                // Skip the rest of this frame
+                break;
+                
+            // Initialize screen if scene is fully loaded and ready.
+            1:
+                resizeScreen();
+                internal_state.initializationStep++;
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames++;
+                // Skip the rest of this frame
+                break;
+
+            // Initialize gameobjects if screen is ready to render.
+            2:
+                disableColliders();
+                instantiateWindows();
+                instantiateCameras();
+                internal_state.initializationStep++;
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames++;
+                // Skip the rest of this frame
+                break;
+
+            // Ensure cameras are rendering to correct portion of GPU backbuffer.
+            // Note, this should always be the last step.
+            3:
+                setCameraViewports();
+                // Set initialization to -1 to indicate that we're done initializing.
+                internal_state.initializationStep=-1;
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames++;
+                // Skip the rest of this frame
+                break;
+            
+            // If initializationStep does not match any of the ones above
+            // then initialization is done and we need do nothing more.
+                
+        }
+    }
+
+    // Update window and camera positions based on the positions sent by ZMQ.
+    void updateObjectPositions()
+    {
+        if (internal_state.readyToRender){
+            // Update camera positions
+            foreach (Camera_t obj_state in state.cameras)
+            {
+                // Get camera game object 
+                GameObject obj = internal_state.getGameobject(obj_state.ID, camera_template);
+                // Apply translation and rotation
+                obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
+            }
+
+            // Update Window positions
+            foreach (Window_t obj_state in state.windows)
+            {
+                // Get camera game object 
+                GameObject obj = internal_state.getGameobject(obj_state.ID, window_template);
+                // Apply translation and rotation
+                obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
+
+            }
+        }
+    }
+
+    void updateDynamicObjectSettings()
+    {
+        // Update object settings.
+        if (internal_state.readyToRender)
+        {
+            // Update depth cameras with dynamic depth scale.
+            state.cameras.Where(obj => obj.isDepth).ToList().ForEach(
+                obj_state =>
+                {
+                    // Get object
+                    ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                    GameObject obj = internal_object_state.gameObj;
+
+                    // Scale depth.
+                    if (internal_object_state.postProcessingProfile.debugViews.settings.depth.scale != state.camDepthScale)
+                    {
+                        var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+                        debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+                        debugSettings.depth.scale = state.camDepthScale;
+                        internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+                    }
+                
+                }
+            );
+        }
+
+    }
+
+    /* =============================================
+     * FlightGoggles Initialization Functions 
+     * =============================================
+     */
+
+    void loadScene(){
+        // Load a scene, either from internal selection or external .obj or .dae file.
+        if (state.sceneIsInternal || state.sceneIsDefault){
+            // Load scene from internal scene selection
+            // Get the scene name.
+            string sceneName = (state.sceneIsDefault)? defaultScene : state.sceneFilename;
+            // Load the scene. 
+            SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+            
+        // Load external scene
+        } else {
+            // Load default lighting scene.
+            SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
+            // Make new empty scene for holding the .obj data.
+            Scene externallyLoadedScene = SceneManager.CreateScene("Externally_Loaded_Scene");
+            // Tell Unity to put new objects into the newly created container scene.
+            SceneManager.SetActiveScene(externallyLoadedScene);
+
+            // Load in new scene model using TriLib
+            using (var assetLoader = new AssetLoader())
+            { // Initializes our Asset Loader.
+                // Creates an Asset Loader Options object.
+                var assetLoaderOptions = ScriptableObject.CreateInstance<AssetLoaderOptions>();
+                // Specify loading options.
+                assetLoaderOptions.DontLoadAnimations = false;
+                assetLoaderOptions.DontLoadCameras = true;
+                assetLoaderOptions.DontLoadLights = false;
+                assetLoaderOptions.DontLoadMaterials = false;
+                assetLoaderOptions.AutoPlayAnimations = true;
+                // Loads scene model into container scene.
+                assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions);
+            }
+            // Set our loaded scene as static
+            // @TODO
+            // StaticBatchingUtility.Combine(externallyLoadedScene);
+        }
+    }
+
+    void resizeScreen(){
+        // Set the max framerate
+        Application.targetFrameRate = state.maxFramerate;
+        // initialize the display to a window that fits all cameras
+        Screen.SetResolution(state.screenWidth, state.screenHeight, false);
+        // Set render texture to the correct size
+        rendered_frame = new Texture2D(state.screenWidth, state.screenHeight, TextureFormat.RGB24, false, true);
+    }
+
+    void disableColliders(){
+        // Disable object colliders in scene
+        foreach(Collider c in FindObjectsOfType<Collider>())
+        {
+            c.enabled = false;
+        }
+    }
+
+    void instantiateWindows(){
+        // Initialize windows
+        state.windows.ToList().ForEach(
+            obj_state =>
+            {
+                // Get objects
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, window_template);
+                GameObject obj = internal_object_state.gameObj;
+                // Set window size
+                obj.transform.localScale = ListToVector3(obj_state.size);
+                // set window color
+                obj.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", ListHSVToColor(obj_state.color));
+            }
+        );
+    }
+
+    void instantiateCameras(){
+        // Initialize Camera objects.
+        state.cameras.ToList().ForEach(
+            obj_state =>
+            {
+                // Get object
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                GameObject obj = internal_object_state.gameObj;
+                // Ensure FOV is set for camera.
+                obj.GetComponent<Camera>().fieldOfView = state.camFOV;
+                
+                // Copy and save postProcessingProfile into internal_object_state.
+                var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
+                internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
+                postBehaviour.profile = internal_object_state.postProcessingProfile;
+                
+                // Enable depth if needed.
+                if (obj_state.isDepth) {
+                    var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+                    debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+                    debugSettings.depth.scale = state.camDepthScale;
+                    internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+                }
+            }
+        );
+    }
+
+    // Marked @TODO
+    void setCameraViewports(){
+        // Resize camera viewports.
+        state.cameras.ToList().ForEach(
+            obj_state =>
+            {
+                // Get object
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                GameObject obj = internal_object_state.gameObj;
+                // Make sure camera renders to the correct portion of the screen.
+                obj.GetComponent<Camera>().pixelRect = new Rect(0, state.camHeight * (state.numCameras - obj_state.outputIndex - 1), state.camWidth, state.camHeight);
+                // enable Camera.
+                obj.SetActive(true);
+            }
+        );
+    }
+
+
+    /* ==================================
+     * FlightGoggles Low Level Functions 
+     * ==================================
+     */
+
 
     // Cut image block for an individual camera from larger provided image.
     public byte[] get_raw_image(Camera_t cam, byte[] raw, int numCams)
@@ -189,227 +433,6 @@ public class CameraController : MonoBehaviour
         Array.Copy(raw, byte_start, output, 0, num_bytes_to_copy);
 
         return output;
-    }
-
-    // Update window and camera positions based on the positions sent by ZMQ.
-    void updateObjectPositions()
-    {
-
-        // Update camera positions
-        foreach (Camera_t obj_state in state.cameras)
-        {
-            // Get camera game object 
-            GameObject obj = internal_state.getGameobject(obj_state.ID, camera_template);
-            // Apply translation and rotation
-            obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
-
-        }
-
-        // Update Window positions
-        foreach (Window_t obj_state in state.windows)
-        {
-            // Get camera game object 
-            GameObject obj = internal_state.getGameobject(obj_state.ID, window_template);
-            // Apply translation and rotation
-            obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
-
-        }
-    }
-
-    // Tries to initialize uninitialized objects multiple times until the object is initialized.
-    // When everything is initialized, this function will NOP.
-    void initializeObjects()
-    {
-
-        // Initialize Screen & keep track of frames to skip
-        internal_state.screenSkipFrames = Math.Max(0, internal_state.screenSkipFrames - 1);
-
-        // NOP if Unity wants us to skip this frame.
-        if (internal_state.screenSkipFrames > 0){
-            return;
-        }
-
-        // Load scene if needed.
-        if (!internal_state.sceneInitialized)
-        {
-            loadScene();
-            // Skip the rest of this frame
-            return;
-        }
-
-        // Initialize screen if scene is fully loaded and ready.
-        if (!internal_state.screenInitialized && internal_state.sceneInitialized && internal_state.screenSkipFrames==0)
-        {
-            resizeScreen();
-            // Skip the rest of this frame
-            return;
-
-        }
-
-        // Initialize gameobjects if screen is ready to render.
-        if (internal_state.screenInitialized && internal_state.screenSkipFrames==0){
-
-            instantiateWindows();
-
-            instantiateCameras();
-            // Skip the rest of this frame
-            return;
-        }
-
-    }
-
-    void loadScene(){
-        // Load a scene, either from internal selection or external .obj or .dae file.
-        if (state.sceneIsInternal || state.sceneIsDefault){
-            // Load scene from internal scene selection
-            // Get the scene name.
-            string sceneName = (state.sceneIsDefault)? defaultScene : state.sceneFilename;
-            // Load the scene. 
-            SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
-            // Takes one frame to take effect.
-            internal_state.screenSkipFrames += 1;
-            // Skip rest of initialization until next frame.
-            internal_state.sceneInitialized = true;
-            return;
-
-
-        // Load external scene
-        } else {
-            // Load default lighting scene.
-            SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
-            // Make new empty scene for holding the .obj data.
-            Scene externallyLoadedScene = SceneManager.CreateScene("Externally_Loaded_Scene");
-            // Tell Unity to put new objects into the newly created container scene.
-            SceneManager.SetActiveScene(externallyLoadedScene);
-
-            // Load in new scene model using TriLib
-            using (var assetLoader = new AssetLoader())
-            { // Initializes our Asset Loader.
-                // Creates an Asset Loader Options object.
-                var assetLoaderOptions = ScriptableObject.CreateInstance<AssetLoaderOptions>();
-                // Specify loading options.
-                assetLoaderOptions.DontLoadAnimations = false;
-                assetLoaderOptions.DontLoadCameras = true;
-                assetLoaderOptions.DontLoadLights = false;
-                assetLoaderOptions.DontLoadMaterials = false;
-                assetLoaderOptions.AutoPlayAnimations = true;
-                // Loads scene model into container scene.
-                assetLoader.LoadFromFile(state.sceneFilename, assetLoaderOptions);
-            }
-            // Set our loaded scene as static
-            // @TODO
-            // StaticBatchingUtility.Combine(externallyLoadedScene);
-            // Takes one frame to take effect.
-            internal_state.screenSkipFrames += 1;
-            // Skip rest of initialization until next frame.
-            internal_state.sceneInitialized = true;
-            return;
-
-        }
-    }
-
-    void resizeScreen(){
-        // Disable object colliders in scene
-        foreach(Collider c in FindObjectsOfType<Collider>())
-        {
-            c.enabled = false;
-        }
-
-        // Set the max framerate
-        Application.targetFrameRate = state.maxFramerate;
-        // initialize the display to a window that fits all cameras
-        Screen.SetResolution(state.screenWidth, state.screenHeight, false);
-        // Set render texture to the correct size
-        rendered_frame = new Texture2D(state.screenWidth, state.screenHeight, TextureFormat.RGB24, false, true);
-        // Discard this frame, since changes do not take effect until the next frame.
-        internal_state.screenSkipFrames += 1;
-        internal_state.screenInitialized = true;
-    }
-
-    void instantiateWindows(){
-        // Initialize windows
-        state.windows.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
-            obj_state =>
-            {
-                // Get objects
-                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, window_template);
-                GameObject obj = internal_object_state.gameObj;
-                // Set window size
-                obj.transform.localScale = ListToVector3(obj_state.size);
-                // set window color
-                obj.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", ListHSVToColor(obj_state.color));
-                // Mark initialized.
-                internal_object_state.initialized = true;
-            }
-        );
-    }
-
-    void instantiateCameras(){
-        // Initialize Camera objects.
-        state.cameras.Where(obj => !internal_state.isInitialized(obj.ID)).ToList().ForEach(
-            obj_state =>
-            {
-                // Get object
-                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
-                GameObject obj = internal_object_state.gameObj;
-                // Make sure camera renders to the correct portion of the screen.
-                obj.GetComponent<Camera>().pixelRect = new Rect(0, state.camHeight * (state.numCameras - obj_state.outputIndex - 1), state.camWidth, state.camHeight);
-                // Ensure FOV is set for camera.
-                obj.GetComponent<Camera>().fieldOfView = state.camFOV;
-                
-                // Copy and save postProcessingProfile into internal_object_state.
-                var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
-                internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
-                postBehaviour.profile = internal_object_state.postProcessingProfile;
-                // Enable depth if needed.
-                if (obj_state.isDepth) {
-                    var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
-                    debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
-                    debugSettings.depth.scale = state.camDepthScale;
-                    internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
-                }
-
-                // enable Camera.
-                obj.SetActive(true);
-                // Log that camera is initialized
-                internal_object_state.initialized = true;
-            }
-        );
-    }
-
-    // Marked @TODO
-    void setCameraViewports(){
-
-    }
-
-
-
-    void ensureCorrectObjectSettings()
-    {
-
-        // Check camera settings are correct.
-        if (internal_state.screenInitialized && internal_state.screenSkipFrames == 0)
-        {
-            state.cameras.Where(obj => internal_state.isInitialized(obj.ID) && obj.isDepth).ToList().ForEach(
-                obj_state =>
-                {
-                    // Get object
-                    ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
-                    GameObject obj = internal_object_state.gameObj;
-
-                    // Scale depth.
-                    if (internal_object_state.postProcessingProfile.debugViews.settings.depth.scale != state.camDepthScale)
-                    {
-                        var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
-                        debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
-                        debugSettings.depth.scale = state.camDepthScale;
-                        internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
-                    }
-                
-                }
-            );
-        }
-
     }
 
     // Reads a scene frame from the GPU backbuffer and sends it via ZMQ.
@@ -447,6 +470,11 @@ public class CameraController : MonoBehaviour
         });
     }
 
+    /* ==================================
+     * FlightGoggles Helper Functions 
+     * ==================================
+     */
+
     // Helper function for getting command line arguments
     private static string GetArg(string name, string default_return)
     {
@@ -465,4 +493,5 @@ public class CameraController : MonoBehaviour
     public static Vector3 ListToVector3(IList<float> list) { return new Vector3(list[0], list[1], list[2]); }
     public static Quaternion ListToQuaternion(IList<float> list) { return new Quaternion(list[0], list[1], list[2], list[3]); }
     public static Color ListHSVToColor(IList<float> list) { return Color.HSVToRGB(list[0], list[1], list[2]); }
+
 }

@@ -21,12 +21,15 @@ namespace MessageSpec
     {
         private Dictionary<string, ObjectState_t> objects;
 
-        // Screen state
-        public bool screenInitialized { get; set; } = false;
-        public bool sceneInitialized { get; set; } = false;
+        // Initialization status
+        public int initializationStep { get; set; } = 0;
         public int screenSkipFrames { get; set; } = 0;
+        // Convenience getter function.
+        public bool initialized { get { return (initializationStep < 0); } }
+        public bool readyToRender { get { return (initialized && (screenSkipFrames == 0)); } }
 
         // Advanced getters/setters
+        
         // Ensure object exists.
         public void ensureObjectExists(string ID, GameObject template)
         {
