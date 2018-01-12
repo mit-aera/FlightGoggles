@@ -178,7 +178,7 @@ public class CameraController : MonoBehaviour
         switch (internal_state.initializationStep)
         {
             // Load scene if needed.
-            0:
+            case 0:
                 loadScene();
                 internal_state.initializationStep++;
                 // Takes one frame to take effect.
@@ -187,7 +187,7 @@ public class CameraController : MonoBehaviour
                 break;
                 
             // Initialize screen if scene is fully loaded and ready.
-            1:
+            case 1:
                 resizeScreen();
                 internal_state.initializationStep++;
                 // Takes one frame to take effect.
@@ -196,7 +196,7 @@ public class CameraController : MonoBehaviour
                 break;
 
             // Initialize gameobjects if screen is ready to render.
-            2:
+            case 2:
                 disableColliders();
                 instantiateWindows();
                 instantiateCameras();
@@ -208,7 +208,7 @@ public class CameraController : MonoBehaviour
 
             // Ensure cameras are rendering to correct portion of GPU backbuffer.
             // Note, this should always be the last step.
-            3:
+            case 3:
                 setCameraViewports();
                 // Set initialization to -1 to indicate that we're done initializing.
                 internal_state.initializationStep=-1;
