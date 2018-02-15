@@ -31,14 +31,14 @@ MonoBehaviour:
   antialiasing:
     m_Enabled: 1
     m_Settings:
-      method: 0
+      method: 1
       fxaaSettings:
         preset: 4
       taaSettings:
-        jitterSpread: 0.75
+        jitterSpread: 0.92
         sharpen: 0.3
-        stationaryBlending: 0.95
-        motionBlending: 0.85
+        stationaryBlending: 0.88
+        motionBlending: 0.5
   ambientOcclusion:
     m_Enabled: 1
     m_Settings:
@@ -85,22 +85,22 @@ MonoBehaviour:
   eyeAdaptation:
     m_Enabled: 1
     m_Settings:
-      lowPercent: 45
-      highPercent: 95
+      lowPercent: 13.625766
+      highPercent: 91.78528
       minLuminance: -5
       maxLuminance: 1
       keyValue: 0.25
       dynamicKeyValue: 1
-      adaptationType: 0
+      adaptationType: 1
       speedUp: 2
       speedDown: 1
-      logMin: -8
+      logMin: -10
       logMax: 4
   bloom:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
       bloom:
-        intensity: 0.5
+        intensity: 0.25
         threshold: 1.1
         softKnee: 0.5
         radius: 4
