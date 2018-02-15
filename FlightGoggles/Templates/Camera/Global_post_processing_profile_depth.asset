@@ -16,7 +16,7 @@ MonoBehaviour:
     m_Settings:
       mode: 1
       depth:
-        scale: 0.01
+        scale: 0.1
       motionVectors:
         sourceOpacity: 1
         motionImageOpacity: 0
