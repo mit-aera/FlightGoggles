@@ -94,7 +94,7 @@ namespace MessageSpec
         public string sceneFilename { get; set; }
         public bool compressImage { get; set; }
         // Frame Metadata
-        public double utime { get; set; }
+        public Int64 utime { get; set; }
         public int camWidth { get; set; }
         public int camHeight { get; set; }
         public float camFOV   { get; set; }
@@ -147,7 +147,7 @@ namespace MessageSpec
     public class RenderMetadata_t
     {
         // Metadata
-        public double utime { get; set; }
+        public Int64 utime { get; set; }
         public bool isCompressed { get; set; }
         public int camWidth { get; set; }
         public int camHeight { get; set; }
