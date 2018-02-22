@@ -23,17 +23,24 @@ git clone --recursive https://github.com/AgileDrones/FlightGoggles.git
 ## Citation
 If you find this work useful for your research, please cite:
 ```bibtex
-@article{mccord2018quadcopter,
-  
-  title={Visual-inertial navigation algorithm development
-  using photorealistic camera simulation in the loop},
-  
-  author={Thomas Sayre-McCord, Winter Guerra, Amado Antonini,
-  Jasper Arneberg, Austin Brown, Guilherme Cavalheiro, Yajun Fang,
-  Alex Gorodetsky, Dave McCoy, Sebastian Quilter, Fabian Riether,
-  Ezra Tal, Yunus Terzioglu, Luca Carlone, and Sertac Karaman},
-  
-  journal={ICRA 2018},
+@inproceedings{sayremccord2018visual,
+  title={Visual-inertial navigation algorithm development using photorealistic camera simulation in the loop},
+  author={Sayre-McCord, Thomas and
+  Guerra, Winter and
+  Antonini, Amado and
+  Arneberg, Jasper and
+  Brown, Austin and
+  Cavalheiro, Guilherme and
+  Fang, Yajun and
+  Gorodetsky, Alex and
+  McCoy, Dave and
+  Quilter, Sebastian and
+  Riether, Fabian and
+  Tal, Ezra and
+  Terzioglu, Yunus and
+  Carlone, Luca and
+  Karaman, Sertac},
+  booktitle={2018 IEEE International Conference on Robotics and Automation (ICRA)},
   year={2018}
 }
 ```
