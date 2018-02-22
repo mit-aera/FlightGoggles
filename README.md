@@ -1,7 +1,7 @@
 # FlightGoggles
 A lightweight framework for hardware-in-the-loop agile flight simulation using Unity and LCM.
 
-@TODO: Video Link
+[![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
 
 ## Getting Started
 
