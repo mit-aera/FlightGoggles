@@ -7,7 +7,7 @@ A lightweight framework for hardware-in-the-loop agile flight simulation using U
 
 ### Requirements
 
-* Unity Editor version >= `2017.3.0b6` running on Windows or Linux. You can download the latest beta version of Unity [here](https://unity3d.com/unity/beta).
+* Unity Editor version >= `2017.3.1` running on Windows. You can find the latest releases of Unity [here](https://unity3d.com/get-unity/download/archive).
 * Unity must have experimental .NET APIs enabled in the graphics project:
 	+ `Edit -> Project Settings -> Player -> Scripting Runtime Version = 4.6`
 
@@ -16,17 +16,17 @@ Clone this repo and some required repos into your Unity Project's `Assets` folde
 
 ```bash
 cd <UNITY_PROJECT_DIRECTORY>
-# Clone repos
-git clone --recursive git@github.com:AgileDrones/FlightGoggles.git
+# Clone repos & submodules
+git clone --recursive https://github.com/AgileDrones/FlightGoggles.git
 ```
 
 ## Citation
 If you find this work useful for your research, please cite:
 ```bibtex
-@article{mccord2017quadcopter,
-  title={A Vision-based Agile Quadcopter Enabled by On-board Embedded High-performance Computing},
-  author={R. Thomas Sayre-McCord, Amado Antonini, Jasper Arneberg, Austin Brown, Guilherme Cavalheiro, Yajun Fang, Alex Gorodetsky, Winter Guerra, Dave McCoy, Sebastian Quilter, Fabian Riether, Ezra Tal, Yunus Terzioglu, Luca Carlone, and Sertac Karaman},
-  journal={arXiv preprint arXiv:____},
-  year={2017}
+@article{mccord2018quadcopter,
+  title={Visual-inertial navigation algorithm development using photorealistic camera simulation in the loop},
+  author={Thomas Sayre-McCord, Winter Guerra, Amado Antonini, Jasper Arneberg, Austin Brown, Guilherme Cavalheiro, Yajun Fang, Alex Gorodetsky, Dave McCoy, Sebastian Quilter, Fabian Riether, Ezra Tal, Yunus Terzioglu, Luca Carlone, and Sertac Karaman},
+  journal={ICRA 2018},
+  year={2018}
 }
 ```
