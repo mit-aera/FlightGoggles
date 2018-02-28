@@ -20,6 +20,10 @@ cd <UNITY_PROJECT_DIRECTORY>
 git clone --recursive https://github.com/AgileDrones/FlightGoggles.git
 ```
 
+### Getting Client Bindings
+
+Download the [client bindings](https://github.com/AgileDrones/FlightGogglesClientBindings) from the linked repo using the instructions in that repo.
+
 ## Citation
 If you find this work useful for your research, please cite:
 ```bibtex
