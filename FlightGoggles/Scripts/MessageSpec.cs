@@ -17,6 +17,7 @@ namespace MessageSpec
     // =============================
     // For storing unity's internal state
     // E.g. are objects initialized, should this frame be rendered, etc.
+
     public class UnityState_t
     {
         private Dictionary<string, ObjectState_t> objects;
@@ -24,6 +25,7 @@ namespace MessageSpec
         // Initialization status
         public int initializationStep { get; set; } = 0;
         public int screenSkipFrames { get; set; } = 0;
+        
         // Convenience getter function.
         public bool initialized { get { return (initializationStep < 0); } }
         public bool readyToRender { get { return (initialized && (screenSkipFrames == 0)); } }
@@ -93,6 +95,11 @@ namespace MessageSpec
         public bool sceneIsInternal { get; set; }
         public string sceneFilename { get; set; }
         public bool compressImage { get; set; }
+        // TXAA settings
+        public Int64 jitterSpread; 
+        public Int64 blendingStationary; 
+        public Int64 blendingMotion; 
+        public Int64 sharpen; 
         // Frame Metadata
         public Int64 utime { get; set; }
         public int camWidth { get; set; }

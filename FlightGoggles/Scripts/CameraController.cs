@@ -207,20 +207,58 @@ public class CameraController : MonoBehaviour
                 break;
 
             // Ensure cameras are rendering to correct portion of GPU backbuffer.
-            // Note, this should always be the last step.
+            // Note, this should always be run after initializing the cameras.
             case 3:
                 setCameraViewports();
+                // Go to next step.
+                internal_state.initializationStep++;
+                // Takes one frame to take effect.
+                internal_state.screenSkipFrames++;
+                // Skip the rest of this frame
+                break;
+
+            case 4:
+                setCameraPostProcessSettings();
                 // Set initialization to -1 to indicate that we're done initializing.
                 internal_state.initializationStep=-1;
                 // Takes one frame to take effect.
                 internal_state.screenSkipFrames++;
                 // Skip the rest of this frame
                 break;
+
             
             // If initializationStep does not match any of the ones above
             // then initialization is done and we need do nothing more.
                 
         }
+    }
+
+    void setCameraPostProcessSettings(){
+
+        // Copy and save postProcessingProfile into internal_object_state.
+        var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
+        internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
+        postBehaviour.profile = internal_object_state.postProcessingProfile;
+        
+        // Enable depth if needed.
+        if (obj_state.isDepth) {
+            var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+            debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+            debugSettings.depth.scale = state.camDepthScale;
+            internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+
+        // Set RGB settings
+        } else {
+
+            // TXAA settings
+            var TAASettings = internal_object_state.postProcessingProfile.;
+            debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+            debugSettings.depth.scale = state.camDepthScale;
+            internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+        }
+
+        // 
+
     }
 
     // Update window and camera positions based on the positions sent by ZMQ.
@@ -363,18 +401,6 @@ public class CameraController : MonoBehaviour
                 // Ensure FOV is set for camera.
                 obj.GetComponent<Camera>().fieldOfView = state.camFOV;
                 
-                // Copy and save postProcessingProfile into internal_object_state.
-                var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
-                internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
-                postBehaviour.profile = internal_object_state.postProcessingProfile;
-                
-                // Enable depth if needed.
-                if (obj_state.isDepth) {
-                    var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
-                    debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
-                    debugSettings.depth.scale = state.camDepthScale;
-                    internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
-                }
             }
         );
     }
