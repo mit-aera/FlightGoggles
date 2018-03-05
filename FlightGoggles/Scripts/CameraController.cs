@@ -233,30 +233,47 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    void setCameraPostProcessSettings(){
+    void setCameraPostProcessSettings()
+    {
 
-        // Copy and save postProcessingProfile into internal_object_state.
-        var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
-        internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
-        postBehaviour.profile = internal_object_state.postProcessingProfile;
-        
-        // Enable depth if needed.
-        if (obj_state.isDepth) {
-            var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
-            debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
-            debugSettings.depth.scale = state.camDepthScale;
-            internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+        state.cameras.ToList().ForEach(
+            obj_state =>
+            {
+                // Get object
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                GameObject obj = internal_object_state.gameObj;
 
-        // Set RGB settings
-        } else {
 
-            // TXAA settings
-            var TAASettings = internal_object_state.postProcessingProfile.;
-            debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
-            debugSettings.depth.scale = state.camDepthScale;
-            internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
-        }
+                // Copy and save postProcessingProfile into internal_object_state.
+                var postBehaviour = obj.GetComponent<PostProcessingBehaviour>();
+                internal_object_state.postProcessingProfile = Instantiate(postBehaviour.profile);
+                postBehaviour.profile = internal_object_state.postProcessingProfile;
 
+                // Enable depth if needed.
+                if (obj_state.isDepth)
+                {
+                    var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+                    debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
+                    debugSettings.depth.scale = state.camDepthScale;
+                    internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
+
+                    // Set RGB settings
+                }
+                else
+                {
+
+                    // TXAA settings
+                    AntialiasingModel.Settings AASettings = internal_object_state.postProcessingProfile.antialiasing.settings;
+
+                    AASettings.method = AntialiasingModel.Method.Taa; // TAA
+                    AASettings.taaSettings.jitterSpread = state.jitterSpread;
+                    AASettings.taaSettings.sharpen = state.sharpen;
+                    AASettings.taaSettings.stationaryBlending = state.blendingStationary;
+                    AASettings.taaSettings.motionBlending = state.blendingMotion;
+
+                    internal_object_state.postProcessingProfile.antialiasing.settings = AASettings;
+                }
+            });
         // 
 
     }
