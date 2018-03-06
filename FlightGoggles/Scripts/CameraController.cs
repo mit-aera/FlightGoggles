@@ -1,12 +1,18 @@
 ﻿/*
  * FlightGoggles Camera Controller.
  * Top-level logic script for FlightGoggles. 
- * Listens for ZMQ camera poses on a separate thread and creates/moves cameras to match.
+ * Listens for ZMQ camera poses and object positions creates/moves cameras and objects to match.
+ * Pushes rendered RGBD frames back to requester over ZMQ with associated metadata.
  * 
  * Author: Winter Guerra <winterg@mit.edu> 
  * Date: January 2017.
  */
 
+
+// To allow for OBJ file import, you must download and include the TriLib Library
+// into this project folder. Once the TriLib library has been included, you can enable
+// OBJ importing by commenting out the following line.
+#define TRILIB_DOES_NOT_EXIST
 
 using System;
 using System.Collections;
@@ -29,9 +35,14 @@ using MessageSpec;
 // Include postprocessing
 using UnityEngine.PostProcessing;
 
+
+
+
 // TriLib dynamic model loader.
+#if !TRILIB_DOES_NOT_EXIST
 using TriLib;
 using System.IO;
+#endif
 
 // Dynamic scene management
 using UnityEngine.SceneManagement;
@@ -347,6 +358,10 @@ public class CameraController : MonoBehaviour
             
         // Load external scene
         } else {
+            // Throw error if trilib does not exist
+#if TRILIB_DOES_NOT_EXIST
+            throw new System.InvalidOperationException("Cannot import external 3D models without including TriLib in the project directory. Please read the FlightGoggles README for more information.");
+#else
             // Load default lighting scene.
             SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
             // Make new empty scene for holding the .obj data.
@@ -371,6 +386,8 @@ public class CameraController : MonoBehaviour
             // Set our loaded scene as static
             // @TODO
             // StaticBatchingUtility.Combine(externallyLoadedScene);
+#endif
+
         }
     }
 

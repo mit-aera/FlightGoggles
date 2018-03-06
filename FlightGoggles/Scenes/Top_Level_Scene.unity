@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 946e22a9b588f244f8b1273ce61938ab, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -154,7 +154,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1715570969326708, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -167,7 +167,7 @@ Prefab:
     - target: {fileID: 20232890885760490, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
         type: 2}
       propertyPath: m_AllowDynamicResolution
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 20232890885760490, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
         type: 2}
@@ -198,6 +198,12 @@ Prefab:
       propertyPath: m_RenderingPath
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 114714269041624600, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
+        type: 2}
+      propertyPath: profile
+      value: 
+      objectReference: {fileID: 11400000, guid: 08a9cb884fb48304f95bd8d5115893d3,
+        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
   m_IsPrefabParent: 0
@@ -206,24 +212,6 @@ GameObject:
   m_PrefabParentObject: {fileID: 1715570969326708, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
     type: 2}
   m_PrefabInternal: {fileID: 222156302}
---- !u!114 &222156304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 222156303}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68ec2fe99d1108b9d0006a298d76c639, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  axes: 0
-  sensitivityX: 15
-  sensitivityY: 15
-  minimumX: -360
-  maximumX: 360
-  minimumY: -60
-  maximumY: 60
 --- !u!1001 &484069700
 Prefab:
   m_ObjectHideFlags: 0
@@ -265,7 +253,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1490111358526134, guid: 3d374c37885fb074d93f8b9bb965164c, type: 2}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
@@ -346,7 +334,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1715570969326708, guid: 12f13143f2189da4d80a46d2e74c7e08, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 12f13143f2189da4d80a46d2e74c7e08, type: 2}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -415,6 +403,24 @@ Prefab:
       propertyPath: far clip plane
       value: 1000
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 114714269041624600, guid: 12f13143f2189da4d80a46d2e74c7e08, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: 12f13143f2189da4d80a46d2e74c7e08, type: 2}
   m_IsPrefabParent: 0
+--- !u!1 &1930521219 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1715570969326708, guid: 12f13143f2189da4d80a46d2e74c7e08,
+    type: 2}
+  m_PrefabInternal: {fileID: 1930521218}
+--- !u!114 &1930521220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1930521219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff26db721962cdf4a8edcdfa9a767d2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: cb51f0f2a5d26fb4badea99ee9f90ccb, type: 2}
