@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4621233542336366}
   - component: {fileID: 20232890885760490}
+  - component: {fileID: 114329355243659122}
   - component: {fileID: 114714269041624600}
   m_Layer: 0
   m_Name: Camera_Template
@@ -34,13 +35,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1715570969326708}
-  m_LocalRotation: {x: 0.04211106, y: 0, z: 0, w: 0.99911296}
-  m_LocalPosition: {x: -0.01, y: 1.4651816, z: -2.25}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 4.827, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &20232890885760490
 Camera:
   m_ObjectHideFlags: 1
@@ -54,9 +55,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0
+    y: 0.5
     width: 1
-    height: 1
+    height: 0.5
   near clip plane: 0.05
   far clip plane: 1000
   field of view: 60
@@ -77,6 +78,25 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &114329355243659122
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1715570969326708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cbc0148a19f09e4cbe8f8f2e19ae5c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CTAA_Enabled: 1
+  TemporalStability: 8
+  HdrResponse: 0.001
+  Sharpness: 9.5
+  AdaptiveEnhance: 0.32
+  TemporalJitterScale: 0.475
+  MicroShimmerReduction: 3
+  StaticStabilityPower: 0.5
 --- !u!114 &114714269041624600
 MonoBehaviour:
   m_ObjectHideFlags: 1

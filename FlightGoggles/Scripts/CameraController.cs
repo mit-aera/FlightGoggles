@@ -12,7 +12,7 @@
 // To allow for OBJ file import, you must download and include the TriLib Library
 // into this project folder. Once the TriLib library has been included, you can enable
 // OBJ importing by commenting out the following line.
-#define TRILIB_DOES_NOT_EXIST
+//#define TRILIB_DOES_NOT_EXIST
 
 using System;
 using System.Collections;
@@ -35,9 +35,6 @@ using MessageSpec;
 // Include postprocessing
 using UnityEngine.PostProcessing;
 
-
-
-
 // TriLib dynamic model loader.
 #if !TRILIB_DOES_NOT_EXIST
 using TriLib;
@@ -49,10 +46,15 @@ using UnityEngine.SceneManagement;
 
 public class CameraController : MonoBehaviour
 {
+    // Default Parameters
+    [HideInInspector]
+    public const string pose_host_default = "tcp://127.0.0.1:10253";
+    [HideInInspector]
+    public const string video_host_default = "tcp://127.0.0.1:10254";
 
     // Public Parameters
-    public string pose_host = "tcp://192.168.0.102:10253";
-    public string video_host = "tcp://192.168.0.102:10254";
+    public string pose_host = pose_host_default;
+    public string video_host = video_host_default;
     public bool DEBUG = false;
     public bool should_compress_video = false;
     public GameObject camera_template;
@@ -83,8 +85,8 @@ public class CameraController : MonoBehaviour
         // Check if the program should use CLI arguments (with defaults)
         if (!Application.isEditor)
         {
-            pose_host = GetArg("-pose-host", pose_host);
-            video_host = GetArg("-video-host", video_host);
+            pose_host = GetArg("-pose-host", pose_host_default);
+            video_host = GetArg("-video-host", video_host_default);
         }
 
 
