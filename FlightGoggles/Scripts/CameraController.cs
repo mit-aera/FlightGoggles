@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading;
 using System.Threading.Tasks;
 
 // Array ops
@@ -53,7 +54,7 @@ public class CameraController : MonoBehaviour
     public const string video_host_default = "tcp://127.0.0.1:10254";
 
     // Public Parameters
-    string flight_goggles_version = "1.4.1";
+    public string flight_goggles_version = "v1.4.1";
     public string pose_host;
     public string video_host;
     public bool DEBUG = false;
@@ -96,7 +97,9 @@ public class CameraController : MonoBehaviour
         Text text_obj = splashScreen.GetComponentInChildren<Text>(true);
         text_obj.text = "FlightGoggles Simulation Environment" + Environment.NewLine +
             flight_goggles_version + Environment.NewLine + Environment.NewLine +
-            "Waiting for client connection...";
+            "Waiting for client connection..." + Environment.NewLine + Environment.NewLine +
+            "Pose input socket:" + Environment.NewLine + pose_host + Environment.NewLine + Environment.NewLine +
+           "Video output socket:" + Environment.NewLine + video_host;
 
         splashScreen.SetActive(true);
 
@@ -183,6 +186,10 @@ public class CameraController : MonoBehaviour
             updateDynamicObjectSettings();
             // Update position of game objects.
             updateObjectPositions();
+        } else
+        {
+            // Throttle to 10hz when idle
+            Thread.Sleep(100); // [ms]
         }
     }
 
@@ -384,7 +391,7 @@ public class CameraController : MonoBehaviour
             throw new System.InvalidOperationException("Cannot import external 3D models without including TriLib in the project directory. Please read the FlightGoggles README for more information.");
 #else
             // Load default lighting scene.
-            SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
+            // SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
             // Make new empty scene for holding the .obj data.
             Scene externallyLoadedScene = SceneManager.CreateScene("Externally_Loaded_Scene");
             // Tell Unity to put new objects into the newly created container scene.
