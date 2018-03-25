@@ -8,7 +8,6 @@
  * Date: January 2017.
  */
 
-
 // To allow for OBJ file import, you must download and include the TriLib Library
 // into this project folder. Once the TriLib library has been included, you can enable
 // OBJ importing by commenting out the following line.
@@ -18,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Threading.Tasks;
 
 // Array ops
@@ -53,13 +53,15 @@ public class CameraController : MonoBehaviour
     public const string video_host_default = "tcp://127.0.0.1:10254";
 
     // Public Parameters
-    public string pose_host = pose_host_default;
-    public string video_host = video_host_default;
+    string flight_goggles_version = "1.4.1";
+    public string pose_host;
+    public string video_host;
     public bool DEBUG = false;
     public bool should_compress_video = false;
     public GameObject camera_template;
     public GameObject window_template;
-    // default scenes
+    public GameObject splashScreen;
+    // default scenes and assets
     public string defaultScene;
     public string defaultLightingScene;
 
@@ -71,6 +73,7 @@ public class CameraController : MonoBehaviour
 
     // Internal state & storage variables
     private UnityState_t internal_state;
+    private bool is_first_frame;
     private Texture2D rendered_frame;
     private object socket_lock;
 
@@ -89,6 +92,13 @@ public class CameraController : MonoBehaviour
             video_host = GetArg("-video-host", video_host_default);
         }
 
+        // Init simple splash screen
+        Text text_obj = splashScreen.GetComponentInChildren<Text>(true);
+        text_obj.text = "FlightGoggles Simulation Environment" + Environment.NewLine +
+            flight_goggles_version + Environment.NewLine + Environment.NewLine +
+            "Waiting for client connection...";
+
+        splashScreen.SetActive(true);
 
         // Fixes for Unity/NetMQ conflict stupidity.
         AsyncIO.ForceDotNet.Force();
@@ -108,6 +118,9 @@ public class CameraController : MonoBehaviour
 
         // Initialize Internal State
         internal_state = new UnityState_t();
+
+        // Do not try to do any processing this frame so that we can render our splash screen.
+        internal_state.screenSkipFrames = 1;
 
         // Wait until end of frame to transmit images
         while (true)
@@ -143,28 +156,34 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        // Receive most recent message
-        var msg = new NetMQMessage();
-        var new_msg = new NetMQMessage();
-        // Blocking receive for a message
-        msg = pull_socket.ReceiveMultipartMessage();
-        // Check if this is the latest message
-        while (pull_socket.TryReceiveMultipartMessage(ref new_msg)) ;
+        if (pull_socket.HasIn || internal_state.screenSkipFrames<=0)
+        {
+            // Receive most recent message
+            var msg = new NetMQMessage();
+            var new_msg = new NetMQMessage();
+            // Blocking receive for a message
+            msg = pull_socket.ReceiveMultipartMessage();
+            // Make sure that splashscreen is disabled
+            splashScreen.SetActive(false);
 
-        // Check that we got the whole message
-        if (new_msg.FrameCount >= msg.FrameCount) { msg = new_msg; }
+            // Check if this is the latest message
+            while (pull_socket.TryReceiveMultipartMessage(ref new_msg)) ;
 
-        if (msg.FrameCount == 0) { return; }
+            // Check that we got the whole message
+            if (new_msg.FrameCount >= msg.FrameCount) { msg = new_msg; }
 
-        // Get scene state from LCM
-        state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
+            if (msg.FrameCount == 0) { return; }
 
-        // Make sure that all objects are initialized properly
-        initializeObjects();
-        // Ensure that dynamic object settings such as depth-scaling and color are set correctly.
-        updateDynamicObjectSettings();
-        // Update position of game objects.
-        updateObjectPositions();
+            // Get scene state from LCM
+            state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
+
+            // Make sure that all objects are initialized properly
+            initializeObjects();
+            // Ensure that dynamic object settings such as depth-scaling and color are set correctly.
+            updateDynamicObjectSettings();
+            // Update position of game objects.
+            updateObjectPositions();
+        }
     }
 
 
