@@ -1,13 +1,15 @@
 # FlightGoggles
-A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D.
+A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
 [![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
+
+FlightGoggles was created by the [AgileDrones group](http://agiledrones.mit.edu) at the [MIT FAST Lab](http://karaman.mit.edu/group.html) and will be published in the proceedings of ICRA 2018.
 
 ## Quick Start Guide
 
 ### Prerequisites
 
-For optimal performance, a GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `< 30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `>90FPS` depending on the complexity of the scene and render resolution.
+For optimal performance, a GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `~30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `>90FPS` depending on the complexity of the scene and render resolution.
 
 GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but not officially supported.
 
@@ -18,7 +20,7 @@ GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but
 * Download the appropriate FlightGoggles simulation environment binary from [the releases page](https://github.com/AgileDrones/FlightGoggles/releases). 
 * Extract the binary and mark the file as executable (`chmod +x <flightGogglesBinary>`)
 
-### Compile FlightGoggles Client Bindings
+### Compile [FlightGoggles Client Bindings](https://github.com/AgileDrones/FlightGogglesClientBindings/)
 
 ```bash
 # Install required libraries
