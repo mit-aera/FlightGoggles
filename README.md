@@ -18,7 +18,7 @@ GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but
 * Download the appropriate FlightGoggles simulation environment binary from [the releases page](https://github.com/AgileDrones/FlightGoggles/releases). 
 * Extract the binary and mark the file as executable (`chmod +x <flightGogglesBinary>`)
 
-### Compile FlightGoggles Client Bindings
+### Compile [FlightGoggles Client Bindings](https://github.com/AgileDrones/FlightGogglesClientBindings/)
 
 ```bash
 # Install required libraries
