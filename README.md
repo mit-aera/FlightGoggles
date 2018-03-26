@@ -58,7 +58,17 @@ After running either of these commands, you should see 2 OpenCV windows pop up w
 
 |     RGB         |      Depth                |
 |:---------------:|:-------------------------:|
-| ![RGB](rgb.png) | ![Depth](depth.png)       |
+| ![RGB](Images/loft_day.png) | ![Depth](Images/loft_day_depth.png)       |
+
+### Available Environments
+
+|     `Butterfly_World`   |      `Hazelwood_Loft_Full_Day`  |
+|:-----------------------:|:---------------------------------:|
+| ![](Images/butterfly_loft.png) | ![](Images/Loft_day.png)       |  
+
+| `Hazelwood_Loft_Full_Night` |    `FPS_Warehouse_Day`   |      `FPS_Warehouse_Night`  | 
+|:-------------------------:|:-----------------------:|:---------------------------------:|
+| ![](Images/Loft_night.png) | ![](Images/fps_day.png) | ![](Images/fps_night.png) | 
 
 
 ## Citation
