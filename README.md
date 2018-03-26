@@ -72,6 +72,14 @@ After running either of these commands, you should see 2 OpenCV windows pop up w
 |:-------------------------:|:-----------------------:|:---------------------------------:|
 | ![](Images/Loft_night.png) | ![](Images/fps_day.png) | ![](Images/fps_night.png) | 
 
+### Loading External Environments
+
+FlightGoggles is able to load external scenes from [over 40 different filetypes](https://ricardoreis.net/?p=81) including `OBJ`, `DAE`, and `FBX`. Externally loaded scenes must have lighting embedded in their scene files to render correctly. To load an external scene that already has lighting, set the following settings in the FlightGoggles client:
+
+```CPP
+flightGoggles.state.sceneIsInternal = false;
+flightGoggles.state.sceneFilename = "/PATH/TO/SCENE/FILE";
+```
 
 ## Citation
 If you find this work useful for your research, please cite:
