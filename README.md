@@ -1,28 +1,65 @@
 # FlightGoggles
-A lightweight framework for hardware-in-the-loop agile flight simulation using Unity and LCM.
+A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D.
 
 [![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
 
-## Getting Started
+## Quick Start Guide
 
-### Requirements
+### Prerequisites
 
-* Unity Editor version >= `2017.3.1` running on Windows. You can find the latest releases of Unity [here](https://unity3d.com/get-unity/download/archive).
-* Unity must have experimental .NET APIs enabled in the graphics project:
-	+ `Edit -> Project Settings -> Player -> Scripting Runtime Version = 4.6`
+For optimal performance, a GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `< 30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `>90FPS` depending on the complexity of the scene and render resolution.
 
+GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but not officially supported.
 
-Clone this repo and some required repos into your Unity Project's `Assets` folder using the following commands:
+**NOTE:** Due to fundamental network throughput limits, FlightGoggles performs best when it and its client bindings are run on the same machine. Please keep this in mind when proceeding through this quick start guide.
+
+### Download FlightGoggles Binary
+
+* Download the appropriate FlightGoggles simulation environment binary from [the releases page](https://github.com/AgileDrones/FlightGoggles/releases). 
+* Extract the binary and mark the file as executable (`chmod +x <flightGogglesBinary>`)
+
+### Compile FlightGoggles Client Bindings
 
 ```bash
-cd <UNITY_PROJECT_DIRECTORY>
-# Clone repos & submodules
-git clone --recursive https://github.com/AgileDrones/FlightGoggles.git
+# Install required libraries
+sudo apt install libzmqpp-dev libeigen3-dev libopencv-dev
+# Clone client bindings
+git clone --recursive https://github.com/AgileDrones/FlightGogglesClientBindings.git
+# Setup and build
+cd FlightGogglesClientBindings
+mkdir build
+cd build
+cmake ../ && make
 ```
 
-### Getting Client Bindings
+### Running the FlightGoggles Simulation Environment
 
-Download the [client bindings](https://github.com/AgileDrones/FlightGogglesClientBindings) from the linked repo using the instructions in that repo.
+If both the FlightGoggles simulation and client are running on the same machine:
+
+```bash
+# Run FlightGoggles Client
+cd FlightGogglesClientBindings/build/bin/
+./GeneralClient
+# Run FlightGoggles Simulation Environment
+./<EXTRACTED_FLIGHTGOGGLES_BINARY>
+```
+
+However, if the FlightGoggles simulation and client are *NOT* running on the same machine:
+```bash
+# Run FlightGoggles Client
+cd FlightGogglesClientBindings/build/bin/
+./GeneralClient
+
+# Run FlightGoggles Simulation Environment
+./<EXTRACTED_FLIGHTGOGGLES_BINARY> -pose-host "tcp://<CLIENT_IP>:10253" -video-host "tcp://<CLIENT_IP>:10254"
+```
+
+After running either of these commands, you should see 2 OpenCV windows pop up with live feeds of RGBD data. Additionally, the FlightGoggles binary will open a debug render window with concatenated RGBD data.
+
+     RGB        |      Depth
+:--------------:|:-------------------------:
+![RGB](rgb.png) | ![Depth](depth.png)
+
 
 ## Citation
 If you find this work useful for your research, please cite:
