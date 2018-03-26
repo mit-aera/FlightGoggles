@@ -95,11 +95,15 @@ namespace MessageSpec
         public bool sceneIsInternal { get; set; }
         public string sceneFilename { get; set; }
         public bool compressImage { get; set; }
-        // TXAA settings
-        public Int64 jitterSpread; 
-        public Int64 blendingStationary; 
-        public Int64 blendingMotion; 
-        public Int64 sharpen; 
+        // AA settings
+        public float temporalJitterScale { get; set; }
+        public int temporalStability { get; set; }
+        public float hdrResponse { get; set; }
+        public float sharpness { get; set; }
+        public float adaptiveEnhance { get; set; }
+        public float microShimmerReduction { get; set; }
+        public float staticStabilityPower { get; set; }
+
         // Frame Metadata
         public Int64 utime { get; set; }
         public int camWidth { get; set; }

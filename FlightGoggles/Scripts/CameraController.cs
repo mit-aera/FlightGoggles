@@ -292,25 +292,39 @@ public class CameraController : MonoBehaviour
                 if (obj_state.isDepth)
                 {
                     var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
+                    
                     debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
                     debugSettings.depth.scale = state.camDepthScale;
+                    // Save the settings.
                     internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
 
-                    // Set RGB settings
                 }
                 else
                 {
+                    // Set CTAA settings
+                    CTAA_PC AA = obj.GetComponent<CTAA_PC>();
+                    // Check if AA object exists.
+                    if (AA != null){
+                        AA.TemporalStability = state.temporalStability;
+                        AA.HdrResponse = state.hdrResponse;
+                        AA.Sharpness = state.sharpness;
+                        AA.AdaptiveEnhance = state.adaptiveEnhance;
+                        AA.TemporalJitterScale = state.temporalJitterScale;
+                        AA.MicroShimmerReduction = state.microShimmerReduction;
+                        AA.StaticStabilityPower = state.staticStabilityPower;
+                        AA.enabled = true;
+                    } else {
+                        // If CTAA is not installed on camera, fallback to PostProcessing FXAA.
+                        AntialiasingModel.Settings AASettings = internal_object_state.postProcessingProfile.antialiasing.settings;
 
-                    // TXAA settings
-                    AntialiasingModel.Settings AASettings = internal_object_state.postProcessingProfile.antialiasing.settings;
+                        AASettings.method = AntialiasingModel.Method.Fxaa;
+                        AASettings.fxaaSettings.preset = AntialiasingModel.FxaaPreset.ExtremeQuality;
 
-                    AASettings.method = AntialiasingModel.Method.Taa; // TAA
-                    AASettings.taaSettings.jitterSpread = state.jitterSpread;
-                    AASettings.taaSettings.sharpen = state.sharpen;
-                    AASettings.taaSettings.stationaryBlending = state.blendingStationary;
-                    AASettings.taaSettings.motionBlending = state.blendingMotion;
+                        // Save the settings.
+                        internal_object_state.postProcessingProfile.antialiasing.settings = AASettings;
 
-                    internal_object_state.postProcessingProfile.antialiasing.settings = AASettings;
+                    }
+
                 }
             });
         // 
@@ -467,7 +481,6 @@ public class CameraController : MonoBehaviour
         );
     }
 
-    // Marked @TODO
     void setCameraViewports(){
         // Resize camera viewports.
         state.cameras.ToList().ForEach(
