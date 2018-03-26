@@ -1,7 +1,9 @@
 # FlightGoggles
-A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D.
+A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
 [![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
+
+FlightGoggles was created by the [AgileDrones group](http://agiledrones.mit.edu) at the [MIT FAST Lab](http://karaman.mit.edu/group.html) and will be published in the proceedings of ICRA 2018.
 
 ## Quick Start Guide
 
