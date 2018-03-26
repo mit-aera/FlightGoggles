@@ -7,7 +7,7 @@ A framework for photorealistic hardware-in-the-loop agile flight simulation usin
 
 ### Prerequisites
 
-For optimal performance, a GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `< 30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `>90FPS` depending on the complexity of the scene and render resolution.
+For optimal performance, a GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `~30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `>90FPS` depending on the complexity of the scene and render resolution.
 
 GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but not officially supported.
 
