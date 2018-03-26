@@ -1,7 +1,9 @@
 # FlightGoggles
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D.
 
+<p align="center">
 [![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
+</p>
 
 ## Quick Start Guide
 
@@ -56,9 +58,9 @@ cd FlightGogglesClientBindings/build/bin/
 
 After running either of these commands, you should see 2 OpenCV windows pop up with live feeds of RGBD data. Additionally, the FlightGoggles binary will open a debug render window with concatenated RGBD data.
 
-     RGB        |      Depth
-:--------------:|:-------------------------:
-![RGB](rgb.png) | ![Depth](depth.png)
+|     RGB         |      Depth                |
+|:---------------:|:-------------------------:|
+| ![RGB](rgb.png) | ![Depth](depth.png)       |
 
 
 ## Citation
