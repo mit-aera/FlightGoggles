@@ -1,9 +1,7 @@
 # FlightGoggles
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D.
 
-<p align="center">
 [![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
-</p>
 
 ## Quick Start Guide
 
