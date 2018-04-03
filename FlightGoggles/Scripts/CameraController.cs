@@ -70,6 +70,7 @@ public class CameraController : MonoBehaviour
     // NETWORK
     private NetMQ.Sockets.SubscriberSocket pull_socket;
     private NetMQ.Sockets.PublisherSocket push_socket;
+    private bool socket_initialized = false;
     private StateMessage_t state;
 
     // Internal state & storage variables
@@ -159,7 +160,7 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        if (pull_socket.HasIn || internal_state.screenSkipFrames<=0)
+        if (pull_socket.HasIn || socket_initialized)
         {
             // Receive most recent message
             var msg = new NetMQMessage();
@@ -186,6 +187,11 @@ public class CameraController : MonoBehaviour
             updateDynamicObjectSettings();
             // Update position of game objects.
             updateObjectPositions();
+
+            // Mark socket as initialized
+            socket_initialized = true;
+
+        
         } else
         {
             // Throttle to 10hz when idle
@@ -435,7 +441,7 @@ public class CameraController : MonoBehaviour
 
     void resizeScreen(){
         // Set the max framerate
-        Application.targetFrameRate = state.maxFramerate;
+        Application.targetFrameRate = state.maxFramerate*2;
         // initialize the display to a window that fits all cameras
         Screen.SetResolution(state.screenWidth, state.screenHeight, false);
         // Set render texture to the correct size
