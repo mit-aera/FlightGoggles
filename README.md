@@ -1,28 +1,85 @@
 # FlightGoggles
-A lightweight framework for hardware-in-the-loop agile flight simulation using Unity and LCM.
+A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
 [![Video Link](https://img.youtube.com/vi/_VBww8YQuA8/0.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
 
-## Getting Started
+FlightGoggles was created by the [AgileDrones group](http://agiledrones.mit.edu) at the [MIT FAST Lab](http://karaman.mit.edu/group.html) and will be published in the proceedings of ICRA 2018.
 
-### Requirements
+## Quick Start Guide
 
-* Unity Editor version >= `2017.3.1` running on Windows. You can find the latest releases of Unity [here](https://unity3d.com/get-unity/download/archive).
-* Unity must have experimental .NET APIs enabled in the graphics project:
-	+ `Edit -> Project Settings -> Player -> Scripting Runtime Version = 4.6`
+### Prerequisites
 
+For optimal performance, a GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `~30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `>90FPS` depending on the complexity of the scene and render resolution.
 
-Clone this repo and some required repos into your Unity Project's `Assets` folder using the following commands:
+GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but not officially supported.
+
+**NOTE:** Due to fundamental network throughput limits, FlightGoggles performs best when it and its client bindings are run on the same machine. Please keep this in mind when proceeding through this quick start guide.
+
+### Download FlightGoggles Binary
+
+* Download the appropriate FlightGoggles simulation environment binary from [the releases page](https://github.com/AgileDrones/FlightGoggles/releases). 
+* Extract the binary and mark the file as executable (`chmod +x <flightGogglesBinary>`)
+
+### Compile [FlightGoggles Client Bindings](https://github.com/AgileDrones/FlightGogglesClientBindings/)
 
 ```bash
-cd <UNITY_PROJECT_DIRECTORY>
-# Clone repos & submodules
-git clone --recursive https://github.com/AgileDrones/FlightGoggles.git
+# Install required libraries
+sudo apt install libzmqpp-dev libeigen3-dev libopencv-dev
+# Clone client bindings
+git clone --recursive https://github.com/AgileDrones/FlightGogglesClientBindings.git
+# Setup and build
+cd FlightGogglesClientBindings
+mkdir build
+cd build
+cmake ../ && make
 ```
 
-### Getting Client Bindings
+### Running the FlightGoggles Simulation Environment
 
-Download the [client bindings](https://github.com/AgileDrones/FlightGogglesClientBindings) from the linked repo using the instructions in that repo.
+If both the FlightGoggles simulation and client are running on the same machine:
+
+```bash
+# Run FlightGoggles Client
+cd FlightGogglesClientBindings/build/bin/
+./GeneralClient
+# Run FlightGoggles Simulation Environment
+./<EXTRACTED_FLIGHTGOGGLES_BINARY>
+```
+
+However, if the FlightGoggles simulation and client are *NOT* running on the same machine:
+```bash
+# Run FlightGoggles Client
+cd FlightGogglesClientBindings/build/bin/
+./GeneralClient
+
+# Run FlightGoggles Simulation Environment
+./<EXTRACTED_FLIGHTGOGGLES_BINARY> -pose-host "tcp://<CLIENT_IP>:10253" -video-host "tcp://<CLIENT_IP>:10254"
+```
+
+After running either of these commands, you should see 2 OpenCV windows pop up with live feeds of RGBD data. Additionally, the FlightGoggles binary will open a debug render window with concatenated RGBD data.
+
+|     RGB         |      Depth                |
+|:---------------:|:-------------------------:|
+| ![RGB](Images/loft_day.png) | ![Depth](Images/loft_day_depth.png)       |
+
+### Available Environments
+
+|     `Butterfly_World`   |      `Hazelwood_Loft_Full_Day`  |
+|:-----------------------:|:---------------------------------:|
+| ![](Images/butterfly_loft.png) | ![](Images/Loft_day.png)       |  
+
+| `Hazelwood_Loft_Full_Night` |    `FPS_Warehouse_Day`   |      `FPS_Warehouse_Night`  | 
+|:-------------------------:|:-----------------------:|:---------------------------------:|
+| ![](Images/Loft_night.png) | ![](Images/fps_day.png) | ![](Images/fps_night.png) | 
+
+### Loading External Environments
+
+FlightGoggles is able to load external scenes from [over 40 different filetypes](https://ricardoreis.net/?p=81) including `OBJ`, `DAE`, and `FBX`. Externally loaded scenes must have lighting embedded in their scene files to render correctly. To load an external scene that already has lighting, set the following settings in the FlightGoggles client:
+
+```CPP
+flightGoggles.state.sceneIsInternal = false;
+flightGoggles.state.sceneFilename = "/PATH/TO/SCENE/FILE";
+```
 
 ## Citation
 If you find this work useful for your research, please cite:
