@@ -49,9 +49,9 @@ public class CameraController : MonoBehaviour
 {
     // Default Parameters
     [HideInInspector]
-    public const string pose_host_default = "tcp://127.0.0.1:10253";
+    public const string pose_host_default = "tcp://192.168.2.1:10253";
     [HideInInspector]
-    public const string video_host_default = "tcp://127.0.0.1:10254";
+    public const string video_host_default = "tcp://192.168.2.1:10254";
 
     // Public Parameters
     public string flight_goggles_version = "v1.4.1";
@@ -514,8 +514,10 @@ public class CameraController : MonoBehaviour
     public byte[] get_raw_image(Camera_t cam, byte[] raw, int numCams)
     {
 
-        //int num_bytes_to_copy = cam.channels * state.camWidth * state.camHeight;
-        int num_bytes_to_copy = 3 * state.camWidth * state.camHeight;
+
+        int num_bytes_to_copy = cam.channels * state.camWidth * state.camHeight;
+        //Debug.Log(cam.channels);
+        //int num_bytes_to_copy = 3 * state.camWidth * state.camHeight;
 
         byte[] output = new byte[num_bytes_to_copy];
 
@@ -531,13 +533,19 @@ public class CameraController : MonoBehaviour
         int byte_end = (y_end * state.screenWidth) * 3;
 
         // Sanity check chunk length.
-        if ((byte_end - byte_start) != num_bytes_to_copy)
-        {
-            throw new System.InvalidOperationException("Calculated image packet size is not correct.");
-        }
+        //if ((byte_end - byte_start) != num_bytes_to_copy)
+        //{
+        //    throw new System.InvalidOperationException("Calculated image packet size is not correct.");
+        //}
 
         // Create a copy of the array
-        Array.Copy(raw, byte_start, output, 0, num_bytes_to_copy);
+        //Array.Copy(raw, byte_start, output, 0, num_bytes_to_copy);
+        Parallel.For(0, num_bytes_to_copy, i =>
+        {
+            output[i] = raw[byte_start + i*3];
+
+        });
+        
 
         return output;
     }
@@ -568,6 +576,7 @@ public class CameraController : MonoBehaviour
 
             // Append images to message
             images.ForEach(image => msg.Append(image));
+            //Debug.Log(images.Count);
 
             // Send the message.
             lock (socket_lock)
