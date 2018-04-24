@@ -54,13 +54,12 @@ public class CameraController : MonoBehaviour
     public const string video_host_default = "tcp://127.0.0.1:10254";
 
     // Public Parameters
-    public string flight_goggles_version = "v1.4.1";
+    public string flight_goggles_version = "v1.4.5";
     public string pose_host;
     public string video_host;
     public bool DEBUG = false;
     public bool should_compress_video = false;
     public GameObject camera_template;
-    public GameObject window_template;
     public GameObject splashScreen;
     // default scenes and assets
     public string defaultScene;
@@ -243,7 +242,7 @@ public class CameraController : MonoBehaviour
             // Initialize gameobjects if screen is ready to render.
             case 2:
                 disableColliders();
-                instantiateWindows();
+                instantiateObjects();
                 instantiateCameras();
                 internal_state.initializationStep++;
                 // Takes one frame to take effect.
@@ -337,7 +336,7 @@ public class CameraController : MonoBehaviour
 
     }
 
-    // Update window and camera positions based on the positions sent by ZMQ.
+    // Update object and camera positions based on the positions sent by ZMQ.
     void updateObjectPositions()
     {
         if (internal_state.readyToRender){
@@ -351,9 +350,12 @@ public class CameraController : MonoBehaviour
             }
 
             // Update Window positions
-            foreach (Window_t obj_state in state.windows)
+            foreach (Object_t obj_state in state.windows)
             {
-                // Get camera game object 
+                // Get prefab
+                object_prefab = Resources.Load("PrefabName");
+                
+                // Get game object 
                 GameObject obj = internal_state.getGameobject(obj_state.ID, window_template);
                 // Apply translation and rotation
                 obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
