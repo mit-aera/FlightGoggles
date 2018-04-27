@@ -112,7 +112,7 @@ namespace MessageSpec
         public float camDepthScale { get; set; }
         // Object state update
         public IList<Camera_t> cameras { get; set; }
-        public IList<Window_t> windows { get; set; }
+        public IList<Object_t> objects { get; set; }
         // Additional getters (for convenience)
         public int numCameras { get { return cameras.Count(); } }
         public int screenWidth { get { return camWidth; } }
@@ -138,14 +138,15 @@ namespace MessageSpec
 
     }
 
-    // Window class for decoding the ZMQ messages.
-    public class Window_t
+    // Generic object class for decoding the ZMQ messages.
+    public class Object_t
     {
-        public string ID { get; set; }
+        public string prefabID { get; set; }
+        public string ID { get; set; } // The instance ID
         public IList<float> position { get; set; }
         public IList<float> rotation { get; set; }
         // Metadata
-        public IList<float> color { get; set; }
+        // public IList<float> color { get; set; }
         public IList<float> size { get; set; }
     }
     
