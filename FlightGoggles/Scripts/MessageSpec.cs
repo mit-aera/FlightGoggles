@@ -31,27 +31,40 @@ namespace MessageSpec
         public bool readyToRender { get { return (initialized && (screenSkipFrames == 0)); } }
 
         // Advanced getters/setters
-        
-        // Ensure object exists.
-        public void ensureObjectExists(string ID, GameObject template)
+
+        // Get Wrapper object, defaulting to a passed in template if it does not exist.
+        public ObjectState_t getWrapperObject(string ID, GameObject template)
         {
-            if (!objects.ContainsKey(ID)) {
+            if (!objects.ContainsKey(ID))
+            {
                 // Create and save object from template
                 objects[ID] = new ObjectState_t(template);
             }
-        }
-
-        // Get Wrapper object
-        public ObjectState_t getWrapperObject(string ID, GameObject template)
-        {
-            ensureObjectExists(ID, template);
             return objects[ID];
         }
-        // Get Wrapper object
+
+        // Get Wrapper object, defaulting to a passed in template if it does not exist.
+        public ObjectState_t getWrapperObject(string ID, string prefab_ID)
+        {
+            if (!objects.ContainsKey(ID))
+            {
+                // Create and save object from template
+                GameObject template = Resources.Load(prefab_ID) as GameObject;
+                objects[ID] = new ObjectState_t(template);
+            }
+            return objects[ID];
+        }
+
+        // Get gameobject from wrapper object
         public GameObject getGameobject(string ID, GameObject template)
         {
             return getWrapperObject(ID, template).gameObj;
         }
+        public GameObject getGameobject(string ID, string templateID)
+        {
+            return getWrapperObject(ID, templateID).gameObj;
+        }
+
         // Check if object is initialized
         public bool isInitialized(string ID)
         {
@@ -146,7 +159,6 @@ namespace MessageSpec
         public IList<float> position { get; set; }
         public IList<float> rotation { get; set; }
         // Metadata
-        // public IList<float> color { get; set; }
         public IList<float> size { get; set; }
     }
     

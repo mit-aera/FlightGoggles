@@ -350,13 +350,11 @@ public class CameraController : MonoBehaviour
             }
 
             // Update Window positions
-            foreach (Object_t obj_state in state.windows)
+            foreach (Object_t obj_state in state.objects)
             {
-                // Get prefab
-                object_prefab = Resources.Load("PrefabName");
                 
                 // Get game object 
-                GameObject obj = internal_state.getGameobject(obj_state.ID, window_template);
+                GameObject obj = internal_state.getGameobject(obj_state.ID, obj_state.prefabID);
                 // Apply translation and rotation
                 obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
 
@@ -458,18 +456,16 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    void instantiateWindows(){
-        // Initialize windows
-        state.windows.ToList().ForEach(
+    void instantiateObjects(){
+        // Initialize additional objects
+        state.objects.ToList().ForEach(
             obj_state =>
             {
-                // Get objects
-                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, window_template);
+                // Get object
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, obj_state.prefabID);
                 GameObject obj = internal_object_state.gameObj;
-                // Set window size
-                obj.transform.localScale = ListToVector3(obj_state.size);
-                // set window color
-                obj.GetComponentInChildren<MeshRenderer>().material.SetColor("_EmissionColor", ListHSVToColor(obj_state.color));
+                // @TODO Set object size
+                //obj.transform.localScale = ListToVector3(obj_state.size);
             }
         );
     }

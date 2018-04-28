@@ -363,12 +363,12 @@ Prefab:
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: pose_host
-      value: tcp://192.168.2.1:10253
+      value: tcp://18.47.0.253:10253
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: video_host
-      value: tcp://192.168.2.1:10254
+      value: tcp://18.47.0.253:10254
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
