@@ -331,10 +331,10 @@ public class CameraController : MonoBehaviour
                     }
 
                     // Ensure that Camera's RGB/Grayscale mode reflects the number of channels it has.
-                    var colorGradingSettings = internal_object_state.postProcessingProfile.colorGrading.settings;
+                    ColorGradingModel.Settings colorGradingSettings = internal_object_state.postProcessingProfile.colorGrading.settings;
                     float saturation = (obj_state.channels == 3) ? 1.0f : 0.0f;
                     
-                    colorGradingSettings.basicSettings.saturation = saturation;
+                    colorGradingSettings.basic.saturation = saturation;
                     // Save the settings.
                     internal_object_state.postProcessingProfile.colorGrading.settings = colorGradingSettings;
 
