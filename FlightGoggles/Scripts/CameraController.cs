@@ -330,6 +330,14 @@ public class CameraController : MonoBehaviour
 
                     }
 
+                    // Ensure that Camera's RGB/Grayscale mode reflects the number of channels it has.
+                    var colorGradingSettings = internal_object_state.postProcessingProfile.colorGrading.settings;
+                    float saturation = (obj_state.channels == 3) ? 1.0f : 0.0f;
+                    
+                    colorGradingSettings.basicSettings.saturation = saturation;
+                    // Save the settings.
+                    internal_object_state.postProcessingProfile.colorGrading.settings = colorGradingSettings;
+
                 }
             });
         // 
@@ -355,6 +363,7 @@ public class CameraController : MonoBehaviour
                 
                 // Get game object 
                 GameObject obj = internal_state.getGameobject(obj_state.ID, obj_state.prefabID);
+                
                 // Apply translation and rotation
                 obj.transform.SetPositionAndRotation(ListToVector3(obj_state.position), ListToQuaternion(obj_state.rotation));
 
@@ -480,7 +489,6 @@ public class CameraController : MonoBehaviour
                 GameObject obj = internal_object_state.gameObj;
                 // Ensure FOV is set for camera.
                 obj.GetComponent<Camera>().fieldOfView = state.camFOV;
-                
             }
         );
     }
@@ -530,17 +538,12 @@ public class CameraController : MonoBehaviour
         int byte_start = (y_start * state.screenWidth) * 3;
         int byte_end = (y_end * state.screenWidth) * 3;
 
-        // Sanity check chunk length.
-        //if ((byte_end - byte_start) != num_bytes_to_copy)
-        //{
-        //    throw new System.InvalidOperationException("Calculated image packet size is not correct.");
-        //}
-
+        
         // Create a copy of the array
-        //Array.Copy(raw, byte_start, output, 0, num_bytes_to_copy);
+        int px_stride = 4 - cam.channels;
         Parallel.For(0, num_bytes_to_copy, i =>
         {
-            output[i] = raw[byte_start + i*3];
+            output[i] = raw[byte_start + i*px_stride];
 
         });
         
