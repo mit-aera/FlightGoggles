@@ -52,6 +52,7 @@ public class CameraController : MonoBehaviour
     public const string pose_host_default = "tcp://192.168.2.1:10253";
     [HideInInspector]
     public const string video_host_default = "tcp://192.168.2.1:10254";
+    public double connection_timeout_seconds = 2.0;
 
     // Public Parameters
     public string flight_goggles_version = "v1.4.5";
@@ -61,6 +62,7 @@ public class CameraController : MonoBehaviour
     public bool should_compress_video = false;
     public GameObject camera_template;
     public GameObject splashScreen;
+
     // default scenes and assets
     public string defaultScene;
     public string defaultLightingScene;
@@ -86,6 +88,9 @@ public class CameraController : MonoBehaviour
     // Function called when Unity Player is loaded.
     public IEnumerator Start()
     {
+        // Make sure that this gameobject survives across scene reloads
+        DontDestroyOnLoad(this.gameObject);
+
         // Check if the program should use CLI arguments (with defaults)
         if (!Application.isEditor)
         {
@@ -166,8 +171,6 @@ public class CameraController : MonoBehaviour
             var new_msg = new NetMQMessage();
             // Blocking receive for a message
             msg = pull_socket.ReceiveMultipartMessage();
-            // Make sure that splashscreen is disabled
-            splashScreen.SetActive(false);
 
             // Check if this is the latest message
             while (pull_socket.TryReceiveMultipartMessage(ref new_msg)) ;
@@ -410,17 +413,19 @@ public class CameraController : MonoBehaviour
             // Load scene from internal scene selection
             // Get the scene name.
             string sceneName = (state.sceneIsDefault)? defaultScene : state.sceneFilename;
+            // Make sure that splashscreen is disabled
+            // splashScreen.SetActive(false);
             // Load the scene. 
-            SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
-            
-        // Load external scene
+            SceneManager.LoadScene(sceneName);
+
+            // Load external scene
         } else {
             // Throw error if trilib does not exist
 #if TRILIB_DOES_NOT_EXIST
             throw new System.InvalidOperationException("Cannot import external 3D models without including TriLib in the project directory. Please read the FlightGoggles README for more information.");
 #else
             // Load default lighting scene.
-            // SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
+            //SceneManager.LoadScene(defaultLightingScene, LoadSceneMode.Additive);
             // Make new empty scene for holding the .obj data.
             Scene externallyLoadedScene = SceneManager.CreateScene("Externally_Loaded_Scene");
             // Tell Unity to put new objects into the newly created container scene.

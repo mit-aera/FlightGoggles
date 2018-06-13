@@ -71,17 +71,17 @@ LightmapSettings:
     m_FinalGatherFiltering: 1
     m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
-    m_MixedBakeMode: 2
-    m_BakeBackend: 0
+    m_MixedBakeMode: 1
+    m_BakeBackend: 1
     m_PVRSampling: 1
     m_PVRDirectSampleCount: 32
-    m_PVRSampleCount: 500
+    m_PVRSampleCount: 256
     m_PVRBounces: 2
     m_PVRFilterTypeDirect: 0
     m_PVRFilterTypeIndirect: 0
     m_PVRFilterTypeAO: 0
     m_PVRFilteringMode: 1
-    m_PVRCulling: 1
+    m_PVRCulling: 0
     m_PVRFilteringGaussRadiusDirect: 1
     m_PVRFilteringGaussRadiusIndirect: 5
     m_PVRFilteringGaussRadiusAO: 2
@@ -89,9 +89,9 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 112000004, guid: 89faedc2af1e92649864f8a80ef3287e,
+  m_LightingDataAsset: {fileID: 112000006, guid: e875506dbefd250499f6915661159850,
     type: 2}
-  m_UseShadowmask: 1
+  m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -355,7 +355,8 @@ Prefab:
         type: 2}
       propertyPath: camera_template
       value: 
-      objectReference: {fileID: 222156303}
+      objectReference: {fileID: 1715570969326708, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
+        type: 2}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: should_compress_video
@@ -364,12 +365,12 @@ Prefab:
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: pose_host
-      value: tcp://192.168.2.1:10253
+      value: tcp://18.47.5.185:10253
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: video_host
-      value: tcp://192.168.2.1:10254
+      value: tcp://18.47.5.185:10254
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
@@ -394,7 +395,7 @@ Prefab:
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: flight_goggles_version
-      value: v1.5.0-unstable
+      value: v1.5.4-stable
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3d374c37885fb074d93f8b9bb965164c, type: 2}
@@ -784,15 +785,15 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 5.475
+      value: -10.58
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 4.105
+      value: 2.86
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 1.08
+      value: 5.63
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalRotation.x
