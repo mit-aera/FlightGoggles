@@ -62,13 +62,13 @@ After running either of these commands, you should see 2 OpenCV windows pop up w
 
 ### Available Environments
 
-|     `Butterfly_World`   |      `Hazelwood_Loft_Full_Day`  |
-|:-----------------------:|:---------------------------------:|
-| ![](Images/butterfly_loft.png) | ![](Images/Loft_day.png)       |  
+|     `Butterfly_World`   |      `Hazelwood_Loft_Full_Day`  | `NYC_Subway` |
+|:-----------------------:|:---------------------------------:|:----------:|
+| ![](Images/butterfly_loft.png) | ![](Images/Loft_day.png)       |  ![](Images/nyc_subway.png) |
 
-| `Hazelwood_Loft_Full_Night` |    `FPS_Warehouse_Day`   |      `FPS_Warehouse_Night`  | 
+| `Hazelwood_Loft_Full_Night` |    `Museum_Day`   |      `Museum_Day_Small`  | 
 |:-------------------------:|:-----------------------:|:---------------------------------:|
-| ![](Images/Loft_night.png) | ![](Images/fps_day.png) | ![](Images/fps_night.png) | 
+| ![](Images/Loft_night.png) | ![](Images/museum_day.png) | ![](Images/museum_day_small.png) | 
 
 ### Loading External Environments
 
