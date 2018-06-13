@@ -52,7 +52,7 @@ public class CameraController : MonoBehaviour
     public const string pose_host_default = "tcp://192.168.2.1:10253";
     [HideInInspector]
     public const string video_host_default = "tcp://192.168.2.1:10254";
-    public double connection_timeout_seconds = 2.0;
+    public int connection_timeout_seconds = 2;
 
     // Public Parameters
     public string flight_goggles_version = "v1.4.5";
@@ -64,8 +64,9 @@ public class CameraController : MonoBehaviour
     public GameObject splashScreen;
 
     // default scenes and assets
-    public string defaultScene;
-    public string defaultLightingScene;
+    public string topLevelSceneName;
+    public string defaultSceneName;
+    public string defaultLightingSceneName;
 
     // instance vars
     // NETWORK
@@ -121,6 +122,7 @@ public class CameraController : MonoBehaviour
         // Setup subscriptions.
         pull_socket.Subscribe("Pose");
         push_socket = new NetMQ.Sockets.PublisherSocket();
+        push_socket.Options.Linger = TimeSpan.Zero; // Do not keep unsent messages on hangup.
         push_socket.Connect(video_host);
         Debug.Log("Sockets bound.");
 
@@ -169,8 +171,26 @@ public class CameraController : MonoBehaviour
             // Receive most recent message
             var msg = new NetMQMessage();
             var new_msg = new NetMQMessage();
-            // Blocking receive for a message
-            msg = pull_socket.ReceiveMultipartMessage();
+
+            // Wait for a message from the client.
+            bool received_new_packet = pull_socket.TryReceiveMultipartMessage(new TimeSpan(0, 0, connection_timeout_seconds), ref new_msg);
+
+            if (!received_new_packet && socket_initialized)
+            {
+                // Close ZMQ sockets
+                pull_socket.Close();
+                push_socket.Close();
+                Debug.Log("Terminated ZMQ sockets.");
+                NetMQConfig.Cleanup();
+                Thread.Sleep(100); // [ms]
+                // Restart FlightGoggles and wait for a new connection.
+                SceneManager.LoadScene(topLevelSceneName);
+                // Kill this gameobject/controller script.
+                Destroy(this.gameObject);
+                // Don't bother with the rest of the script.
+                return;
+
+            }
 
             // Check if this is the latest message
             while (pull_socket.TryReceiveMultipartMessage(ref new_msg)) ;
@@ -412,7 +432,7 @@ public class CameraController : MonoBehaviour
         if (state.sceneIsInternal || state.sceneIsDefault){
             // Load scene from internal scene selection
             // Get the scene name.
-            string sceneName = (state.sceneIsDefault)? defaultScene : state.sceneFilename;
+            string sceneName = (state.sceneIsDefault)? defaultSceneName : state.sceneFilename;
             // Make sure that splashscreen is disabled
             // splashScreen.SetActive(false);
             // Load the scene. 

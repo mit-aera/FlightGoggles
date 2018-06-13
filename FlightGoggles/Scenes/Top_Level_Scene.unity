@@ -397,6 +397,21 @@ Prefab:
       propertyPath: flight_goggles_version
       value: v1.5.4-stable
       objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: topLevelSceneName
+      value: Top_Level_Scene
+      objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: defaultSceneName
+      value: Butterfly_World
+      objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: defaultLightingSceneName
+      value: Base_Lighting_Scene
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3d374c37885fb074d93f8b9bb965164c, type: 2}
   m_IsPrefabAsset: 0
