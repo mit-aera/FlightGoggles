@@ -92,11 +92,15 @@ public class CameraController : MonoBehaviour
         // Make sure that this gameobject survives across scene reloads
         DontDestroyOnLoad(this.gameObject);
 
-        // Check if the program should use CLI arguments (with defaults)
         if (!Application.isEditor)
         {
+            // Check if the program should use CLI arguments (with defaults)
             pose_host = GetArg("-pose-host", pose_host_default);
             video_host = GetArg("-video-host", video_host_default);
+            // Disable fullscreen.
+            Screen.fullScreen = false;
+            Screen.SetResolution(1024, 768, false);
+
         }
 
         // Init simple splash screen
