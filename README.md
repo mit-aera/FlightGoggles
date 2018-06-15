@@ -34,8 +34,6 @@ cmake ../ && make
 
 ### Running the FlightGoggles Simulation Environment
 
-If both the FlightGoggles simulation and client are running on the same machine:
-
 ```bash
 # Run FlightGoggles Client
 cd FlightGogglesClientBindings/build/bin/
@@ -44,14 +42,11 @@ cd FlightGogglesClientBindings/build/bin/
 ./<EXTRACTED_FLIGHTGOGGLES_BINARY>
 ```
 
-However, if the FlightGoggles simulation and client are *NOT* running on the same machine:
-```bash
-# Run FlightGoggles Client
-cd FlightGogglesClientBindings/build/bin/
-./GeneralClient
+The FlightGoggles simulation environment will prompt the user for the IP address of the client. This can be entered in manually and will be cached for future rendering sessions.
 
-# Run FlightGoggles Simulation Environment
-./<EXTRACTED_FLIGHTGOGGLES_BINARY> -pose-host "tcp://<CLIENT_IP>:10253" -video-host "tcp://<CLIENT_IP>:10254"
+However, if you'd like to define the client IP through CLI, the `-client-ip` flag can be used (see example below).
+```bash
+./<EXTRACTED_FLIGHTGOGGLES_BINARY> -client-ip "192.168.0.10"
 ```
 
 After running either of these commands, you should see 2 OpenCV windows pop up with live feeds of RGBD data. Additionally, the FlightGoggles binary will open a debug render window with concatenated RGBD data.
