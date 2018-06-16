@@ -49,17 +49,18 @@ public class CameraController : MonoBehaviour
 {
     // Default Parameters
     [HideInInspector]
-    public const string pose_host_default = "tcp://192.168.2.1:10253";
+    public const string pose_client_default_port = ":10253";
     [HideInInspector]
-    public const string video_host_default = "tcp://192.168.2.1:10254";
-    public int connection_timeout_seconds = 2;
+    public const string video_client_default_port = ":10254";
+    [HideInInspector]
+    public const string client_ip_default = "127.0.0.1";
+    [HideInInspector]
+    public const int connection_timeout_seconds = 2;
 
     // Public Parameters
+    public string client_ip = client_ip_default;
     public string flight_goggles_version = "v1.4.5";
-    public string pose_host;
-    public string video_host;
     public bool DEBUG = false;
-    public bool should_compress_video = false;
     public GameObject camera_template;
     public GameObject splashScreen;
 
@@ -92,43 +93,44 @@ public class CameraController : MonoBehaviour
         // Make sure that this gameobject survives across scene reloads
         DontDestroyOnLoad(this.gameObject);
 
+        // Fixes for Unity/NetMQ conflict stupidity.
+        AsyncIO.ForceDotNet.Force();
+        socket_lock = new object();
+        
+        // Instantiate sockets
+        InstantiateSockets();
+
         if (!Application.isEditor)
         {
-            // Check if the program should use CLI arguments (with defaults)
-            pose_host = GetArg("-pose-host", pose_host_default);
-            video_host = GetArg("-video-host", video_host_default);
+            // Check if the program should use CLI arguments for IP.
+            string client_ip_from_cli = GetArg("-client-ip", "");
+            if (client_ip_from_cli.Length > 0)
+            {
+                ConnectToClient(client_ip_from_cli);
+            } else
+            {
+                ConnectToClient(client_ip_default);
+            }
+        
             // Disable fullscreen.
             Screen.fullScreen = false;
             Screen.SetResolution(1024, 768, false);
 
+        } else
+        {
+            // Try to connect to the default ip
+            ConnectToClient(client_ip_default);
         }
-
+        
         // Init simple splash screen
         Text text_obj = splashScreen.GetComponentInChildren<Text>(true);
         text_obj.text = "FlightGoggles Simulation Environment" + Environment.NewLine +
             flight_goggles_version + Environment.NewLine + Environment.NewLine +
-            "Waiting for client connection..." + Environment.NewLine + Environment.NewLine +
-            "Pose input socket:" + Environment.NewLine + pose_host + Environment.NewLine + Environment.NewLine +
-           "Video output socket:" + Environment.NewLine + video_host;
+            "Waiting for connection from client...";
 
         splashScreen.SetActive(true);
 
-        // Fixes for Unity/NetMQ conflict stupidity.
-        AsyncIO.ForceDotNet.Force();
-        socket_lock = new object();
 
-        // Connect sockets
-        Debug.Log("Creating sockets.");
-        pull_socket = new NetMQ.Sockets.SubscriberSocket();
-        pull_socket.Options.ReceiveHighWatermark = 90;
-        pull_socket.Connect(pose_host);
-
-        // Setup subscriptions.
-        pull_socket.Subscribe("Pose");
-        push_socket = new NetMQ.Sockets.PublisherSocket();
-        push_socket.Options.Linger = TimeSpan.Zero; // Do not keep unsent messages on hangup.
-        push_socket.Connect(video_host);
-        Debug.Log("Sockets bound.");
 
         // Initialize Internal State
         internal_state = new UnityState_t();
@@ -160,6 +162,52 @@ public class CameraController : MonoBehaviour
         push_socket.Close();
         Debug.Log("Terminated ZMQ sockets.");
         NetMQConfig.Cleanup();
+
+    }
+
+    void InstantiateSockets()
+    {
+        // Configure sockets
+        Debug.Log("Configuring sockets.");
+        pull_socket = new NetMQ.Sockets.SubscriberSocket();
+        pull_socket.Options.ReceiveHighWatermark = 90;
+
+        // Setup subscriptions.
+        pull_socket.Subscribe("Pose");
+        push_socket = new NetMQ.Sockets.PublisherSocket();
+        push_socket.Options.Linger = TimeSpan.Zero; // Do not keep unsent messages on hangup.
+    }
+
+    public void ConnectToClient(string inputIPString)
+    {
+
+        Debug.Log("Trying to connect to: " + inputIPString);
+
+        string pose_host_address = "tcp://" + inputIPString + pose_client_default_port;
+        string video_host_address = "tcp://" + inputIPString + video_client_default_port;
+        
+        // Close ZMQ sockets
+        pull_socket.Close();
+        push_socket.Close();
+        Debug.Log("Terminated ZMQ sockets.");
+        NetMQConfig.Cleanup();
+
+        // Reinstantiate sockets
+        InstantiateSockets();
+
+        // Try to connect sockets
+        try
+        {
+            pull_socket.Connect(pose_host_address);
+            push_socket.Connect(video_host_address);
+            Debug.Log("Sockets bound.");
+        }
+        catch (Exception)
+        {
+            Debug.LogError("Input address from textbox is invalid. Note that hostnames are not supported!");
+            throw;
+        }
+
     }
 
     /* 
