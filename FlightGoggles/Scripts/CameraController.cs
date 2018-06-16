@@ -55,6 +55,8 @@ public class CameraController : MonoBehaviour
     [HideInInspector]
     public const string client_ip_default = "127.0.0.1";
     [HideInInspector]
+    public const string client_ip_pref_key = "client_ip";
+    [HideInInspector]
     public const int connection_timeout_seconds = 2;
 
     // Public Parameters
@@ -100,6 +102,9 @@ public class CameraController : MonoBehaviour
         // Instantiate sockets
         InstantiateSockets();
 
+        // Check if previously saved ip exists
+        client_ip = PlayerPrefs.GetString(client_ip_pref_key, client_ip_default);
+
         if (!Application.isEditor)
         {
             // Check if the program should use CLI arguments for IP.
@@ -109,7 +114,7 @@ public class CameraController : MonoBehaviour
                 ConnectToClient(client_ip_from_cli);
             } else
             {
-                ConnectToClient(client_ip_default);
+                ConnectToClient(client_ip);
             }
         
             // Disable fullscreen.
@@ -119,19 +124,19 @@ public class CameraController : MonoBehaviour
         } else
         {
             // Try to connect to the default ip
-            ConnectToClient(client_ip_default);
+            ConnectToClient(client_ip);
         }
         
         // Init simple splash screen
         Text text_obj = splashScreen.GetComponentInChildren<Text>(true);
+        InputField textbox_obj = splashScreen.GetComponentInChildren<InputField>(true);
         text_obj.text = "FlightGoggles Simulation Environment" + Environment.NewLine +
             flight_goggles_version + Environment.NewLine + Environment.NewLine +
             "Waiting for connection from client...";
-
+        textbox_obj.text = client_ip;
+        
         splashScreen.SetActive(true);
-
-
-
+        
         // Initialize Internal State
         internal_state = new UnityState_t();
 
@@ -201,6 +206,9 @@ public class CameraController : MonoBehaviour
             pull_socket.Connect(pose_host_address);
             push_socket.Connect(video_host_address);
             Debug.Log("Sockets bound.");
+            // Save ip address for use on next boot.
+            PlayerPrefs.SetString(client_ip_pref_key, inputIPString);
+            PlayerPrefs.Save();
         }
         catch (Exception)
         {
