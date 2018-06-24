@@ -61,7 +61,7 @@ public class CameraController : MonoBehaviour
 
     // Public Parameters
     public string client_ip = client_ip_default;
-    public string flight_goggles_version = "v1.4.5";
+    public string flight_goggles_version = "v1.4.6";
     public bool DEBUG = false;
     public GameObject camera_template;
     public GameObject splashScreen;
@@ -380,19 +380,30 @@ public class CameraController : MonoBehaviour
                 if (obj_state.isDepth)
                 {
                     var debugSettings = internal_object_state.postProcessingProfile.debugViews.settings;
-                    
+
                     debugSettings.mode = BuiltinDebugViewsModel.Mode.Depth;
                     debugSettings.depth.scale = state.camDepthScale;
                     // Save the settings.
                     internal_object_state.postProcessingProfile.debugViews.settings = debugSettings;
 
-                }
-                else
+                    // Disable AA
+                    CTAA_PC AA = obj.GetComponent<CTAA_PC>();
+                    // Check if AA object exists.
+                    if (AA != null)
+                    {
+                        AA.enabled = false;
+                    } else
+                    {
+                        // If CTAA is not installed on camera, fallback to PostProcessing FXAA.
+                        internal_object_state.postProcessingProfile.antialiasing.enabled = false;
+                    }
+                } else
                 {
                     // Set CTAA settings
                     CTAA_PC AA = obj.GetComponent<CTAA_PC>();
                     // Check if AA object exists.
-                    if (AA != null){
+                    if (AA != null)
+                    {
                         AA.TemporalStability = state.temporalStability;
                         AA.HdrResponse = state.hdrResponse;
                         AA.Sharpness = state.sharpness;
@@ -401,7 +412,8 @@ public class CameraController : MonoBehaviour
                         AA.MicroShimmerReduction = state.microShimmerReduction;
                         AA.StaticStabilityPower = state.staticStabilityPower;
                         AA.enabled = true;
-                    } else {
+                    } else
+                    {
                         // If CTAA is not installed on camera, fallback to PostProcessing FXAA.
                         AntialiasingModel.Settings AASettings = internal_object_state.postProcessingProfile.antialiasing.settings;
 
@@ -410,13 +422,14 @@ public class CameraController : MonoBehaviour
 
                         // Save the settings.
                         internal_object_state.postProcessingProfile.antialiasing.settings = AASettings;
+                        internal_object_state.postProcessingProfile.antialiasing.enabled = true;
 
                     }
 
                     // Ensure that Camera's RGB/Grayscale mode reflects the number of channels it has.
                     ColorGradingModel.Settings colorGradingSettings = internal_object_state.postProcessingProfile.colorGrading.settings;
                     float saturation = (obj_state.channels == 3) ? 1.0f : 0.0f;
-                    
+
                     colorGradingSettings.basic.saturation = saturation;
                     // Save the settings.
                     internal_object_state.postProcessingProfile.colorGrading.settings = colorGradingSettings;
