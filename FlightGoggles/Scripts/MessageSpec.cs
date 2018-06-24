@@ -123,9 +123,13 @@ namespace MessageSpec
         public int camHeight { get; set; }
         public float camFOV   { get; set; }
         public float camDepthScale { get; set; }
+        // Additional metadata that will be passed through the render process.
+        public Dictionary<string, string> additionalMetadata { get; set; }
         // Object state update
         public IList<Camera_t> cameras { get; set; }
         public IList<Object_t> objects { get; set; }
+        
+        
         // Additional getters (for convenience)
         public int numCameras { get { return cameras.Count(); } }
         public int screenWidth { get { return camWidth; } }
@@ -161,7 +165,7 @@ namespace MessageSpec
         // Metadata
         public IList<float> size { get; set; }
     }
-    
+
 
 
     // =============================
@@ -179,6 +183,8 @@ namespace MessageSpec
         // Additional metadata for helping with the deserialization process.
         public IList<string> cameraIDs { get; set; }
         public IList<int> channels { get; set; }
+        // Additional unstructured metadata given to us by the render request.
+        public Dictionary<string, string> additionalMetadata {get; set;}
 
         public RenderMetadata_t(StateMessage_t state)
         {
@@ -189,6 +195,7 @@ namespace MessageSpec
             camDepthScale = state.camDepthScale;
             cameraIDs = state.cameras.Select(obj => obj.ID).ToList();
             channels = state.cameras.Select(obj => obj.channels).ToList();
+            additionalMetadata = state.additionalMetadata;
         }
     }
 
