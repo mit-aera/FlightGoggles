@@ -252,17 +252,15 @@ public class CameraController : MonoBehaviour
 
             }
 
-            // Check if this is the latest message
-            while (pull_socket.TryReceiveMultipartMessage(ref new_msg)) ;
-
-            // Check that we got the whole message
-            if (new_msg.FrameCount >= msg.FrameCount) { msg = new_msg; }
-
-            if (msg.FrameCount == 0) { return; }
-
-            // Get scene state from LCM
+            // Deserialize message contents
             state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
 
+            // If the render queue is backed up, skip ahead to the most recent unskippable frame. 
+            while (!state.forceFrameRender && pull_socket.TryReceiveMultipartMessage(ref new_msg)) {
+                // Deserialize new message contents
+                state = JsonConvert.DeserializeObject<StateMessage_t>(new_msg[1].ConvertToString());
+            }
+            
             // Make sure that all objects are initialized properly
             initializeObjects();
             // Ensure that dynamic object settings such as depth-scaling and color are set correctly.
@@ -662,7 +660,7 @@ public class CameraController : MonoBehaviour
         Task.Run(() =>
         {
             // Get metadata
-            RenderMetadata_t metadata = new RenderMetadata_t(state);
+            RenderMetadata_t metadata = new RenderMetadata_t(state, flight_goggles_version);
 
             // Create packet metadata
             var msg = new NetMQMessage();

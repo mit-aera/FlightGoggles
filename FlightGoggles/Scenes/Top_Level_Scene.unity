@@ -395,7 +395,7 @@ Prefab:
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: flight_goggles_version
-      value: v1.5.7-nightly
+      value: v1.7.0-rc1
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}

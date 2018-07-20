@@ -123,6 +123,7 @@ namespace MessageSpec
         public int camHeight { get; set; }
         public float camFOV   { get; set; }
         public float camDepthScale { get; set; }
+        public bool forceFrameRender { get; set; }
         // Additional metadata that will be passed through the render process.
         public Dictionary<string, string> additionalMetadata { get; set; }
         // Object state update
@@ -185,8 +186,11 @@ namespace MessageSpec
         public IList<int> channels { get; set; }
         // Additional unstructured metadata given to us by the render request.
         public Dictionary<string, string> additionalMetadata {get; set;}
+        // To make sure that both client and renderer are on the same page
+        public string apiVersion { get; set; }
 
-        public RenderMetadata_t(StateMessage_t state)
+
+        public RenderMetadata_t(StateMessage_t state, string apiVersion_)
         {
             utime = state.utime;
             isCompressed = state.compressImage;
@@ -196,6 +200,7 @@ namespace MessageSpec
             cameraIDs = state.cameras.Select(obj => obj.ID).ToList();
             channels = state.cameras.Select(obj => obj.channels).ToList();
             additionalMetadata = state.additionalMetadata;
+            apiVersion = apiVersion_;
         }
     }
 
