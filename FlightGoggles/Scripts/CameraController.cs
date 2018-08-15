@@ -233,7 +233,7 @@ public class CameraController : MonoBehaviour
             var new_msg = new NetMQMessage();
 
             // Wait for a message from the client.
-            bool received_new_packet = pull_socket.TryReceiveMultipartMessage(new TimeSpan(0, 0, connection_timeout_seconds), ref new_msg);
+            bool received_new_packet = pull_socket.TryReceiveMultipartMessage(new TimeSpan(0, 0, connection_timeout_seconds), ref msg);
 
             if (!received_new_packet && socket_initialized)
             {
@@ -253,9 +253,11 @@ public class CameraController : MonoBehaviour
             }
 
             // Deserialize message contents
+            //Debug.Log(msg[1].ConvertToString());
             state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
 
             // If the render queue is backed up, skip ahead to the most recent unskippable frame. 
+            // Do not skip a forced render request.
             while (!state.forceFrameRender && pull_socket.TryReceiveMultipartMessage(ref new_msg)) {
                 // Deserialize new message contents
                 state = JsonConvert.DeserializeObject<StateMessage_t>(new_msg[1].ConvertToString());
@@ -678,7 +680,14 @@ public class CameraController : MonoBehaviour
             // Send the message.
             lock (socket_lock)
             {
-                push_socket.TrySendMultipartMessage(msg);
+                if (!state.forceFrameRender)
+                {
+                    push_socket.TrySendMultipartMessage(msg);
+                } else
+                {
+                    // Block and wait to send image if force render is enabled.
+                    push_socket.SendMultipartMessage(msg);
+                }
             }
         });
     }
