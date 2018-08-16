@@ -182,6 +182,7 @@ public class CameraController : MonoBehaviour
         pull_socket.Subscribe("Pose");
         push_socket = new NetMQ.Sockets.PublisherSocket();
         push_socket.Options.Linger = TimeSpan.Zero; // Do not keep unsent messages on hangup.
+        pull_socket.Options.Linger = TimeSpan.Zero;
     }
 
     public void ConnectToClient(string inputIPString)
@@ -232,6 +233,7 @@ public class CameraController : MonoBehaviour
             // Receive most recent message
             var msg = new NetMQMessage();
             var new_msg = new NetMQMessage();
+            
 
             // Wait for a message from the client.
             bool received_new_packet = pull_socket.TryReceiveMultipartMessage(new TimeSpan(0, 0, connection_timeout_seconds), ref msg);
@@ -254,14 +256,15 @@ public class CameraController : MonoBehaviour
             }
 
             // Deserialize message contents
-            //Debug.Log(msg[1].ConvertToString());
-            state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
+            //state = JsonConvert.DeserializeObject<StateMessage_t>(msg[1].ConvertToString());
+            state = JsonUtility.FromJson<StateMessage_t>(msg[1].ConvertToString());
 
             // If the render queue is backed up, skip ahead to the most recent unskippable frame. 
             // Do not skip a forced render request.
             while (!state.forceFrameRender && pull_socket.TryReceiveMultipartMessage(ref new_msg)) {
                 // Deserialize new message contents
-                state = JsonConvert.DeserializeObject<StateMessage_t>(new_msg[1].ConvertToString());
+                //state = JsonConvert.DeserializeObject<StateMessage_t>(new_msg[1].ConvertToString());
+                JsonUtility.FromJsonOverwrite(new_msg[1].ConvertToString(), state);
             }
             
             // Make sure that all objects are initialized properly
@@ -686,7 +689,8 @@ public class CameraController : MonoBehaviour
 
             // Create packet metadata
             var msg = new NetMQMessage();
-            msg.Append(JsonConvert.SerializeObject(metadata));
+            msg.Append(JsonUtility.ToJson(metadata));
+            //msg.Append(JsonConvert.SerializeObject(metadata));
 
             // Process each camera's image, compress the image, and serialize the result.
             // Compression is disabled for now...

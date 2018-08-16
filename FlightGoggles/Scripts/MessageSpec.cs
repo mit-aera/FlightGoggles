@@ -101,55 +101,65 @@ namespace MessageSpec
     // =============================
     // INCOMING Message definitions
     // =============================
+    [Serializable]
     public class StateMessage_t
     {
         // Startup parameters. They should only change once.
-        public int maxFramerate { get; set; }
-        public bool sceneIsInternal { get; set; }
-        public string sceneFilename { get; set; }
-        public bool compressImage { get; set; }
+        public int maxFramerate;
+        public bool sceneIsInternal;
+        public string sceneFilename ;
+        public bool compressImage ;
         // AA settings
-        public float temporalJitterScale { get; set; }
-        public int temporalStability { get; set; }
-        public float hdrResponse { get; set; }
-        public float sharpness { get; set; }
-        public float adaptiveEnhance { get; set; }
-        public float microShimmerReduction { get; set; }
-        public float staticStabilityPower { get; set; }
+        public float temporalJitterScale ;
+        public int temporalStability ;
+        public float hdrResponse ;
+        public float sharpness ;
+        public float adaptiveEnhance ;
+        public float microShimmerReduction ;
+        public float staticStabilityPower ;
 
         // Frame Metadata
-        public Int64 utime { get; set; }
-        public int camWidth { get; set; }
-        public int camHeight { get; set; }
-        public float camFOV   { get; set; }
-        public float camDepthScale { get; set; }
-        public bool forceFrameRender { get; set; }
+        public Int64 utime ;
+        public int camWidth ;
+        public int camHeight ;
+        public float camFOV   ;
+        public float camDepthScale ;
+        public bool forceFrameRender ;
         // Additional metadata that will be passed through the render process.
-        public Dictionary<string, string> additionalMetadata { get; set; }
+        public Dictionary<string, string> additionalMetadata ;
         // Object state update
-        public IList<Camera_t> cameras { get; set; }
-        public IList<Object_t> objects { get; set; }
-        
-        
+        public List<Camera_t> cameras ;
+        public List<Object_t> objects ;
+
+
         // Additional getters (for convenience)
         public int numCameras { get { return cameras.Count(); } }
         public int screenWidth { get { return camWidth; } }
         public int screenHeight { get { return camHeight * numCameras; } }
         public bool sceneIsDefault { get { return sceneFilename.Length == 0; } }
-        
+
     }
 
+    //public class utilities
+    //{
+    //    //public int numCameras { get { return cameras.Count(); } }
+    //    //public int screenWidth { get { return camWidth; } }
+    //    //public int screenHeight { get { return camHeight * numCameras; } }
+    //    //public bool sceneIsDefault { get { return sceneFilename.Length == 0; } }
+    //}
+
     // Camera class for decoding the ZMQ messages.
+    [Serializable]
     public class Camera_t
     {
-        public string ID { get; set; }
-        public IList<float> position { get; set; }
-        public IList<float> rotation { get; set; }
+        public string ID ;
+        public List<float> position ;
+        public List<float> rotation ;
         // Metadata
-        public int channels { get; set; }
-        public bool isDepth { get; set; }
-        public int outputIndex { get; set; }
-        public bool useAA { get; set; } = false;
+        public int channels ;
+        public bool isDepth ;
+        public int outputIndex ;
+        public bool useAA = false;
 
         // Additional getters
         public bool isGrayscale { get { return (channels == 1) && (!isDepth); } }
@@ -157,14 +167,15 @@ namespace MessageSpec
     }
 
     // Generic object class for decoding the ZMQ messages.
+    [Serializable]
     public class Object_t
     {
-        public string prefabID { get; set; }
-        public string ID { get; set; } // The instance ID
-        public IList<float> position { get; set; }
-        public IList<float> rotation { get; set; }
+        public string prefabID ;
+        public string ID ; // The instance ID
+        public List<float> position ;
+        public List<float> rotation ;
         // Metadata
-        public IList<float> size { get; set; }
+        public List<float> size ;
     }
 
 
@@ -172,22 +183,22 @@ namespace MessageSpec
     // =============================
     // OUTGOING Message definitions
     // =============================
-
+    [Serializable]
     public class RenderMetadata_t
     {
         // Metadata
-        public Int64 utime { get; set; }
-        public bool isCompressed { get; set; }
-        public int camWidth { get; set; }
-        public int camHeight { get; set; }
-        public float camDepthScale { get; set; }
+        public Int64 utime ;
+        public bool isCompressed ;
+        public int camWidth ;
+        public int camHeight ;
+        public float camDepthScale;
         // Additional metadata for helping with the deserialization process.
-        public IList<string> cameraIDs { get; set; }
-        public IList<int> channels { get; set; }
+        public List<string> cameraIDs;
+        public List<int> channels;
         // Additional unstructured metadata given to us by the render request.
-        public Dictionary<string, string> additionalMetadata {get; set;}
+        public Dictionary<string, string> additionalMetadata;
         // To make sure that both client and renderer are on the same page
-        public string apiVersion { get; set; }
+        public string apiVersion;
 
 
         public RenderMetadata_t(StateMessage_t state, string apiVersion_)
