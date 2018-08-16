@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -175,7 +176,7 @@ public class CameraController : MonoBehaviour
         // Configure sockets
         Debug.Log("Configuring sockets.");
         pull_socket = new NetMQ.Sockets.SubscriberSocket();
-        pull_socket.Options.ReceiveHighWatermark = 90;
+        //pull_socket.Options.ReceiveHighWatermark = 90;
 
         // Setup subscriptions.
         pull_socket.Subscribe("Pose");
@@ -270,6 +271,10 @@ public class CameraController : MonoBehaviour
             // Update position of game objects.
             updateObjectPositions();
 
+            if (IsHeadless() && internal_state.screenSkipFrames <= 0)
+            {
+                forceRenderCameras();
+            }
             // Mark socket as initialized
             socket_initialized = true;
 
@@ -495,6 +500,21 @@ public class CameraController : MonoBehaviour
 
     }
 
+    void forceRenderCameras()
+    {
+        state.cameras.ToList().ForEach(
+            obj_state =>
+            {
+                // Get object
+                ObjectState_t internal_object_state = internal_state.getWrapperObject(obj_state.ID, camera_template);
+                GameObject obj = internal_object_state.gameObj;
+
+                // forceRender
+                obj.GetComponent<Camera>().Render();
+            });
+
+    }
+
     /* =============================================
      * FlightGoggles Initialization Functions 
      * =============================================
@@ -709,6 +729,12 @@ public class CameraController : MonoBehaviour
             }
         }
         return default_return;
+    }
+
+    // detect headless mode (which has graphicsDeviceType Null)
+    bool IsHeadless()
+    {
+        return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
     }
 
     // Helper functions for converting list -> vector
