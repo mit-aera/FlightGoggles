@@ -50,9 +50,11 @@ public class CameraController : MonoBehaviour
 {
     // Default Parameters
     [HideInInspector]
-    public const string pose_client_default_port = ":10253";
+    public int instance_num = 1;
     [HideInInspector]
-    public const string video_client_default_port = ":10254";
+    public int pose_client_default_port = 10253;
+    [HideInInspector]
+    public int video_client_default_port = 10254;
     [HideInInspector]
     public const string client_ip_default = "127.0.0.1";
     [HideInInspector]
@@ -62,6 +64,7 @@ public class CameraController : MonoBehaviour
 
     // Public Parameters
     public string client_ip = client_ip_default;
+    public int instance_number = 1;
     public string flight_goggles_version = "v1.4.6";
     public bool DEBUG = false;
     public GameObject camera_template;
@@ -108,16 +111,27 @@ public class CameraController : MonoBehaviour
 
         if (!Application.isEditor)
         {
+            // Check if the program should use different ports for sending back data.
+            string instance_num_arg = GetArg("-instance-num", "");
+            if (instance_num_arg.Length > 0)
+            {
+                // Save instance number
+                instance_num = Int32.Parse(instance_num_arg);
+                pose_client_default_port = pose_client_default_port + 2*(instance_num - 1);
+                video_client_default_port = video_client_default_port + 2*(instance_num - 1);
+            }
+
             // Check if the program should use CLI arguments for IP.
             string client_ip_from_cli = GetArg("-client-ip", "");
             if (client_ip_from_cli.Length > 0)
             {
                 ConnectToClient(client_ip_from_cli);
-            } else
+            }
+            else
             {
                 ConnectToClient(client_ip);
             }
-        
+
             // Disable fullscreen.
             Screen.fullScreen = false;
             Screen.SetResolution(1024, 768, false);
@@ -189,8 +203,8 @@ public class CameraController : MonoBehaviour
 
         Debug.Log("Trying to connect to: " + inputIPString);
 
-        string pose_host_address = "tcp://" + inputIPString + pose_client_default_port;
-        string video_host_address = "tcp://" + inputIPString + video_client_default_port;
+        string pose_host_address = "tcp://" + inputIPString + ":" + pose_client_default_port.ToString();
+        string video_host_address = "tcp://" + inputIPString + ":" + video_client_default_port.ToString();
         
         // Close ZMQ sockets
         pull_socket.Close();
