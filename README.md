@@ -59,11 +59,11 @@ After running either of these commands, you should see 2 OpenCV windows pop up w
 
 |     `Butterfly_World`   |      `Hazelwood_Loft_Full_Day`  | `NYC_Subway` |
 |:-----------------------:|:---------------------------------:|:----------:|
-| ![](Images/butterfly_loft.png) | ![](Images/Loft_day.png)       |  ![](Images/nyc_subway.png) |
+| ![](Images/butterfly_loft.png) | ![](Images/Loft_day.png)       |  ![](Images/NYC_Subway.png) |
 
 | `Hazelwood_Loft_Full_Night` |    `Museum_Day`   |      `Museum_Day_Small`  | 
 |:-------------------------:|:-----------------------:|:---------------------------------:|
-| ![](Images/Loft_night.png) | ![](Images/museum_day.png) | ![](Images/museum_day_small.png) | 
+| ![](Images/Loft_night.png) | ![](Images/Museum_Day.png) | ![](Images/Museum_Day_Small.png) | 
 
 ### Loading External Environments
 
