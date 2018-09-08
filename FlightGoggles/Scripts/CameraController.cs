@@ -49,7 +49,7 @@ using UnityEngine.SceneManagement;
 public class CameraController : MonoBehaviour
 {
     // Default Parameters
-    [HideInInspector]
+    
     public int instance_num = 1;
     [HideInInspector]
     public int pose_client_default_port = 10253;
@@ -64,7 +64,6 @@ public class CameraController : MonoBehaviour
 
     // Public Parameters
     public string client_ip = client_ip_default;
-    public int instance_number = 1;
     public string flight_goggles_version = "v1.4.6";
     public bool DEBUG = false;
     public GameObject camera_template;
@@ -101,7 +100,7 @@ public class CameraController : MonoBehaviour
 
         // Fixes for Unity/NetMQ conflict stupidity.
         AsyncIO.ForceDotNet.Force();
-        socket_lock = new object();
+        //socket_lock = new object();
         
         // Instantiate sockets
         InstantiateSockets();
@@ -112,7 +111,7 @@ public class CameraController : MonoBehaviour
         if (!Application.isEditor)
         {
             // Check if the program should use different ports for sending back data.
-            string instance_num_arg = GetArg("-instance-num", "");
+            string instance_num_arg = GetArg("-instance", "");
             if (instance_num_arg.Length > 0)
             {
                 // Save instance number
@@ -146,7 +145,7 @@ public class CameraController : MonoBehaviour
         Text text_obj = splashScreen.GetComponentInChildren<Text>(true);
         InputField textbox_obj = splashScreen.GetComponentInChildren<InputField>(true);
         text_obj.text = "FlightGoggles Simulation Environment" + Environment.NewLine +
-            flight_goggles_version + Environment.NewLine + Environment.NewLine +
+            flight_goggles_version + " Instance #" + instance_num.ToString() + Environment.NewLine + Environment.NewLine +
             "Waiting for connection from client...";
         textbox_obj.text = client_ip;
         
@@ -190,11 +189,12 @@ public class CameraController : MonoBehaviour
         // Configure sockets
         Debug.Log("Configuring sockets.");
         pull_socket = new NetMQ.Sockets.SubscriberSocket();
-        //pull_socket.Options.ReceiveHighWatermark = 90;
+        pull_socket.Options.ReceiveHighWatermark = 0; // Do not allow for ZMQ to drop messages
 
         // Setup subscriptions.
         pull_socket.Subscribe("Pose");
         push_socket = new NetMQ.Sockets.PublisherSocket();
+        push_socket.Options.SendHighWatermark = 0; // Do not allow ZMQ to drop messages
         push_socket.Options.Linger = TimeSpan.Zero; // Do not keep unsent messages on hangup.
     }
 
@@ -273,9 +273,16 @@ public class CameraController : MonoBehaviour
 
             // If the render queue is backed up, skip ahead to the most recent unskippable frame. 
             // Do not skip a forced render request.
-            while (!state.forceFrameRender && pull_socket.TryReceiveMultipartMessage(ref new_msg)) {
+            while (!state.forceFrameRender)  {
+                bool gotNewerMessage = pull_socket.TryReceiveMultipartMessage(ref new_msg);
                 // Deserialize new message contents
-                state = JsonConvert.DeserializeObject<StateMessage_t>(new_msg[1].ConvertToString());
+                if (gotNewerMessage) {
+                    state = JsonConvert.DeserializeObject<StateMessage_t>(new_msg[1].ConvertToString());
+                } else
+                {
+                    // Process this frame, since it is the newest
+                    break;
+                }
             }
             
             // Make sure that all objects are initialized properly
@@ -416,6 +423,11 @@ public class CameraController : MonoBehaviour
                         // If CTAA is not installed on camera, fallback to PostProcessing FXAA.
                         internal_object_state.postProcessingProfile.antialiasing.enabled = false;
                     }
+
+                    // Set min/max clipping planes for depth
+                    obj.GetComponent<Camera>().farClipPlane = 100.0f;
+                    obj.GetComponent<Camera>().nearClipPlane = 0.01f;
+
                 } else
                 {
                     // Set CTAA settings
@@ -693,8 +705,8 @@ public class CameraController : MonoBehaviour
 
 
         // Compress and send the image in a different thread.
-        Task.Run(() =>
-        {
+        //Task.Run(() =>
+        //{
             // Get metadata
             RenderMetadata_t metadata = new RenderMetadata_t(state, flight_goggles_version);
 
@@ -712,8 +724,8 @@ public class CameraController : MonoBehaviour
             //Debug.Log(images.Count);
 
             // Send the message.
-            lock (socket_lock)
-            {
+            //lock (socket_lock)
+            //{
                 if (!state.forceFrameRender)
                 {
                     push_socket.TrySendMultipartMessage(msg);
@@ -722,8 +734,8 @@ public class CameraController : MonoBehaviour
                     // Block and wait to send image if force render is enabled.
                     push_socket.SendMultipartMessage(msg);
                 }
-            }
-        });
+            //}
+        //});
     }
 
     /* ==================================

@@ -395,7 +395,7 @@ Prefab:
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
       propertyPath: flight_goggles_version
-      value: v1.7.0-rc2
+      value: v1.7.0-rc7
       objectReference: {fileID: 0}
     - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
         type: 2}
@@ -416,6 +416,16 @@ Prefab:
         type: 2}
       propertyPath: client_ip
       value: 192.168.2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: instance_number
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114453131608665736, guid: 3d374c37885fb074d93f8b9bb965164c,
+        type: 2}
+      propertyPath: instance_num
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3d374c37885fb074d93f8b9bb965164c, type: 2}
@@ -628,7 +638,7 @@ Prefab:
     - target: {fileID: 20232890885760490, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
         type: 2}
       propertyPath: far clip plane
-      value: 100
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 1715570969326708, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_IsActive
@@ -1265,11 +1275,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -10.58
+      value: -1.16
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 2.86
+      value: 0.52
       objectReference: {fileID: 0}
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalPosition.z
@@ -1298,7 +1308,7 @@ Prefab:
     - target: {fileID: 20232890885760490, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
         type: 2}
       propertyPath: far clip plane
-      value: 100
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 1715570969326708, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_IsActive
@@ -1347,6 +1357,11 @@ Prefab:
     - target: {fileID: 4621233542336366, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
       propertyPath: m_LocalEulerAnglesHint.y
       value: -22.763
+      objectReference: {fileID: 0}
+    - target: {fileID: 20232890885760490, guid: 5f48710dc58ca6148b13f370f2f5eb1c,
+        type: 2}
+      propertyPath: m_OcclusionCulling
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f48710dc58ca6148b13f370f2f5eb1c, type: 2}
