@@ -67,7 +67,7 @@ void ROSClient::populateRenderSettings(){
 
    // NEW for FlightGoggles v2.x.x
    flightGoggles.state.sceneFilename = "Abandoned_Factory_Morning";
-   flightGoggles.state.sceneFilename = "Abandoned_Factory_Evening";
+   flightGoggles.state.sceneFilename = "Abandoned_Factory_Sunset";
    */
 
   flightGoggles.state.sceneFilename = "Abandoned_Factory_Morning";
