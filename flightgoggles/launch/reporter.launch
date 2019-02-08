@@ -1,6 +1,6 @@
 <launch>
   <arg name="use_external_renderer" default="0" />
-  <arg name="ignore_collisions" default="true" />
+  <arg name="ignore_collisions" default="false" />
   <arg name="render_stereo" default="0" />
   <arg name="level"/>
   <env name="CWD" value="$(env PWD)" />     
