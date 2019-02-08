@@ -128,7 +128,7 @@ and yaw rate. The right hand `JKLI` keys control roll and pitch rate.
 
 ![](Images/keyboard_controller.png)
 
-For joystick control, the joystick mode switch should be in mode `D`. To enabled joystick control, `LB` should be held.
+For joystick control, the joystick mode switch should be in mode `D`. To enabled joystick control, `LT` should be held.
 Similar to Mode 2 RC Controllers, the left hand joystick controls thrust
 and yaw rate. The right hand joystick controls roll and pitch rate. 
 
