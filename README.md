@@ -9,12 +9,13 @@ A framework for photorealistic hardware-in-the-loop agile flight simulation usin
 
 We have tested this project on two different setups:
 High end Desktop computer with:
--Processor: Intel i9 extreme (i9-7980XE)
--RAM: 32Gb
--GPU: Titan V
+- Processor: Intel i9 extreme (i9-7980XE)
+- RAM: 32Gb
+- GPU: Titan V
 
-AWS instance
--p3.2xlarge
+AWS instances:
+- p3.2xlarge
+- g3s.xlarge
 
 For optimal performance, an Nvidia GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `~30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `~120FPS` of RGB images and up to `180FPS` of grayscale images, depending on the complexity of the scene and render resolution.
 
