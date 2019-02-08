@@ -17,10 +17,6 @@ AWS instances:
 - p3.2xlarge
 - g3s.xlarge
 
-For optimal performance, an Nvidia GPU with `>=1.7GB` of VRAM is required. In our experience, a `2GB Nvidia Quadro M1000M` mobile workstation GPU is capable of rendering `~30FPS` of RGBD images. A desktop `12GB Nvidia Titan Xp` is capable of rendering `~120FPS` of RGB images and up to `180FPS` of grayscale images, depending on the complexity of the scene and render resolution.
-
-GPUs with lower than `1.7GB` of VRAM [are usable](./REDUCING_VRAM_USAGE.md), but we have not tested that.
-
 For teleoperation, we use a Logitech Gamepad F310 or a keyboard. Other gamepads can work, but you must remap the buttons and pots in the universal_teleop configuration node. 
 
 For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required.
@@ -219,3 +215,14 @@ If you find this work useful for your research, please cite:
 }
 ```
 Blackbird Dataset: [Paper](https://arxiv.org/abs/1810.01987) [Website](https://github.com/mit-fast/Blackbird-Dataset)
+
+## Core Contributers
+
+```
+Winter Guerra
+Ezra Tal
+Varun Murali
+Sebastian Quilter
+John Aleman
+Sertac Karaman
+```
