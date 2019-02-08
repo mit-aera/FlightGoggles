@@ -1,4 +1,0 @@
-[submodule "FlightGoggles/External/PostProcessing"]
-	path = FlightGoggles/External/PostProcessing
-	url = https://github.com/AgileDrones/PostProcessing.git
-	branch = FlightGoggles

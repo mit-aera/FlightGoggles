@@ -1,0 +1,38 @@
+flightgoggles_uav_dynamics:
+    init_pose: [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    clockscale: 1.0
+    ignore_collisions: false
+    vehicle_mass: 1.0
+    vehicle_inertia_xx: 0.0049
+    vehicle_inertia_yy: 0.0049
+    vehicle_inertia_zz: 0.0049
+    max_prop_speed: 2200.0
+    moment_arm: 0.08
+    motor_time_constant: 0.02
+    thrust_coefficient: 1.91e-6
+    torque_coefficient: 2.6e-7
+    drag_coefficient: 0.1
+    angular_process_noise: 0.00025
+    linear_process_noise: 0.0005
+
+flightgoggles_imu:
+    accelerometer_variance: 0.005
+    gyroscope_variance: 0.003
+
+flightgoggles_lpf:
+    gain_p: 35530.5758439217
+    gain_q: 266.572976289502
+
+flightgoggles_pid:
+    gain_p_roll: 9.0
+    gain_i_roll: 3.0
+    gain_d_roll: 0.3
+    gain_p_pitch: 9.0
+    gain_i_pitch: 3.0
+    gain_d_pitch: 0.3
+    gain_p_yaw: 9.0
+    gain_i_yaw: 3.0
+    gain_d_yaw: 0.3
+    int_bound_roll: 1000.0
+    int_bound_pitch: 1000.0
+    int_bound_yaw: 1000.0

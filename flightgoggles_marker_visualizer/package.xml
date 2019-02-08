@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flightgoggles_marker_visualizer</name>
+  <version>0.1.1</version>
+  <description>publishes keyboard key presses</description>
+  <license>GPLv2</license>
+  <url type="website">http://wiki.ros.org/keyboard</url>
+
+  <maintainer email="winterg@mit.edu">Winter Guerra</maintainer>
+  <author email="vmurali@mit.edu">Varun Murali</author>
+
+  <!-- standard dependencies -->
+  <depend>sensor_msgs</depend>
+  <depend>message_filters</depend>
+  <depend>std_msgs</depend>
+  <depend>message_generation</depend>
+  <depend>roscpp</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>flightgoggles</depend>
+
+  <exec_depend>message_runtime</exec_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

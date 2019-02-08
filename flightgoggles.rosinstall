@@ -1,0 +1,16 @@
+
+# Third party source nodes needed for FlightGoggles simulation
+
+# Keyboard and joystick muxer. Forked from `lrse/ros-universal-teleop` on Github.com
+- git: {local-name: universal_teleop, uri: 'https://github.com/mit-fast/ros-universal-teleop.git'}
+
+# Keyboard input node.
+- git: {local-name: keyboard, uri: 'https://github.com/lrse/ros-keyboard.git'}
+
+# Rosbag playback node
+- git: {local-name: rosbaglive, uri: 'https://github.com/wu-robotics/wu_ros_tools.git', version: 'release/kinetic/rosbaglive'}
+
+# FlightGoggles nodes
+- git: {local-name: flightgoggles, uri: 'https://github.com/mit-fast/FlightGoggles.git'}
+
+

@@ -1,0 +1,51 @@
+<launch>
+  <!-- Launch settings. To be passed into launch file. -->
+  <arg name="use_dynamics" default="1" />
+  <arg name="use_external_renderer" default="0" />
+  <arg name="ignore_collisions" default="false" />
+  <arg name="render_stereo" default="0" />
+  <arg name="run_challenges" default="1" />  
+
+  <group ns="/uav">
+   
+    <!-- Read required yaml files" / --> 
+    <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/> 
+
+    <!-- Environment Creator -->
+    <!-- flightgoggles_uav_dynamics simulator -->
+    <!--Will not be run if playing back previous flight from rosbag-->
+    <node name="flightgoggles_uav_dynamics" pkg="flightgoggles_uav_dynamics" type="node"
+          if="$(arg use_dynamics)" output="screen">
+      <param name="ignore_collisions" type="bool" value="$(arg ignore_collisions)" />
+    </node>
+
+    <!-- FlightGoggles Renderer -->
+    <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" unless="$(arg use_external_renderer)"/>
+
+    <!-- FlightGoggles ROS Bridge -->
+    <node name="flightgoggles_ros_bridge" pkg="flightgoggles_ros_bridge" type="ROSClient" output="screen" />
+
+    <!-- FlightGoggles IR Marker visualizer -->
+    <node name="flightgoggles_marker_visualizer" pkg="flightgoggles_marker_visualizer" type="flightgoggles_marker_visualizer" />
+
+    <!--Run RVIZ for visualization-->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" />
+
+    <!--Static transforms for 20cm stereo baseline -->
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="camera_left_link" args="0 0.1 0 -1.57079632679 0 -1.57079632679 uav/uav/imu uav/camera/left  "
+          if="$(arg render_stereo)"/>
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="camera_left_link" args="0 -0.1 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right  "
+          if="$(arg render_stereo)"/>
+    <!--Centered camera (for monocular camera operation)-->
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="camera_left_link" args="0 0 0 -1.57079632679 0 -1.57079632679 'uav/imu' 'uav/camera/center'"
+          unless="$(arg render_stereo)" />
+
+    <!--Static transform for ENU to NED world-->
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="world_ned_link" args="0 0 0 1.57079632679 3.14159265359 0 'world' 'world/ned'"/>
+
+  </group>
+</launch>

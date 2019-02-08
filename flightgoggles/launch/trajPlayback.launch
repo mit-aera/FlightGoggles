@@ -1,0 +1,33 @@
+<launch>
+  <arg name="use_external_renderer" default="0" />
+  <arg name="render_stereo" default="0" />
+  <group ns="/uav">
+
+    <!--Play back previous flight's trajectory using a restamping tool-->
+    <!--<node name="trajectory_playback" pkg="rosbag" type="play" args="$(find flightgoggles)/bags/example_flight.bag"/>-->
+    <node name="log_restamper" pkg="rosbaglive" type="play.py" args="$(find flightgoggles)/bags/example_flight.bag" respawn="true"/>
+
+    <!--include core flightgoggles launch file-->
+    <include file="$(find flightgoggles)/launch/core.launch" >
+      <!--Disable and use dynamics from rosbag-->
+      <arg name="use_dynamics" value="0"/>
+      <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
+      <arg name="render_stereo" value="$(arg render_stereo)"/>
+    </include>
+
+  </group>
+
+
+  <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
+
+  <!--
+      Using simulation time means nodes initialized after this
+      will not use the system clock for its ROS clock and
+      instead wait for simulation ticks.
+      See http://wiki.ros.org/Clock
+
+      This should be enabled if the user would like to ensure a constant 60hz camera for your algorithm.
+  -->
+  <param name="/use_sim_time" value="0" />
+
+</launch>
