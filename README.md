@@ -1,8 +1,8 @@
 # FlightGoggles
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
-[![Video Link](Images/Abandoned_Factory_2.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
-[![Video Link](Images/Abandoned_Factory_25.jpg)](https://www.youtube.com/watch?v=_VBww8YQuA8)
+[![Video Link](Images/Abandoned_Factory_2.jpg)](https://youtu.be/e_3Yw0uPRKE)
+[![Video Link](Images/Abandoned_Factory_25.jpg)](https://youtu.be/e_3Yw0uPRKE)
 
 ## Quick Start Guide
 
