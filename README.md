@@ -23,18 +23,15 @@ AWS instances:
 
 For teleoperation, we use a Logitech Gamepad F310 or a keyboard. Other gamepads can work, but you must remap the buttons and pots in the universal_teleop configuration node. 
 
-For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required.
+#### Software and Hardware Requirements
 
-
-#### Software
-
-We use Ubuntu 16.04 and ROS Kinetic exclusively
+We use Ubuntu 16.04 and ROS Kinetic exclusively. Other versions are not officially supported.
 
 For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required.
 
-Prior to installing our software make sure to have ROS and Catkin installed:
+Prior to installing our software make sure to have ROS and Catkin tools installed:
 http://wiki.ros.org/kinetic/Installation/Ubuntu
-```
+```bash
 sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
 sudo apt-get install python-catkin-tools
 sudo apt install python-wstool
