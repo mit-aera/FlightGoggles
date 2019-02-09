@@ -136,6 +136,8 @@ For joystick control, the joystick mode switch should be in mode `D`. To enabled
 Similar to Mode 2 RC Controllers, the left hand joystick controls thrust
 and yaw rate. The right hand joystick controls roll and pitch rate. 
 
+Note: Collisions do not reset the simulator and the simulator stops when the drone has collided. To fly around without colliders enabled for the purpose of exploring the environment, colliders can be disabled by setting ignore_collisions to true in the launch file or passing it as an argument to the launch file without editing the launch file.  
+
 ### Running Flightgoggles in AWS (or other headless Linux servers)
 
 These instructions are derived from [here](https://towardsdatascience.com/how-to-run-unity-on-amazon-cloud-or-without-monitor-3c10ce022639)
