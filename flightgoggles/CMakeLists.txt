@@ -43,6 +43,10 @@ set(ExternalData_OBJECT_STORES
         "/tmp/flightgoggles_binary_cache"
         )
 
+# Allow for extended timeout for downloads
+set(ExternalData_TIMEOUT_ABSOLUTE 3600)
+set(ExternalData_TIMEOUT_INACTIVITY 0)
+
 # Define FG renderer version required
 # Get location of .tar.gz file
 ExternalData_Expand_Arguments(flightgogglesBinaryDownload
