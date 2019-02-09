@@ -27,6 +27,6 @@
   <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
 
   <!--For teleoperation, run dynamics in real time-->
-  <param name="/use_sim_time" value="true" />
+  <param name="/use_sim_time" value="false" />
 
 </launch>
