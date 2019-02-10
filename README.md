@@ -23,18 +23,15 @@ AWS instances:
 
 For teleoperation, we use a Logitech Gamepad F310 or a keyboard. Other gamepads can work, but you must remap the buttons and pots in the universal_teleop configuration node. 
 
-For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required.
+#### Software and Hardware Requirements
 
-
-#### Software
-
-We use Ubuntu 16.04 and ROS Kinetic exclusively
+We use Ubuntu 16.04 and ROS Kinetic exclusively. Other versions are not officially supported.
 
 For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required.
 
-Prior to installing our software make sure to have ROS and Catkin installed:
+Prior to installing our software make sure to have ROS and Catkin tools installed:
 http://wiki.ros.org/kinetic/Installation/Ubuntu
-```
+```bash
 sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
 sudo apt-get install python-catkin-tools
 sudo apt install python-wstool
@@ -54,7 +51,6 @@ cd src
 wstool init
 # Install FlightGoggles nodes and deps from rosinstall file
 wstool merge https://raw.githubusercontent.com/mit-fast/FlightGoggles/master/flightgoggles.rosinstall
-wstool merge flightgoggles.rosinstall
 wstool update
 cd ../
 # Install required libraries.
@@ -136,7 +132,7 @@ For joystick control, the joystick mode switch should be in mode `D`. To enabled
 Similar to Mode 2 RC Controllers, the left hand joystick controls thrust
 and yaw rate. The right hand joystick controls roll and pitch rate. 
 
-Note: Collisions do not reset the simulator and the simulator stops when the drone has collided. To fly around without colliders enabled for the purpose of exploring the environment, colliders can be disabled by setting ignore_collisions to true in the launch file or passing it as an argument to the launch file without editing the launch file.  
+**Note:** Collisions do not reset the simulator and the simulator stops when the drone has collided. To fly around without colliders enabled for the purpose of exploring the environment, colliders can be disabled by setting `ignore_collisions` to true in the launch file or passing it as an argument to the launch file without editing the launch file. E.g.`roslaunch flightgoggles teleopExample.launch ignore_collisions:=1`
 
 ### Running Flightgoggles in AWS (or other headless Linux servers)
 
