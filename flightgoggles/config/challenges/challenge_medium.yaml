@@ -4,4 +4,4 @@ challenge_name: "Challenge Medium"
 timeout: 200.0
 gate_names: ['Gate2', 'Gate13']
 gate_width: 0.3
-results_location: "/home/medusa/catkin_ws/results.yaml"
+results_location: "results.yaml"
