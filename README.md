@@ -180,7 +180,29 @@ These commands need to be run after every reboot.
 
 To test that graphical applications run now, try to run `glxgears`. If the output looks something like `??? frames in 5.0 seconds = ??? FPS`, then it's working. Follow the install instructions above to get flightgoggles running.
 
-If you would like to see the output of the simulation locally, you will need to set the `ROS_MASTER_URI` and `ROS_IP` environment variables appropriately on your EC2 instance and on your local machine. `ROS_MASTER_URI` should be set to `http://<your-ec2-ip>:11311` on both machines. `ROS_IP` should be set to the IP address of the device that it is being set on. Note that each EC2 instance will have 2 ip addresses - set `ROS_IP` to the external IP address. Also be sure to open up inbound and outbound ports on the EC2 instance through the web portal. Now, if you launch flightgoggles on the remote instance and start up `rqt` locally, you should be able to see the output of flightgoggles on your local machine.
+If you would like to see the output of the simulation locally, you will need to set the `ROS_MASTER_URI` and `ROS_IP` environment variables appropriately on your EC2 instance and on your local machine. `ROS_MASTER_URI` should be set to `http://<your-ec2-ip>:11311` on both machines. `ROS_IP` should be set to the IP address of the device that it is being set on. Note that each EC2 instance will have 2 ip addresses - set `ROS_IP` to the external IP address. Also be sure to open up inbound and outbound ports on the EC2 instance through the web portal. Now, if you launch flightgoggles on the remote instance and start up `rviz -d "$(rospack find flightgoggles)/rviz/third_person_drone_follower.rviz"` locally, you should be able to see the output of flightgoggles on your local machine.
+
+## FAQ
+Q. What is the co-ordinate system of the drone?  
+The simulated drone uses a X-Forward, Y-Left and Z-Up or NWU system of reference. 
+
+Q. Is the camera calibration available?  
+The camera calibration is published under `/uav/camera/left/camera_info`. 
+
+Q. Is there support for 18.04 LTS and ROS Melodic?  
+Since all of our testing involved Ubuntu 16.04 and ROS Kinetic, we do not officially support using Ubuntu 18.04 and ROS Melodic but users have been [able to use FG with ROS Melodic and Ubuntu 18.04](https://github.com/mit-fast/FlightGoggles/issues/30)
+
+Q. What are the minimum requirements to run FlightGoggles locally?  
+At the moment, FlightGoggles requires ~`3.4GB` of VRAM and has the same underlying requirements as the [Vulkan rendering API] ( https://en.wikipedia.org/wiki/Vulkan_(API) ). 
+
+Q. I am having trouble receiving images from FG while using AWS.   
+Your computer is likely assigned a local IP address behind a NAT. Please follow the instructions from [here](https://answers.ros.org/question/11045/how-to-set-up-vpn-between-ros-machines/) to setup VPN. 
+
+Q. Why does the simulator run very slow with `use_sim_time` parameter set to `true`?  
+FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS clock down if the simulation is running slowly. Thus, your autonomous algorithms will see a constant 60Hz camera in `sim time` and should experience accurate drone dynamics as long as the camera renderer is able to run ([see ROS clock documentation] (http://wiki.ros.org/Clock)).   
+
+Q. Does FlightGoggles currently support Stereo?  
+Currently no. This feature has been temporarily disabled. For further discussion on required visual processing for AlphaPilot using FG, please refer to [the herox forums](https://www.herox.com/alphapilot/forum/thread/3755?page=2#post-16150). 
 
 ## Citation
 If you find this work useful for your research, please cite:
