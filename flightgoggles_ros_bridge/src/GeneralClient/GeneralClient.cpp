@@ -5,6 +5,7 @@
  *space.
  **/
 
+#include <unistd.h>
 #include "GeneralClient.hpp"
 
 #define SHOW_DEBUG_IMAGE_FEED true
