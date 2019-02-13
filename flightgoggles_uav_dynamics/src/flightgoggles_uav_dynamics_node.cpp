@@ -143,13 +143,18 @@ tfListener_(tfBuffer_)
   pid_.lastUpdateTime_ = currentTime_;
 
   // Init subscribers and publishers
-  imuPub_ = node_.advertise<sensor_msgs::Imu>("/sensors/imu", 1);
+  imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 1);
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
   collisionSub_ = node_.subscribe("/uav/collision", 1, &Uav_Dynamics::collisionCallback, this);
   frameRateSub_ = node_.subscribe("/uav/camera/debug/fps", 1, &Uav_Dynamics::fpsCallback, this);
-  clockPub_ = node_.advertise<rosgraph_msgs::Clock>("/clock",1);
 
-  clockPub_.publish(currentTime_);
+  if (useSimTime_) {
+    clockPub_ = node_.advertise<rosgraph_msgs::Clock>("/clock",1);
+    clockPub_.publish(currentTime_);
+  } else {
+    // Get the current time if we are using wall time. Otherwise, use 0 as initial clock.
+    currentTime_ = ros::Time::now();
+  }
   // Init main simulation loop at 2x framerate.
   simulationLoopTimer_ = node_.createWallTimer(ros::WallDuration(dt_secs/clockScale), &Uav_Dynamics::simulationLoopTimerCallback, this);
   simulationLoopTimer_.start();
@@ -171,30 +176,31 @@ void Uav_Dynamics::fpsCallback(std_msgs::Float32::Ptr msg) {
  */
 void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event){
   // Step the time forward
-  currentTime_ += ros::Duration(dt_secs);
-  clockPub_.publish(currentTime_);
-  //std::cout << currentTime_ << lastUpdateTime_ << std::endl;
-
-
-  if(!lastCommandMsg_) return;
+  if (useSimTime_){
+    currentTime_ += ros::Duration(dt_secs);
+    clockPub_.publish(currentTime_);
+  } else {
+    currentTime_ = ros::Time::now();
+  }
 
   if(hasCollided_ && !ignoreCollisions_){
     simulationLoopTimer_.stop();
     return;
   }
 
+  // Only propagate simulation after have received input message
   if (armed_) {
 
     lpf_.proceedState(imuMeasurement_.angular_velocity, currentTime_);
 
     pid_.controlUpdate(lastCommandMsg_->angular_rates, lpf_.filterState_,
                        lpf_.filterStateDer_, angAccCommand_, currentTime_);
-
     computeMotorSpeedCommand();
     proceedState();
     imu_.getMeasurement(imuMeasurement_, angVelocity_, specificForceBodyFrame_, currentTime_);
     imuPub_.publish(imuMeasurement_);
   }
+
 
   publishState();
 
@@ -364,13 +370,10 @@ void Uav_Dynamics::proceedState(void){
  * publishState publishes state transform message
  */
 void Uav_Dynamics::publishState(void){
-  static uint32_t seq = 0;
-
   geometry_msgs::TransformStamped transform;
 
   transform.header.stamp = currentTime_;
   transform.header.frame_id = "world";
-  transform.header.seq = ++seq;
 
   transform.transform.translation.x = position_[0];
   transform.transform.translation.y = position_[1];
