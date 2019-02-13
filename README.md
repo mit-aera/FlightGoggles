@@ -180,7 +180,23 @@ These commands need to be run after every reboot.
 
 To test that graphical applications run now, try to run `glxgears`. If the output looks something like `??? frames in 5.0 seconds = ??? FPS`, then it's working. Follow the install instructions above to get flightgoggles running.
 
-If you would like to see the output of the simulation locally, you will need to set the `ROS_MASTER_URI` and `ROS_IP` environment variables appropriately on your EC2 instance and on your local machine. `ROS_MASTER_URI` should be set to `http://<your-ec2-ip>:11311` on both machines. `ROS_IP` should be set to the IP address of the device that it is being set on. Note that each EC2 instance will have 2 ip addresses - set `ROS_IP` to the external IP address. Also be sure to open up inbound and outbound ports on the EC2 instance through the web portal. Now, if you launch flightgoggles on the remote instance and start up `rviz -d "$(rospack find flightgoggles)/rviz/third_person_drone_follower.rviz"` locally, you should be able to see the output of flightgoggles on your local machine.
+If you would like to see the output of the simulation locally, you will need to set the `ROS_MASTER_URI` and `ROS_IP` environment variables appropriately on your EC2 instance and on your local machine (see code below). Note that each EC2 instance will have 2 ip addresses - set `ROS_IP` to the external IP address. Also be sure to open up inbound and outbound ports on the EC2 instance through the web portal.
+
+On AWS:
+```bash
+export ROS_MASTER_URI=http://ec2_public_ip:11311
+export ROS_IP=ec2_public_ip
+roslaunch flightgoggles core.launch
+```
+
+On your local machine:
+```bash
+export ROS_MASTER_URI=http://ec2_public_ip:11311
+export ROS_IP=local_machine_public_ip
+roslaunch flightgoggles teleopAWSFromLocalMachine.launch # Requires that FlightGoggles is also installed locally
+```
+
+Assuming that you have FlightGoggles installed on AWS and on your local machine, you should be able to see the output of flightgoggles on your local machine via rviz.
 
 ## FAQ
 Q. What is the co-ordinate system of the drone?  

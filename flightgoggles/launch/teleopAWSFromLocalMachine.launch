@@ -16,6 +16,9 @@
     </node>
   </group>
 
+  <!--Run RVIZ for visualization-->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" />
+
   <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
 
   <!--For teleoperation, run dynamics in real time-->
