@@ -136,7 +136,7 @@ class Uav_Dynamics {
         ros::Time currentTime_;
         //@}
 
-        const double dt_secs = 1.0f/120;
+        double dt_secs = 1.0f/120;
         double clockScale = 1.0;
         double actualFps  = -1;
 
@@ -179,7 +179,7 @@ class Uav_Dynamics {
         const double grav_ = 9.81; // m/s^2
         double thrustCoeff_ = 1.91e-6; // N/(rad/s)^2
         double torqueCoeff_ = 2.6e-7; // Nm/(rad/s)^2
-        double dragCoeff_ = 0.1; // N/(m/s)
+        double dragCoeff_ = 0.1; // N/(m/s)^2
         //@}
 
         /// @name State variables

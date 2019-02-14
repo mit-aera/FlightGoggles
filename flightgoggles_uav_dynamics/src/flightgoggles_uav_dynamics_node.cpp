@@ -180,7 +180,9 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
     currentTime_ += ros::Duration(dt_secs);
     clockPub_.publish(currentTime_);
   } else {
-    currentTime_ = ros::Time::now();
+      ros::Time loopStartTime = ros::Time::now();
+      dt_secs = (loopStartTime - currentTime_).toSec();
+      currentTime_ = loopStartTime;
   }
 
   if(hasCollided_ && !ignoreCollisions_){
