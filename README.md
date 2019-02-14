@@ -209,13 +209,13 @@ Q. Is there support for 18.04 LTS and ROS Melodic?
 Since all of our testing involved Ubuntu 16.04 and ROS Kinetic, we do not officially support using Ubuntu 18.04 and ROS Melodic but users have been [able to use FG with ROS Melodic and Ubuntu 18.04](https://github.com/mit-fast/FlightGoggles/issues/30)
 
 Q. What are the minimum requirements to run FlightGoggles locally?  
-At the moment, FlightGoggles requires ~`3.4GB` of VRAM and has the same underlying requirements as the [Vulkan rendering API] ( https://en.wikipedia.org/wiki/Vulkan_(API) ). 
+At the moment, FlightGoggles requires ~`3.4GB` of VRAM and has the same underlying requirements as the [Vulkan rendering API]( https://en.wikipedia.org/wiki/Vulkan_(API) ). 
 
 Q. I am having trouble receiving images from FG while using AWS.   
 Your computer is likely assigned a local IP address behind a NAT. Please follow the instructions from [here](https://answers.ros.org/question/11045/how-to-set-up-vpn-between-ros-machines/) to setup VPN. 
 
 Q. Why does the simulator run very slow with `use_sim_time` parameter set to `true`?  
-FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS clock down if the simulation is running slowly. Thus, your autonomous algorithms will see a constant 60Hz camera in `sim time` and should experience accurate drone dynamics as long as the camera renderer is able to run ([see ROS clock documentation] (http://wiki.ros.org/Clock)).   
+FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS clock down if the simulation is running slowly. Thus, your autonomous algorithms will see a constant 60Hz camera in `sim time` and should experience accurate drone dynamics as long as the camera renderer is able to run ([see ROS clock documentation](http://wiki.ros.org/Clock)).   
 
 Q. Does FlightGoggles currently support Stereo?  
 Currently no. This feature has been temporarily disabled. For further discussion on required visual processing for AlphaPilot using FG, please refer to [the herox forums](https://www.herox.com/alphapilot/forum/thread/3755?page=2#post-16150). 
