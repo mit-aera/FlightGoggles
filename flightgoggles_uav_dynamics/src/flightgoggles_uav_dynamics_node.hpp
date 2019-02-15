@@ -136,7 +136,8 @@ class Uav_Dynamics {
         ros::Time currentTime_;
         //@}
 
-        double dt_secs = 1.0f/120;
+        double dt_secs = 1.0f/960.;
+        bool useManualClockscale = true;
         double clockScale = 1.0;
         double actualFps  = -1;
 

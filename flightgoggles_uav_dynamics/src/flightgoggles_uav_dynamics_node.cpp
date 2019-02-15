@@ -43,8 +43,10 @@ tfListener_(tfBuffer_)
 {
   // boost::shared_ptr<geometry_msgs::Pose const> initialPose = ros::topic::waitForMessage<geometry_msgs::Pose>("challenge/randStartPos"); 	
 
+
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/clockscale", clockScale)) {
     std::cout << "Did not get a clock scaling value. Defaulting to realtime 1.0x" << std::endl;
+    useManualClockscale = false;
   }
 
 
@@ -206,8 +208,11 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
 
   publishState();
 
-  if (actualFps != -1 && actualFps < 1e3 && useSimTime_) {
-     clockScale =  (actualFps / 58.0);
+  // Update clockscale if necessary
+  
+
+  if (actualFps != -1 && actualFps < 1e3 && useSimTime_ && !useManualClockscale) {
+     clockScale =  (actualFps / 55.0);
      simulationLoopTimer_.stop();
      simulationLoopTimer_.setPeriod(ros::WallDuration(dt_secs / clockScale));
      simulationLoopTimer_.start();

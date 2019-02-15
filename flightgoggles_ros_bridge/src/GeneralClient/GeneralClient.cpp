@@ -60,21 +60,27 @@ void posePublisher(GeneralClient *self){
  */
 void GeneralClient::addCameras(){
   // Prepopulate metadata of cameras (RGBD)
-  unity_outgoing::Camera_t cam_RGB;
-  cam_RGB.ID = "Camera_RGB";
-  cam_RGB.channels = 3;
-  cam_RGB.isDepth = false;
-  cam_RGB.outputIndex = 0;
+  unity_outgoing::Camera_t cam_Left;
+  cam_Left.ID = "Camera_Left";
+  cam_Left.channels = 3;
+  cam_Left.isDepth = false;
+  cam_Left.outputIndex = 0;
+  
+  unity_outgoing::Camera_t cam_Right;
+  cam_Right.ID = "Camera_Right";
+  cam_Right.channels = 3;
+  cam_Right.isDepth = false;
+  cam_Right.outputIndex = 0;
 
-  unity_outgoing::Camera_t cam_D;
-  cam_D.ID = "Camera_D";
-  cam_D.channels = 1;
-  cam_D.isDepth = true;
-  cam_D.outputIndex = 1;
+//  unity_outgoing::Camera_t cam_D;
+//  cam_D.ID = "Camera_D";
+//  cam_D.channels = 1;
+//  cam_D.isDepth = true;
+//  cam_D.outputIndex = 1;
 
   // Add cameras to persistent state
-  flightGoggles.state.cameras.push_back(cam_RGB);
-  flightGoggles.state.cameras.push_back(cam_D);
+  flightGoggles.state.cameras.push_back(cam_Left);
+  flightGoggles.state.cameras.push_back(cam_Right);
 }
 
 /**

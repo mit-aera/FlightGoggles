@@ -71,10 +71,13 @@ public:
 
     //// @name State variables
     //@{
+    bool render_stereo = false;
     int numSimulationStepsSinceLastRender_ = 0;
-    const int numSimulationStepsBeforeRenderRequest_ = 1;
+    const int numSimulationStepsBeforeRenderRequest_ = 15;
 //    sensor_msgs::PointCloud2::Ptr irBeaconGroundTruth_;
-    sensor_msgs::CameraInfo cameraInfo;
+    sensor_msgs::CameraInfo cameraInfoLeft;
+	sensor_msgs::CameraInfo cameraInfoRight;
+	const float baseline_ = 0.32;
 
     // Keep track of the frame rate
     ros::WallTime timeSinceLastMeasure_;
