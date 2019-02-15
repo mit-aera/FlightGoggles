@@ -220,6 +220,18 @@ FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS cl
 Q. Does FlightGoggles currently support Stereo?  
 Currently no. This feature has been temporarily disabled. For further discussion on required visual processing for AlphaPilot using FG, please refer to [the herox forums](https://www.herox.com/alphapilot/forum/thread/3755?page=2#post-16150). 
 
+Q. FlightGoggles crashes on startup or on scene load.
+
+So far, we have seen 3 reasons for crashes on startup: 
+1. Insufficient VRAM (< 3.5GB).
+    - Solved by upgrading GPU or switching to AWS rendering.
+2. No-multithreaded GPU support.
+    - Characterized by the appearance of `Receiving unhandled NULL exception [...] std::pow(float, float)` in player.log.
+    - Solved by using [non-multithreaded FlightGoggles binary](http://d34kgw45d3q5oc.cloudfront.net/Public/FlightGoggles/StandaloneBinaries/FlightGoggles_Linux_v2.0.0-no_multi_thread.zip). See issue [#28](https://github.com/mit-fast/FlightGoggles/issues/28) for more detail.
+3. Vulkan renderer choosing wrong GPU.
+    - Diagnosable by checking line in player.log similar to `Vulkan renderer=[GeForce GTX 750 Ti] id=[1380].` 
+    - If the listed GPU is not your desired GPU, set the environment variable `VK_ICD_FILENAMES` to `/usr/share/vulkan/icd.d/nvidia_icd.json` as described [here](https://wiki.archlinux.org/index.php/Vulkan). See issue [#28](https://github.com/mit-fast/FlightGoggles/issues/28) for more detail.
+
 ## Citation
 If you find this work useful for your research, please cite:
 ```bibtex
