@@ -27,7 +27,7 @@ For teleoperation, we use a Logitech Gamepad F310 or a keyboard. Other gamepads 
 
 We use Ubuntu 16.04 and ROS Kinetic exclusively. Other versions are not officially supported.
 
-For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required.
+For running the renderer in Ubuntu Linux, NVidia driver version `>=384.130` is required. GPUs and GPU driver versions from other manufacturers may work, but are not officially supported.
 
 Prior to installing our software make sure to have ROS and Catkin tools installed:
 http://wiki.ros.org/kinetic/Installation/Ubuntu
@@ -222,13 +222,10 @@ Currently no. This feature has been temporarily disabled. For further discussion
 
 **Q. FlightGoggles crashes on startup or on scene load.**
 
-So far, we have seen 3 reasons for crashes on startup: 
-1. Insufficient VRAM (< 3.5GB).
+So far, we have seen 2 reasons for crashes on startup: 
+1. Insufficient VRAM (< 2.1GB).
     - Solved by upgrading GPU or switching to AWS rendering.
-2. No-multithreaded GPU support.
-    - Characterized by the appearance of `Receiving unhandled NULL exception [...] std::pow(float, float)` in player.log.
-    - Solved by using [non-multithreaded FlightGoggles binary](http://d34kgw45d3q5oc.cloudfront.net/Public/FlightGoggles/StandaloneBinaries/FlightGoggles_Linux_v2.0.0-no_multi_thread.zip). See issue [#28](https://github.com/mit-fast/FlightGoggles/issues/28) for more detail.
-3. Vulkan renderer choosing wrong GPU.
+2. Vulkan renderer choosing wrong GPU.
     - Diagnosable by checking line in player.log similar to `Vulkan renderer=[GeForce GTX 750 Ti] id=[1380].` 
     - If the listed GPU is not your desired GPU, set the environment variable `VK_ICD_FILENAMES` to `/usr/share/vulkan/icd.d/nvidia_icd.json` as described [here](https://wiki.archlinux.org/index.php/Vulkan). See issue [#28](https://github.com/mit-fast/FlightGoggles/issues/28) for more detail.
 
