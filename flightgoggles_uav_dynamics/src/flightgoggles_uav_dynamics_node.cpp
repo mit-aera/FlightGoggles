@@ -141,9 +141,6 @@ tfListener_(tfBuffer_)
     propSpeed_[i] = sqrt(vehicleMass_/4.*grav_/thrustCoeff_);
   }
 
-  lpf_.lastUpdateTime_ = currentTime_;
-  pid_.lastUpdateTime_ = currentTime_;
-
   // Init subscribers and publishers
   imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 1);
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
@@ -195,10 +192,10 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
   // Only propagate simulation after have received input message
   if (armed_) {
 
-    lpf_.proceedState(imuMeasurement_.angular_velocity, currentTime_);
+    lpf_.proceedState(imuMeasurement_.angular_velocity, dt_secs);
 
     pid_.controlUpdate(lastCommandMsg_->angular_rates, lpf_.filterState_,
-                       lpf_.filterStateDer_, angAccCommand_, currentTime_);
+                       lpf_.filterStateDer_, angAccCommand_, dt_secs);
     computeMotorSpeedCommand();
     proceedState();
     imu_.getMeasurement(imuMeasurement_, angVelocity_, specificForceBodyFrame_, currentTime_);
@@ -471,24 +468,19 @@ Uav_LowPassFilter::Uav_LowPassFilter(){
  * @param value
  * @param currTime
  */
-void Uav_LowPassFilter::proceedState(geometry_msgs::Vector3 & value, ros::Time currTime){
-  ros::Duration dt = currTime - lastUpdateTime_;
-  double dt_secs = dt.toSec();
-
+void Uav_LowPassFilter::proceedState(geometry_msgs::Vector3 & value, double dt){
   double input[] = {value.x, value.y, value.z};
 
-  double det = gainP_ * dt_secs * dt_secs + gainQ_ * dt_secs + 1.;
+  double det = gainP_ * dt * dt + gainQ_ * dt + 1.;
   double stateDer;
   for (size_t ind = 0; ind < 3; ind++) {
-    stateDer = (filterStateDer_[ind] + gainP_ * dt_secs * input[ind]) / det -
-               (dt_secs * gainP_ * filterState_[ind]) / det;
+    stateDer = (filterStateDer_[ind] + gainP_ * dt * input[ind]) / det -
+               (dt * gainP_ * filterState_[ind]) / det;
     filterState_[ind] =
-        (dt_secs * (filterStateDer_[ind] + gainP_ * dt_secs * input[ind])) / det +
-        ((dt_secs * gainQ_ + 1.) * filterState_[ind]) / det;
+        (dt * (filterStateDer_[ind] + gainP_ * dt * input[ind])) / det +
+        ((dt * gainQ_ + 1.) * filterState_[ind]) / det;
     filterStateDer_[ind] = stateDer;
   }
-
-  lastUpdateTime_ = currTime;
 }
 
 /**
@@ -553,18 +545,14 @@ Uav_Pid::Uav_Pid(){
  * @param currTime
  */
 void Uav_Pid::controlUpdate(geometry_msgs::Vector3 & command, double * curval,
-                      double * curder, double * out, ros::Time currTime){
-  ros::Duration dt = currTime - lastUpdateTime_;
-  double dt_secs = dt.toSec();
+                      double * curder, double * out, double dt){
 
   double stateDev[] = {command.x-curval[0], command.y-curval[1], command.z-curval[2]};
 
   for (size_t ind = 0; ind < 3; ind++) {
-    intState_[ind] += dt_secs * stateDev[ind];
+    intState_[ind] += dt * stateDev[ind];
     intState_[ind] = fmin(fmax(-intBound_[ind],intState_[ind]),intBound_[ind]);
     out[ind] = propGain_[ind] * stateDev[ind] +
                intGain_[ind] * intState_[ind] + derGain_[ind] * -curder[ind];
   }
-
-  lastUpdateTime_ = currTime;
 }

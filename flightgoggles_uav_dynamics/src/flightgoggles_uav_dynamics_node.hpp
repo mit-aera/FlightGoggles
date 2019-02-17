@@ -50,11 +50,10 @@ class Uav_LowPassFilter{
     public:
         /// @name Constructor
         Uav_LowPassFilter();
-        void proceedState(geometry_msgs::Vector3 & value, ros::Time currTime);
+        void proceedState(geometry_msgs::Vector3 & value, double dt);
 
         /// @name Low-Pass Filter State Variables
         //@{
-        ros::Time lastUpdateTime_;
         double filterState_[3] = {0.,0.,0.};
         double filterStateDer_[3] = {0.,0.,0.};
         //@}
@@ -72,9 +71,7 @@ class Uav_Pid {
         /// @name Constructor
         Uav_Pid();
         void controlUpdate(geometry_msgs::Vector3 & command, double * curval,
-                      double * curder, double * out, ros::Time currTime);
-
-        ros::Time lastUpdateTime_;
+                      double * curder, double * out, double dt);
 
     private:
         /// @name PID Controller Parameters
