@@ -65,7 +65,7 @@ catkin build
 source ~/.bashrc
 ```
 
-### Updating to latest version of FlightGoggles renderer
+### Updating to latest version of FlightGoggles
 
 The FlightGoggles renderer is still under active development. Thus, periodic updates are expected.
 To update the FlightGoggles renderer to the latest version, please run the following commands:
@@ -75,7 +75,7 @@ To update the FlightGoggles renderer to the latest version, please run the follo
 cd ~/catkin_ws/src/flightgoggles
 git pull
 # Force flightgoggles to redownload binary at build time
-catkin clean flightgoggles
+catkin clean
 catkin build
 ```
 
