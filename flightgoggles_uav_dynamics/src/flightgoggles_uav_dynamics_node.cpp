@@ -104,8 +104,14 @@ initPose_(7,0)
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/linear_process_noise", linAccelProcessNoiseAutoCorrelation_)) { 
       std::cout << "Did not get the linear process noise from the params, defaulting to 0.0005 m^2/s^3" << std::endl;
   }
+
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/reset_timeout", resetTimeout_)) {
+      std::cout << "Did not value for reset timeout from the params, defaulting to 0.1 sec" << std::endl;
+  } 
   
-  if (!ros::param::get("/use_sim_time", useSimTime_)) {} 
+  if (!ros::param::get("/use_sim_time", useSimTime_)) {
+      std::cout << "Did not get bool useSimTime_ from the params, defaulting to false" << std::endl;
+  }
 
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/init_pose", initPose_)) {
     // Start a few meters above the ground.
@@ -155,6 +161,9 @@ initPose_(7,0)
     // Get the current time if we are using wall time. Otherwise, use 0 as initial clock.
     currentTime_ = ros::Time::now();
   }
+
+  timeLastReset_ = currentTime_;
+
   // Init main simulation loop at 2x framerate.
   simulationLoopTimer_ = node_.createWallTimer(ros::WallDuration(dt_secs/clockScale), &Uav_Dynamics::simulationLoopTimerCallback, this);
   simulationLoopTimer_.start();
@@ -191,6 +200,7 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
     resetState();
     hasCollided_ = false;
     armed_= false;
+    timeLastReset_ = currentTime_;
     return;
   }
 
@@ -227,7 +237,7 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
  */
 void Uav_Dynamics::inputCallback(mav_msgs::RateThrust::Ptr msg){
 	lastCommandMsg_ = msg;
-	if (!armed_) { 
+	if (!armed_ && ((currentTime_.toSec() - timeLastReset_.toSec()) > resetTimeout_)) { 
 		if (msg->thrust.z >= (1.1 * vehicleMass_ * grav_))
 			armed_ = true;
 	}

@@ -133,12 +133,15 @@ class Uav_Dynamics {
         mav_msgs::RateThrust::Ptr lastCommandMsg_;
         sensor_msgs::Imu imuMeasurement_;
         ros::Time currentTime_;
+        ros::Time timeLastReset_;
         //@}
 
         double dt_secs = 1.0f/960.;
         bool useManualClockscale = true;
         double clockScale = 1.0;
         double actualFps  = -1;
+
+        double resetTimeout_ = 0.1;
 
 
     private:

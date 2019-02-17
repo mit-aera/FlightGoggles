@@ -14,6 +14,7 @@ flightgoggles_uav_dynamics:
     drag_coefficient: 0.1
     angular_process_noise: 0.00025
     linear_process_noise: 0.0005
+    reset_timeout: 0.1
 
 flightgoggles_imu:
     accelerometer_variance: 0.005
