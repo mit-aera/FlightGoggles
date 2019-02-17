@@ -218,7 +218,7 @@ Your computer is likely assigned a local IP address behind a NAT. Please follow 
 FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS clock down if the simulation is running slowly. Thus, your autonomous algorithms will see a constant 60Hz camera in `sim time` and should experience accurate drone dynamics as long as the camera renderer is able to run ([see ROS clock documentation](http://wiki.ros.org/Clock)).   
 
 **Q. Does FlightGoggles currently support Stereo?**  
-Currently no. This feature has been temporarily disabled. For further discussion on required visual processing for AlphaPilot using FG, please refer to [the herox forums](https://www.herox.com/alphapilot/forum/thread/3755?page=2#post-16150). 
+Yes! Simply pass `render_stereo:=true` to the FlightGoggles launch file. **Note:** as of `v2.0.1` the combined vertical resolution of the two stereo cameras must not be greater than the vertical resolution of the largest monitor attached to your computer. In other words, you must have a monitor with `>=1536` vertical resolution to render stereo at the default camera resolution. A current workaround is to decrease the default camera resolution. This issue will be patched in `v2.0.2`. 
 
 **Q. FlightGoggles crashes on startup or on scene load.**
 
