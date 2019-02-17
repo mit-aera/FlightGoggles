@@ -39,7 +39,9 @@ Uav_Dynamics::Uav_Dynamics(ros::NodeHandle nh):
 // Node handle
 node_(nh),
 // TF listener
-tfListener_(tfBuffer_)
+tfListener_(tfBuffer_),
+// Initial pose vector
+initPose_(7,0)
 {
   // boost::shared_ptr<geometry_msgs::Pose const> initialPose = ros::topic::waitForMessage<geometry_msgs::Pose>("challenge/randStartPos"); 	
 
@@ -105,19 +107,18 @@ tfListener_(tfBuffer_)
   
   if (!ros::param::get("/use_sim_time", useSimTime_)) {} 
 
-  std::vector<double> initPose(7,0); 
-  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/init_pose", initPose)) {
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/init_pose", initPose_)) {
     // Start a few meters above the ground.
     std::cout << "Did NOT find initial pose from param file" << std::endl;
 
-     initPose.at(2) = 1.5;
-     initPose.at(6) = 1.0;
+     initPose_.at(2) = 1.5;
+     initPose_.at(6) = 1.0;
   }
 
   std::cout << "Ignore collisions: " << ignoreCollisions_ << std::endl;
 
   std::cout << "Initial pose: ";
-  for (auto i : initPose){
+  for (double i : initPose_){
     std::cout << i << " ";
   }
   std::cout << std::endl;
@@ -128,14 +129,14 @@ tfListener_(tfBuffer_)
 //  initialPose.position.z = 1.0f;
 //  initialPose.position.y = 2.0f;
 
-  position_[0] = initPose.at(0);
-  position_[1] = initPose.at(1);
-  position_[2] = initPose.at(2);
+  position_[0] = initPose_.at(0);
+  position_[1] = initPose_.at(1);
+  position_[2] = initPose_.at(2);
 
-  attitude_[0] = initPose.at(3);
-  attitude_[1] = initPose.at(4);
-  attitude_[2] = initPose.at(5);
-  attitude_[3] = initPose.at(6);
+  attitude_[0] = initPose_.at(3);
+  attitude_[1] = initPose_.at(4);
+  attitude_[2] = initPose_.at(5);
+  attitude_[3] = initPose_.at(6);
 
   for (size_t i = 0; i<4; i++){
     propSpeed_[i] = sqrt(vehicleMass_/4.*grav_/thrustCoeff_);
@@ -185,7 +186,11 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
   }
 
   if(hasCollided_ && !ignoreCollisions_){
-    simulationLoopTimer_.stop();
+    lpf_.resetState();
+    pid_.resetState();
+    resetState();
+    hasCollided_ = false;
+    armed_= false;
     return;
   }
 
@@ -371,6 +376,30 @@ void Uav_Dynamics::proceedState(void){
 }
 
 /**
+ * resetState reset state to initial
+ */
+void Uav_Dynamics::resetState(void){
+  position_[0] = initPose_.at(0);
+  position_[1] = initPose_.at(1);
+  position_[2] = initPose_.at(2);
+
+  attitude_[0] = initPose_.at(3);
+  attitude_[1] = initPose_.at(4);
+  attitude_[2] = initPose_.at(5);
+  attitude_[3] = initPose_.at(6);
+
+  for (size_t i = 0; i<3; i++){
+    angVelocity_[i] = 0.;
+    velocity_[i] = 0.;
+    specificForce_[i] = 0.;
+    propSpeed_[i] = sqrt(vehicleMass_/4.*grav_/thrustCoeff_);
+  }
+  propSpeed_[3] = sqrt(vehicleMass_/4.*grav_/thrustCoeff_);
+
+  specificForce_[2] = 9.81;
+}
+
+/**
  * publishState publishes state transform message
  */
 void Uav_Dynamics::publishState(void){
@@ -466,7 +495,7 @@ Uav_LowPassFilter::Uav_LowPassFilter(){
 /**
  * proceedState propagates the state
  * @param value
- * @param currTime
+ * @param dt
  */
 void Uav_LowPassFilter::proceedState(geometry_msgs::Vector3 & value, double dt){
   double input[] = {value.x, value.y, value.z};
@@ -480,6 +509,16 @@ void Uav_LowPassFilter::proceedState(geometry_msgs::Vector3 & value, double dt){
         (dt * (filterStateDer_[ind] + gainP_ * dt * input[ind])) / det +
         ((dt * gainQ_ + 1.) * filterState_[ind]) / det;
     filterStateDer_[ind] = stateDer;
+  }
+}
+
+/**
+ * resetState resets the state
+ */
+void Uav_LowPassFilter::resetState(void){
+  for (size_t ind = 0; ind < 3; ind++) {
+    filterState_[ind] = 0.;
+    filterStateDer_[ind] = 0.;
   }
 }
 
@@ -542,7 +581,7 @@ Uav_Pid::Uav_Pid(){
  * @param curval
  * @param curder
  * @param out
- * @param currTime
+ * @param dt
  */
 void Uav_Pid::controlUpdate(geometry_msgs::Vector3 & command, double * curval,
                       double * curder, double * out, double dt){
@@ -556,3 +595,13 @@ void Uav_Pid::controlUpdate(geometry_msgs::Vector3 & command, double * curval,
                intGain_[ind] * intState_[ind] + derGain_[ind] * -curder[ind];
   }
 }
+
+/**
+ * resetState
+ */
+void Uav_Pid::resetState(void){
+  for (size_t ind = 0; ind < 3; ind++) {
+    intState_[ind] = 0.;
+  }
+}
+

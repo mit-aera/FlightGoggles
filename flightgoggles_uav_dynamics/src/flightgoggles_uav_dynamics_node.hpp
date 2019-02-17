@@ -51,6 +51,7 @@ class Uav_LowPassFilter{
         /// @name Constructor
         Uav_LowPassFilter();
         void proceedState(geometry_msgs::Vector3 & value, double dt);
+        void resetState(void);
 
         /// @name Low-Pass Filter State Variables
         //@{
@@ -72,6 +73,7 @@ class Uav_Pid {
         Uav_Pid();
         void controlUpdate(geometry_msgs::Vector3 & command, double * curval,
                       double * curder, double * out, double dt);
+        void resetState(void);
 
     private:
         /// @name PID Controller Parameters
@@ -143,6 +145,7 @@ class Uav_Dynamics {
 
         void computeMotorSpeedCommand(void);
         void proceedState(void);
+        void resetState(void);
         void publishState(void);
 
         Uav_Imu imu_;
@@ -151,7 +154,6 @@ class Uav_Dynamics {
 
         /// @name UAV Dynamics Flags
         //@{
-        bool useAutoThrottle_ = false;
         bool includeDrag_ = true;
         bool hasCollided_ = false;
         bool ignoreCollisions_ = false;
@@ -182,6 +184,8 @@ class Uav_Dynamics {
 
         /// @name State variables
         //@{
+        std::vector<double> initPose_;
+
         double position_[3]; // m
         double attitude_[4]; // quaternion [x,y,z,w]
         double angVelocity_[3] = {0.,0.,0.}; // rad/s
