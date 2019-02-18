@@ -218,9 +218,10 @@ Your computer is likely assigned a local IP address behind a NAT. Please follow 
 FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS clock down if the simulation is running slowly. Thus, your autonomous algorithms will see a constant 60Hz camera in `sim time` and should experience accurate drone dynamics as long as the camera renderer is able to run ([see ROS clock documentation](http://wiki.ros.org/Clock)).   
 
 **Q. Does FlightGoggles currently support Stereo?**  
-Yes! Simply pass render_stereo:=true to the FlightGoggles launch file. Note: as of v2.0.2 the combined vertical resolution of the two stereo cameras must not be greater than the vertical resolution of the largest monitor attached to your computer. In other words, you must have a monitor with >=1536 vertical resolution to render stereo at the default camera resolution. A current workaround is to decrease the default camera resolution or attach a high resolution "dummy" monitor. 
+Yes! Simply pass `render_stereo:=true` to the FlightGoggles launch file. **Note:** as of `v2.0.2` the combined vertical resolution of the two stereo cameras must not be greater than the vertical resolution of the largest monitor attached to your computer. In other words, you must have a monitor with `>=1536` vertical resolution to render stereo at the default camera resolution. A current workaround is to [decrease the default camera resolution](https://github.com/mit-fast/FlightGoggles/blob/master/flightgoggles_ros_bridge/src/Common/jsonMessageSpec.hpp#L65), attach a high resolution "dummy" monitor, or rotate or attach a vertical display to your rendering computer. 
 
 As an explanation for the current restriction, FlightGoggles uses the GPU backbuffer for storing rendered images. However, the size of this buffer is limited by the screen resolution. Thus, concatenated images cannot be larger than the size of the GPU backbuffer. This issue will be patched in a later release.
+
 
 **Q. FlightGoggles crashes on startup or on scene load.**
 
