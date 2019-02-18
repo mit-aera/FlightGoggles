@@ -132,7 +132,9 @@ For joystick control, the joystick mode switch should be in mode `D`. To enabled
 Similar to Mode 2 RC Controllers, the left hand joystick controls thrust
 and yaw rate. The right hand joystick controls roll and pitch rate. 
 
-**Note:** Collisions do not reset the simulator and the simulator stops when the drone has collided. To fly around without colliders enabled for the purpose of exploring the environment, colliders can be disabled by setting `ignore_collisions` to true in the launch file or passing it as an argument to the launch file without editing the launch file. E.g.`roslaunch flightgoggles teleopExample.launch ignore_collisions:=1`
+**Note:** Collisions reset the simulator to its initial condition. There is a timeout after resetting, for example to make sure that any running algorithms are aware of the reset. The timeout is set to 0.1 seconds by default, but can be changed in `src/FlightGoggles/flightgoggles/config/drone/drone.yaml` where the parameter is listed as `reset_timeout`. A manual reset can be invoked by publishing an empty message `std_msgs/Empty` to the ropic `/uav/collision`.
+
+To fly around without colliders enabled for the purpose of exploring the environment, colliders can be disabled by setting `ignore_collisions` to true in the launch file or passing it as an argument to the launch file without editing the launch file. E.g.`roslaunch flightgoggles teleopExample.launch ignore_collisions:=1`
 
 ### Running Flightgoggles in AWS (or other headless Linux servers)
 
@@ -222,6 +224,11 @@ Yes! Simply pass `render_stereo:=true` to the FlightGoggles launch file. **Note:
 
 As an explanation for the current restriction, FlightGoggles uses the GPU backbuffer for storing rendered images. However, the size of this buffer is limited by the screen resolution. Thus, concatenated images cannot be larger than the size of the GPU backbuffer. This issue will be patched in a later release.
 
+**Q. Is there an easy way to reset the simulation to its intial state without having to restart FlightGoggles?**
+
+Yes, you can reset the dynamics by publishing an empty message `std_msgs/Empty` to the ropic `/uav/collision`. E.g. from a terminal using the command:
+`rostopic pub /uav/collision std_msgs/Empty`
+Note that there is a timeout after each reset, during which the drone cannot go to armed state (similar to when the simulation is initialized and no thrust commands have been given yet). The timeout is set to 0.1 seconds by default, but you can change this in `src/FlightGoggles/flightgoggles/config/drone/drone.yaml` where the parameter is listed as `reset_timeout`.
 
 **Q. FlightGoggles crashes on startup or on scene load.**
 
