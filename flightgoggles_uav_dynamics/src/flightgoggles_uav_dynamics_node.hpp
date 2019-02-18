@@ -142,6 +142,8 @@ class Uav_Dynamics {
         double actualFps  = -1;
 
         double resetTimeout_ = 0.1;
+        // Min input thrust required before drone is allowed to take off.
+        double minArmingThrust_ = 9.9; // Newtons
 
 
     private:

@@ -138,3 +138,8 @@ tags
 .history
 
 # End of https://www.gitignore.io/api/vim,ros,c++,cmake,visualstudiocode
+
+# Ignore AlphaPilot Challenge files
+flightgoggles/config/challenges/
+flightgoggles/config/perturbations/
+flightgoggles/launch/scorer.*

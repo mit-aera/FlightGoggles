@@ -11,7 +11,8 @@
   <group ns="/uav">
    
     <!-- Read required yaml files" / --> 
-    <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/> 
+    <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/>
+    <rosparam command="load" file="$(find flightgoggles)/config/challenges/nominal_gate_locations.yaml"/>
 
     <!-- Environment Creator -->
     <!-- flightgoggles_uav_dynamics simulator -->
@@ -43,6 +44,9 @@
     <!--Run RVIZ for visualization-->
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" unless="$(arg render_stereo)"/>
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower_stereo.rviz" if="$(arg render_stereo)"/>
+
+    <!--Run rqt_plot for plotting readings from the laser range finder-->
+    <node type="rqt_plot" name="laser_rangefinder_plotter" pkg="rqt_plot" args="topics /uav/sensors/downward_laser_rangefinder/range"/>
 
     <!--Static transforms for 15cm stereo baseline -->
     <node pkg="tf2_ros" type="static_transform_publisher"

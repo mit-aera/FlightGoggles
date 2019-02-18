@@ -55,7 +55,8 @@
 
   <!--Optional, but useful for playing rosbags on repeat.-->
   <exec_depend>rosbaglive</exec_depend>
-
+  <!--For stereo-->
+  <exec_depend>stereo_image_proc</exec_depend>
 
   <!--<exec_depend>flightgoggles_uav_dynamics</exec_depend>-->
   <!--<exec_depend>flightgoggles_ros_bridge</exec_depend>-->

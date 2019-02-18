@@ -86,6 +86,8 @@ catkin build
 roslaunch flightgoggles teleopExample.launch
 # To run core simulation framework without teleoperation
 roslaunch flightgoggles core.launch
+# To run teleoperation with sample stereo pipeline
+roslaunch flightgoggles stereoTeleopExample.launch # WARNING! May crash! Read "Does FlightGoggles currently support Stereo?" FAQ for more info.
 ```
 
 **NOTE:** The FlightGoggles beta might take up to 30 seconds to load. In the development build, asset loading to the GPU has not yet been optimized. If you'd like to keep the FlightGoggles render alive between tests to avoid waiting for the renderer to load, you can run the following:
@@ -220,9 +222,16 @@ Your computer is likely assigned a local IP address behind a NAT. Please follow 
 FlightGoggles is similar to the Gazebo simulator in that it can scale the ROS clock down if the simulation is running slowly. Thus, your autonomous algorithms will see a constant 60Hz camera in `sim time` and should experience accurate drone dynamics as long as the camera renderer is able to run ([see ROS clock documentation](http://wiki.ros.org/Clock)).   
 
 **Q. Does FlightGoggles currently support Stereo?**  
-Yes! Simply pass `render_stereo:=true` to the FlightGoggles launch file. **Note:** as of `v2.0.2` the combined vertical resolution of the two stereo cameras must not be greater than the vertical resolution of the largest monitor attached to your computer. In other words, you must have a monitor with `>=1536` vertical resolution to render stereo at the default camera resolution. A current workaround is to [decrease the default camera resolution](https://github.com/mit-fast/FlightGoggles/blob/master/flightgoggles_ros_bridge/src/Common/jsonMessageSpec.hpp#L65), attach a high resolution "dummy" monitor, or rotate or attach a vertical display to your rendering computer. 
+Yes! Simply run `roslaunch flightgoggles stereoTeleopExample.launch` or pass `render_stereo:=true` to any FlightGoggles launch file.
 
-As an explanation for the current restriction, FlightGoggles uses the GPU backbuffer for storing rendered images. However, the size of this buffer is limited by the screen resolution. Thus, concatenated images cannot be larger than the size of the GPU backbuffer. This issue will be patched in a later release.
+**Note:** as of `v2.0.3` the combined vertical resolution of the two stereo cameras must not be greater than the vertical resolution of the largest monitor attached to your computer. 
+In other words, you must have a monitor with `>=1536` vertical resolution to render stereo at the default camera resolution. 
+A current workaround is to [decrease the default camera resolution](https://github.com/mit-fast/FlightGoggles/blob/master/flightgoggles/config/drone/drone.yaml#L47),
+ rotate your display, or attach a vertical display to your rendering computer.
+
+As an explanation for the current restriction, FlightGoggles uses the GPU backbuffer for storing rendered images. 
+However, the size of this buffer is limited by the screen resolution. 
+Thus, concatenated images cannot be larger than the size of the GPU backbuffer. 
 
 **Q. Is there an easy way to reset the simulation to its intial state without having to restart FlightGoggles?**
 
@@ -238,6 +247,13 @@ So far, we have seen 2 reasons for crashes on startup:
 2. Vulkan renderer choosing wrong GPU.
     - Diagnosable by checking line in player.log similar to `Vulkan renderer=[GeForce GTX 750 Ti] id=[1380].` 
     - If the listed GPU is not your desired GPU, set the environment variable `VK_ICD_FILENAMES` to `/usr/share/vulkan/icd.d/nvidia_icd.json` as described [here](https://wiki.archlinux.org/index.php/Vulkan). See issue [#28](https://github.com/mit-fast/FlightGoggles/issues/28) for more detail.
+
+**Q. Why is the output from the downward facing laser rangefinder negative?**
+The laser rangefinder is pointed in the -Z direction of the `/uav/imu` frame. Thus, the output of the laser rangefinder is
+ always negative. 
+ 
+**Q. What is the max range of the downward facing laser rangefinder**
+The laser rangefinder's range is 20m. Any readings larger than 20m signify that no obstacles were detected within its 20m detection range. 
 
 ## Citation
 If you find this work useful for your research, please cite:

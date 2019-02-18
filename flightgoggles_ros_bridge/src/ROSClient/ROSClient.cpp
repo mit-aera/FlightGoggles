@@ -34,6 +34,27 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/render_stereo", render_stereo)) {
         std::cout << "Did not get argument for render_stereo. Defaulting to false" << std::endl;
     }
+    
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
+        std::cout << "Did not get argument for image width. Defaulting to 1024 px" << std::endl;
+    }
+    
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_height", imageHeight_)) {
+        std::cout << "Did not get argument for image height. Defaulting to 768 px" << std::endl;
+    }
+    
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/baseline", baseline_)) {
+        std::cout << "Did not get argument for baseline. Defaulting to 0.32 m" << std::endl;
+    }
+
+    if (!ros::param::get("/uav/flightgoggles_laser/rangefinder_max_range", lidarMaxRange_)) {
+        std::cout << "Did not get argument for rangefinder max range. Defaulting to 20 m" << std::endl;
+    }
+
+    if (!ros::param::get("/uav/flightgoggles_laser/rangefinder_variance", lidarVariance_)) {
+        std::cout << "Did not get argument for rangefinder variance. Defaulting to 0.009 m^2" << std::endl;
+    }
+
 
     // Load params
     populateRenderSettings();
@@ -46,6 +67,8 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
 
     // Collision publisher
     collisionPub_ = ns_.advertise<std_msgs::Empty>("/uav/collision", 1);
+
+    lidarPub_ = ns_.advertise<sensor_msgs::Range>("/uav/sensors/downward_laser_rangefinder", 1);
 
     // IR Marker publisher
     irMarkerPub_ = ns_.advertise<flightgoggles::IRMarkerArray>("/uav/camera/left/ir_beacons", 1);
@@ -77,6 +100,8 @@ void ROSClient::populateRenderSettings() {
      */
 
     flightGoggles.state.sceneFilename = "Abandoned_Factory_Morning";
+    flightGoggles.state.camWidth = imageWidth_;
+    flightGoggles.state.camHeight = imageHeight_;
 
     // Prepopulate metadata of cameras
     unity_outgoing::Camera_t cam_RGB_left;
@@ -96,11 +121,11 @@ void ROSClient::populateRenderSettings() {
     float f = (cameraInfoLeft.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
     float cx = cameraInfoLeft.width / 2.0;
     float cy = cameraInfoLeft.height / 2.0;
-    float tx = render_stereo? -baseline_ / 2.0 : 0.0;
+    float tx = 0.0;
     float ty = 0.0;
     cameraInfoLeft.D = {0.0, 0.0, 0.0, 0.0, 0.0};
     cameraInfoLeft.K = {f, 0.0, cx, 0.0, f, cy, 0.0, 0.0, 1.0};
-    cameraInfoLeft.R = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    cameraInfoLeft.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     cameraInfoLeft.P = {f, 0.0, cx, tx, 0.0, f, cy, ty, 0.0, 0.0, 1.0, 0.0};
 
     if (render_stereo) {
@@ -121,12 +146,12 @@ void ROSClient::populateRenderSettings() {
         float f = (cameraInfoRight.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
         float cx = cameraInfoRight.width / 2.0;
         float cy = cameraInfoRight.height / 2.0;
-        float tx = baseline_ / 2.0; // -fx' * B
+        float tx = -f * baseline_ ; // -fx' * B
         float ty = 0.0;
         cameraInfoRight.D = {0.0, 0.0, 0.0, 0.0, 0.0};
         cameraInfoRight.K = {f, 0.0, cx, 0.0, f, cy, 0.0, 0.0, 1.0};
-        cameraInfoRight.R = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        cameraInfoLeft.P = {f, 0.0, cx, tx, 0.0, f, cy, ty, 0.0, 0.0, 1.0,
+        cameraInfoRight.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+        cameraInfoRight.P = {f, 0.0, cx, tx, 0.0, f, cy, ty, 0.0, 0.0, 1.0,
                             0.0};
     }
 }
@@ -220,7 +245,8 @@ void imageConsumer(ROSClient *self){
         msg->header.frame_id = "/uav/camera/left";
         // Add Camera info message for camera
         sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoLeft));
-        cameraInfoMsgCopy->header.stamp = imageTimestamp;
+        cameraInfoMsgCopy->header.frame_id = "/uav/camera/left";
+	cameraInfoMsgCopy->header.stamp = imageTimestamp;
 	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
 
 	    if (self->render_stereo) {
@@ -230,6 +256,7 @@ void imageConsumer(ROSClient *self){
             msg_right->header.frame_id = "/uav/camera/right";
             // Add Camera info message for camera
             sensor_msgs::CameraInfoPtr cameraInfoMsgCopy_Right(new sensor_msgs::CameraInfo(self->cameraInfoRight));
+            cameraInfoMsgCopy_Right->header.frame_id = "/uav/camera/right";
             cameraInfoMsgCopy_Right->header.stamp = imageTimestamp;
             self->imagePubRight_.publish(msg_right, cameraInfoMsgCopy_Right);
         }
@@ -240,12 +267,25 @@ void imageConsumer(ROSClient *self){
             self->collisionPub_.publish(msg);
         }
 
+        // Publish lidar range finder message
+        sensor_msgs::Range lidarReturnMsg;
+        lidarReturnMsg.header.stamp = imageTimestamp;
+        lidarReturnMsg.header.frame_id = "/uav/imu";
+        lidarReturnMsg.radiation_type = lidarReturnMsg.INFRARED;
+        lidarReturnMsg.field_of_view = 0;
+        lidarReturnMsg.min_range = 0;
+        lidarReturnMsg.max_range = self->lidarMaxRange_;
+        // Add noise to lidar reading if reading is valid.
+        // Make reading negative since the distance is in the -Z direction in '/uav/imu' frame.
+        lidarReturnMsg.range = static_cast<float>(-1.0f * (renderOutput.renderMetadata.lidarReturn + sqrt(self->lidarVariance_) * self->standardNormalDistribution_(self->randomNumberGenerator_)));
+
+        self->lidarPub_.publish(lidarReturnMsg);
+
         // Publish IR marker locations visible from FlightGoggles.
         flightgoggles::IRMarkerArray visiblePoints;
         visiblePoints.header.stamp = imageTimestamp;
 
         for (const unity_incoming::Landmark_t landmark : renderOutput.renderMetadata.landmarksInView){
-//            std::cout << landmark.ID << std::endl;
 
             // Create marker msg
             flightgoggles::IRMarker marker;

@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include <cmath>
+#include <random>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <thread>
@@ -20,6 +22,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Empty.h"
 #include "sensor_msgs/CameraInfo.h"
+#include "sensor_msgs/Range.h"
 #include "std_msgs/Float32.h"
 #include "flightgoggles/IRMarkerArray.h"
 #include "geometry_msgs/Pose.h"
@@ -64,7 +67,7 @@ public:
 	/// @name Topic publishers
 	//@{
 	ros::Publisher collisionPub_;
-    ros::Publisher pointcloudPub_;
+    ros::Publisher lidarPub_;
     ros::Publisher irMarkerPub_;
     ros::Publisher fpsPublisher_;
     //@}
@@ -77,7 +80,17 @@ public:
 //    sensor_msgs::PointCloud2::Ptr irBeaconGroundTruth_;
     sensor_msgs::CameraInfo cameraInfoLeft;
 	sensor_msgs::CameraInfo cameraInfoRight;
-	const float baseline_ = 0.32;
+	float baseline_ = 0.32;
+	int imageWidth_ = 1024;
+	int imageHeight_ = 768;
+
+	// Lidar params
+	float lidarMaxRange_ = 20; // Meters
+    float lidarVariance_ = 0.0009; // Meters^2
+
+    // Noise generators for lidar
+    std::default_random_engine randomNumberGenerator_;
+    std::normal_distribution<float> standardNormalDistribution_ = std::normal_distribution<float>(0.0,1.0);
 
     // Keep track of the frame rate
     ros::WallTime timeSinceLastMeasure_;

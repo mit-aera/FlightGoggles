@@ -107,8 +107,12 @@ initPose_(7,0)
 
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/reset_timeout", resetTimeout_)) {
       std::cout << "Did not value for reset timeout from the params, defaulting to 0.1 sec" << std::endl;
-  } 
-  
+  }
+
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/min_arming_thrust", minArmingThrust_)) {
+    std::cout << "Did not value for minimum arming thrust from the params, defaulting to 9.9 N" << std::endl;
+  }
+
   if (!ros::param::get("/use_sim_time", useSimTime_)) {
       std::cout << "Did not get bool useSimTime_ from the params, defaulting to false" << std::endl;
   }
@@ -238,7 +242,7 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
 void Uav_Dynamics::inputCallback(mav_msgs::RateThrust::Ptr msg){
 	lastCommandMsg_ = msg;
 	if (!armed_ && ((currentTime_.toSec() - timeLastReset_.toSec()) > resetTimeout_)) { 
-		if (msg->thrust.z >= (1.1 * vehicleMass_ * grav_))
+		if (msg->thrust.z >= (minArmingThrust_))
 			armed_ = true;
 	}
 }

@@ -148,6 +148,7 @@ struct RenderMetadata_t
   // Status update from collision detectors and raycasters.
   bool hasCameraCollision;
   std::vector<Landmark_t> landmarksInView;
+  float lidarReturn;
 };
 
 // Json Parsers
@@ -170,6 +171,7 @@ inline void from_json(const json &j, RenderMetadata_t &o)
   o.channels = j.at("channels").get<std::vector<int>>();
   o.hasCameraCollision = j.at("hasCameraCollision").get<bool>();
   o.landmarksInView = j.at("landmarksInView").get<std::vector<Landmark_t>>();
+  o.lidarReturn = j.at("lidarReturn").get<float>();
 
 }
 

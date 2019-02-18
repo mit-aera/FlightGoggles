@@ -1,0 +1,44 @@
+<launch>
+  <arg name="use_external_renderer" default="0" />
+  <arg name="ignore_collisions" default="false" />
+  <arg name="render_stereo" default="1" />
+
+  <group ns="/control_nodes">
+    <!-- Start human teleoperation nodes -->
+    <node name="joy" pkg="joy" type="joy_node"/>
+    <node name="keyboard" pkg="keyboard" type="keyboard"/>
+    <node name="universal_teleop" pkg="universal_teleop" type="universal_teleop" output="screen">
+      <rosparam file="$(find universal_teleop)/launch/example_input_map.yml"/>
+
+      <remap from="output/rateThrust" to="/uav/input/rateThrust"/>
+      <remap from="output/takeoff" to="/uav/input/takeoff"/>
+      <remap from="output/land" to="/uav/input/land"/>
+      <remap from="output/reset" to="/uav/input/reset"/>
+    </node>
+  </group>
+
+  <!--include core flightgoggles launch file-->
+  <include file="$(find flightgoggles)/launch/core.launch">
+    <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
+    <arg name="render_stereo" value="$(arg render_stereo)"/>
+    <arg name="ignore_collisions" value="$(arg ignore_collisions)"/>
+  </include>
+
+  <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
+
+  <!--For teleoperation, run dynamics in real time-->
+  <param name="/use_sim_time" value="false" />
+
+  <group ns="/uav/camera/">
+     <node name="stereo_image_proc" type="stereo_image_proc" pkg="stereo_image_proc" output="screen">
+       <remap from="left/image_raw" to="left/image_rect_color"/>
+       <remap from="right/image_raw" to="right/image_rect_color"/>
+       <param name="min_disparity" value="10"/>
+       <param name="texture_threshold" value="1"/>
+       <param name="speckle_range" value="2"/>
+       <param name="uniqueness_ratio" value="10.0"/>
+       <param name="prefilter_cap" value="5.0"/>
+     </node>
+  </group>
+
+</launch>
