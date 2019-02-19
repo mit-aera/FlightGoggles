@@ -273,8 +273,8 @@ void imageConsumer(ROSClient *self){
         lidarReturnMsg.header.frame_id = "/uav/imu";
         lidarReturnMsg.radiation_type = lidarReturnMsg.INFRARED;
         lidarReturnMsg.field_of_view = 0;
-        lidarReturnMsg.min_range = 0;
-        lidarReturnMsg.max_range = self->lidarMaxRange_;
+        lidarReturnMsg.min_range = -1.0f*self->lidarMaxRange_;
+        lidarReturnMsg.max_range = 0;
         // Add noise to lidar reading if reading is valid.
         // Make reading negative since the distance is in the -Z direction in '/uav/imu' frame.
         lidarReturnMsg.range = static_cast<float>(-1.0f * (renderOutput.renderMetadata.lidarReturn + sqrt(self->lidarVariance_) * self->standardNormalDistribution_(self->randomNumberGenerator_)));
