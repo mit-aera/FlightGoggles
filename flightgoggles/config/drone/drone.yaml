@@ -1,6 +1,9 @@
 flightgoggles_uav_dynamics:
     init_pose: [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-    clockscale: 1.0
+    # Uncomment clockscale for manual clock scaling rate.
+    # While commented out and use_sim_time=1, FG will auto scale clock
+    # for 60hz camera operation.
+    # clockscale: 1.0
     ignore_collisions: false
     vehicle_mass: 1.0
     vehicle_inertia_xx: 0.0049

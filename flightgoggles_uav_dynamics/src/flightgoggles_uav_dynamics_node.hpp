@@ -137,7 +137,7 @@ class Uav_Dynamics {
         //@}
 
         double dt_secs = 1.0f/960.;
-        bool useManualClockscale = true;
+        bool useAutomaticClockscale_ = false;
         double clockScale = 1.0;
         double actualFps  = -1;
 

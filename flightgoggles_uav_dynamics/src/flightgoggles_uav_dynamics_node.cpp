@@ -44,14 +44,6 @@ tfListener_(tfBuffer_),
 initPose_(7,0)
 {
   // boost::shared_ptr<geometry_msgs::Pose const> initialPose = ros::topic::waitForMessage<geometry_msgs::Pose>("challenge/randStartPos"); 	
-
-
-  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/clockscale", clockScale)) {
-    std::cout << "Did not get a clock scaling value. Defaulting to realtime 1.0x" << std::endl;
-    useManualClockscale = false;
-  }
-
-
   //  Populate params
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/ignore_collisions", ignoreCollisions_)){
       std::cout << "could not get param" << std::endl;
@@ -115,6 +107,14 @@ initPose_(7,0)
 
   if (!ros::param::get("/use_sim_time", useSimTime_)) {
       std::cout << "Did not get bool useSimTime_ from the params, defaulting to false" << std::endl;
+  }
+
+  // Only enable clock scaling when simtime is enabled.
+  if (useSimTime_) {
+    if (!ros::param::get("/uav/flightgoggles_uav_dynamics/clockscale", clockScale)) {
+      std::cout << "Using sim_time and did not get a clock scaling value. Defaulting to automatic clock scaling." << std::endl;
+      useAutomaticClockscale_ = true;
+    }
   }
 
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/init_pose", initPose_)) {
@@ -225,9 +225,7 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
   publishState();
 
   // Update clockscale if necessary
-  
-
-  if (actualFps != -1 && actualFps < 1e3 && useSimTime_ && !useManualClockscale) {
+  if (actualFps != -1 && actualFps < 1e3 && useSimTime_ && useAutomaticClockscale_) {
      clockScale =  (actualFps / 55.0);
      simulationLoopTimer_.stop();
      simulationLoopTimer_.setPeriod(ros::WallDuration(dt_secs / clockScale));
