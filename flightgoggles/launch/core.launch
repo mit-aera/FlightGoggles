@@ -9,6 +9,9 @@
   <arg name="render_quality" value="Fastest"/>
 
   <group ns="/uav">
+
+    <!-- Use clock scaling -->
+    <param name="/use_sim_time" value="true" />
    
     <!-- Read required yaml files" / --> 
     <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/>
