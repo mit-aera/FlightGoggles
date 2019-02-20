@@ -1,12 +1,17 @@
 # FlightGoggles
+
+## Documentation, Installation, & Usage Instructions
+Please refer to the [wiki-page](https://github.com/mit-fast/FlightGoggles/wiki) for code documentation, installation, usage instructions. An [FAQ](https://github.com/mit-fast/FlightGoggles/wiki/FAQ) is also available there.
+
+## Description
+
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
 [![Video Link](Images/Abandoned_Factory_2.jpg)](https://youtu.be/e_3Yw0uPRKE)
 
 ![](Images/Abandoned_Factory25.jpg)
 
-## Documentation, Installation, & Usage Instructions
-Please refer to the [wiki-page](https://github.com/mit-fast/FlightGoggles/wiki) for code documentation, installation, usage instructions. An [FAQ](https://github.com/mit-fast/FlightGoggles/wiki/FAQ) is also available there.
+
 
 ## Citation
 If you find this work useful for your research, please cite:
