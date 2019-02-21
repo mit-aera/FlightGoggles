@@ -295,10 +295,10 @@ void Uav_Dynamics::proceedState(void){
   velocity_[2] -= dt_secs*grav_;
 
   double attitudeDer[4];
-  attitudeDer[0] = angVelocity_[0]*attitude_[3] + angVelocity_[2]*attitude_[1] - angVelocity_[1]*attitude_[2];
-  attitudeDer[1] = angVelocity_[1]*attitude_[3] - angVelocity_[2]*attitude_[0] + angVelocity_[0]*attitude_[2];
-  attitudeDer[2] = angVelocity_[2]*attitude_[3] + angVelocity_[1]*attitude_[0] - angVelocity_[0]*attitude_[1];
-  attitudeDer[3] = -angVelocity_[0]*attitude_[0] - angVelocity_[1]*attitude_[1] - angVelocity_[2]*attitude_[2];
+  attitudeDer[0] = 0.5*(angVelocity_[0]*attitude_[3] + angVelocity_[2]*attitude_[1] - angVelocity_[1]*attitude_[2]);
+  attitudeDer[1] = 0.5*(angVelocity_[1]*attitude_[3] - angVelocity_[2]*attitude_[0] + angVelocity_[0]*attitude_[2]);
+  attitudeDer[2] = 0.5*(angVelocity_[2]*attitude_[3] + angVelocity_[1]*attitude_[0] - angVelocity_[0]*attitude_[1]);
+  attitudeDer[3] = 0.5*(-angVelocity_[0]*attitude_[0] - angVelocity_[1]*attitude_[1] - angVelocity_[2]*attitude_[2]);
 
   for(size_t i = 0; i < 4; i++)
     attitude_[i] += dt_secs*attitudeDer[i];
