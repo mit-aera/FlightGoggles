@@ -38,9 +38,17 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
         std::cout << "Did not get argument for image width. Defaulting to 1024 px" << std::endl;
     }
+    if(imageWidth_ > 1024){
+        imageWidth_ = 1024;
+        std::cout << "Image width set to maximum value (1024 px)" << std::endl;
+    }
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_height", imageHeight_)) {
         std::cout << "Did not get argument for image height. Defaulting to 768 px" << std::endl;
+    }
+    if(imageHeight_ > 768){
+        imageHeight_ = 768;
+        std::cout << "Image height set to maximum value (768 px)" << std::endl;
     }
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/baseline", baseline_)) {
