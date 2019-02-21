@@ -182,7 +182,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     // Skip every other transform to get an update rate of 60hz
     if (numSimulationStepsSinceLastRender_ >= numSimulationStepsBeforeRenderRequest_){
 
-        Transform3 imu_pose_eigen = tf2::transformToEigen(world_to_uav.transform);
+        Transform3 imu_pose_eigen = tf2::transformToEigen(world_to_uav);
 //        Transform3 cam_pose_eigen;
         // Apply drone to camera transform
 //        tf2::doTransform(imu_pose_eigen, cam_pose_eigen, imu_T_Camera_);
