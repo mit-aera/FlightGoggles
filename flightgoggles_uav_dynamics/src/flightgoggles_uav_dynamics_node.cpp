@@ -152,8 +152,10 @@ initPose_(7,0)
     propSpeed_[i] = sqrt(vehicleMass_/4.*grav_/thrustCoeff_);
   }
 
-  // Init subscribers and publishers
-  imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 1);
+  ////////////////// Init subscribers and publishers
+  // Allow for up to 100ms sim time buffer of outgoing IMU messages. 
+  // This should improve IMU integration methods on slow client nodes (see issue #63).
+  imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 96);  
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
   collisionSub_ = node_.subscribe("/uav/collision", 1, &Uav_Dynamics::collisionCallback, this);
   frameRateSub_ = node_.subscribe("/uav/camera/debug/fps", 1, &Uav_Dynamics::fpsCallback, this);
