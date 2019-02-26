@@ -2,7 +2,7 @@
   <arg name="use_external_renderer" default="0" />
   <arg name="ignore_collisions" default="false" />
   <arg name="render_stereo" default="0" />
-  <arg name="level"/>
+  <arg name="level" default="hard"/>
   <env name="CWD" value="$(env PWD)" />     
   <group ns="/control_nodes">
     <!-- Start human teleoperation nodes -->
