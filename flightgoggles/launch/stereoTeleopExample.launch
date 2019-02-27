@@ -31,6 +31,9 @@
 
   <group ns="/uav/camera/">
      <node name="stereo_image_proc" type="stereo_image_proc" pkg="stereo_image_proc" output="screen">
+       <!--Remap rectified output to a throwaway channel since the input is already rectified. See issue #72 -->
+       <remap from="left/image_rect_color" to="/dev/null/left_image"/>
+       <remap from="right/image_rect_color" to="/dev/null/right_image"/>
        <remap from="left/image_raw" to="left/image_rect_color"/>
        <remap from="right/image_raw" to="right/image_rect_color"/>
        <param name="min_disparity" value="10"/>
