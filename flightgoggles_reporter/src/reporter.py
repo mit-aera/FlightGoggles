@@ -12,6 +12,7 @@ import numpy as np
 import yaml
 import signal
 from std_msgs.msg import Empty
+from sensor_msgs.msg import Imu
 
 class Gate():
 	## Constructor for class gate
@@ -70,13 +71,14 @@ class Gate():
 		return False
 
 
+
 class ReporterNode():
 	## Constructor for the ReporterNode
 	def __init__(self):
 
 		nextEventId = 0
 		eventTol    = 1.0
-
+		self.startTime = -1
 		rate = 150.
 		
 		# Log the event data for output
@@ -102,7 +104,6 @@ class ReporterNode():
 		if (timeout == -1):
 			rospy.logerr("Timeout not specified!")
 			rospy.signal_shutdown("Challenge parameter [timeout] could not be read")
-		rospy.Timer(rospy.Duration(timeout), self.timerCallback)
 
 		rospy.Subscriber("/uav/collision", Empty, self.collisionCallback)
 
@@ -123,7 +124,12 @@ class ReporterNode():
 				rospy.signal_shutdown("Location not specified in correct format")
 			gates.append(Gate(loc, inflation))
 
-		time_start = rospy.Time.now().to_sec()
+		imuSub = rospy.Subscriber("/uav/sensors/imu", Imu, self.imuCallback)
+		while (self.startTime == -1):
+			pass
+		imuSub.unregister()
+		time_start = self.startTime
+		rospy.Timer(rospy.Duration(timeout), self.timerCallback)
 		while not rospy.is_shutdown():
 			# Get the transformation of the drone in the world
 			try:
@@ -149,6 +155,9 @@ class ReporterNode():
 					rospy.signal_shutdown("Challenge complete")
 
 			rospy.sleep(1./rate)
+
+	def imuCallback(self,data):
+		self.startTime=data.header.stamp.to_sec()
 
 	## @brief timerCallback callback for elapsed timer to enable the reporter to timeout
 	# @param self the object pointer
