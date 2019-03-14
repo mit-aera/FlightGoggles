@@ -28,10 +28,10 @@
     <!-- FlightGoggles Renderer -->
     <!-- Only run renderer if not using external renderer -->
     <group unless="$(arg use_external_renderer)">
-        <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" if="$(eval gate_locations == '')"
+        <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" if="$(eval gate_locations == '')" respawn="true"
         args="-screen-quality $(arg render_quality)"/>
         <!-- Perturb gate locations if needed -->
-        <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" unless="$(eval gate_locations == '')"
+        <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" unless="$(eval gate_locations == '')" respawn="true"
         args="-screen-quality $(arg render_quality) -obstacle-perturbation-file '$(find flightgoggles)/config/perturbations/perturbed_gates_$(arg gate_locations).yaml'"/>
     </group>
     
