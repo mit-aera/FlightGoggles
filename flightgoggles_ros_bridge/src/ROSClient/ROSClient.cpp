@@ -169,6 +169,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     bool found_transform = false;
 
     // Check if TF message is for world->uav/imu
+    // This is output by dynamics node.
     for (auto transform : msg->transforms){
         if (transform.child_frame_id == "uav/imu"){
             world_to_uav = transform;
@@ -182,30 +183,36 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     // Skip every other transform to get an update rate of 60hz
     if (numSimulationStepsSinceLastRender_ >= numSimulationStepsBeforeRenderRequest_){
 
-        Transform3 imu_pose_eigen = tf2::transformToEigen(world_to_uav);
-//        Transform3 cam_pose_eigen;
-        // Apply drone to camera transform
-//        tf2::doTransform(imu_pose_eigen, cam_pose_eigen, imu_T_Camera_);
+        // Get transform for left camera
+        geometry_msgs::TransformStamped camLeftTransform;
 
-//        std::cout << imu_pose_eigen.matrix() << std::endl;
+        try{
+            camLeftTransform = tfBuffer_.lookupTransform("world", "uav/camera/left/nwu", world_to_uav.header.stamp,
+                                                          ros::Duration(1.0f/960.0f));
+        } catch (tf2::TransformException &ex) {
+            ROS_WARN("Could NOT find transform for /uav/camera/left/nwu in time: %s", ex.what());
+        }
 
-        // Populate status message with new pose
+        Transform3 camLeftPose = tf2::transformToEigen(camLeftTransform);
+        flightGoggles.setCameraPoseUsingROSCoordinates(camLeftPose, 0);
 
+        // Get transform for second camera (right)
         if (render_stereo) {
 
-            auto camLPose = imu_pose_eigen;
-            camLPose.translation()(1) += baseline_ / 2.0;
+            geometry_msgs::TransformStamped camRightTransform;
 
-            auto camRPose = imu_pose_eigen;
-            camRPose.translation()(1) -= baseline_ / 2.0;
+            try{
+                camRightTransform = tfBuffer_.lookupTransform("world", "uav/camera/right/nwu", world_to_uav.header.stamp,
+                                                            ros::Duration(1.0f/960.0f));
+            } catch (tf2::TransformException &ex) {
+                ROS_WARN("Could NOT find transform for /uav/camera/right/nwu in time: %s", ex.what());
+            }
 
-            flightGoggles.setCameraPoseUsingROSCoordinates(camLPose, 0);
-            flightGoggles.setCameraPoseUsingROSCoordinates(camRPose, 1);
+            Transform3 camRightPose = tf2::transformToEigen(camRightTransform);
+
+            flightGoggles.setCameraPoseUsingROSCoordinates(camRightPose, 1);
         }
-        else {
-            flightGoggles.setCameraPoseUsingROSCoordinates(imu_pose_eigen, 0);
 
-        }
         // Update timestamp of state message (needed to force FlightGoggles to rerender scene)
         flightGoggles.state.ntime = world_to_uav.header.stamp.toNSec();
         // request render
