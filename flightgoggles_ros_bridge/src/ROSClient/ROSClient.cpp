@@ -165,14 +165,14 @@ void ROSClient::populateRenderSettings() {
 }
 // Subscribe to all TF messages to avoid lag.
 void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
-    geometry_msgs::TransformStamped world_to_uav;
+    //geometry_msgs::TransformStamped world_to_uav;
     bool found_transform = false;
 
     // Check if TF message is for world->uav/imu
     // This is output by dynamics node.
     for (auto transform : msg->transforms){
         if (transform.child_frame_id == "uav/imu"){
-            world_to_uav = transform;
+            //world_to_uav = transform;
             found_transform = true;
         }
     }
@@ -212,7 +212,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
         }
 
         // Update timestamp of state message (needed to force FlightGoggles to rerender scene)
-        flightGoggles.state.ntime = world_to_uav.header.stamp.toNSec();
+        flightGoggles.state.ntime = camLeftTransform.header.stamp.toNSec();
         // request render
         flightGoggles.requestRender();
 
