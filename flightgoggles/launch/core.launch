@@ -61,7 +61,7 @@
 
       <!-- Add static transforms for each camera that translate camera into X forward config. -->
       <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/nwu  " if="$(arg render_stereo)"/>
+          name="camera_left_link_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/nwu  " />
       <node pkg="tf2_ros" type="static_transform_publisher"
           name="camera_right_link_nwu" args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/right uav/camera/right/nwu  " if="$(arg render_stereo)"/>
 
