@@ -187,10 +187,9 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
         geometry_msgs::TransformStamped camLeftTransform;
 
         try{
-            camLeftTransform = tfBuffer_.lookupTransform("world", "uav/camera/left/nwu", world_to_uav.header.stamp,
-                                                          ros::Duration(1.0f/960.0f));
+            camLeftTransform = tfBuffer_.lookupTransform("world", "uav/camera/left/nwu", ros::Time(0));
         } catch (tf2::TransformException &ex) {
-            ROS_WARN("Could NOT find transform for /uav/camera/left/nwu in time: %s", ex.what());
+            ROS_WARN("Could NOT find transform for /uav/camera/left/nwu: %s", ex.what());
         }
 
         Transform3 camLeftPose = tf2::transformToEigen(camLeftTransform);
@@ -202,10 +201,9 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             geometry_msgs::TransformStamped camRightTransform;
 
             try{
-                camRightTransform = tfBuffer_.lookupTransform("world", "uav/camera/right/nwu", world_to_uav.header.stamp,
-                                                            ros::Duration(1.0f/960.0f));
+                camRightTransform = tfBuffer_.lookupTransform("world", "uav/camera/right/nwu", camLeftTransform.header.stamp);
             } catch (tf2::TransformException &ex) {
-                ROS_WARN("Could NOT find transform for /uav/camera/right/nwu in time: %s", ex.what());
+                ROS_WARN("Could NOT find transform for /uav/camera/right/nwu: %s", ex.what());
             }
 
             Transform3 camRightPose = tf2::transformToEigen(camRightTransform);
