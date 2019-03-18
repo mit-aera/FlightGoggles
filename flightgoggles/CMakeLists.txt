@@ -28,6 +28,10 @@ generate_messages(
 
 catkin_package(CATKIN_DEPENDS message_runtime)
 
+# CMAKE Variable that defines if binary renderer is downloaded during install
+if(NOT DEFINED FLIGHTGOGGLES_DOWNLOAD_BINARY)
+set(FLIGHTGOGGLES_DOWNLOAD_BINARY ON)
+endif(NOT DEFINED FLIGHTGOGGLES_DOWNLOAD_BINARY)
 
 # DOWNLOAD AND INSTALL FLIGHTGOGGLES RENDERER
 include(ExternalData)
@@ -57,7 +61,9 @@ ExternalData_Expand_Arguments(flightgogglesBinaryDownload
         flightgogglesBinary
         DATA{renderer_version/FlightGoggles.x86_64} # Input arguments, DATA{} allowed
         )
+if(FLIGHTGOGGLES_DOWNLOAD_BINARY)
 ExternalData_Add_Target(flightgogglesBinaryDownload)
+endif(FLIGHTGOGGLES_DOWNLOAD_BINARY)
 
 # get hash of data file for use in .stamp
 file(READ renderer_version/FlightGoggles_Data.tar.gz.md5 flightgogglesVersionHash)
@@ -80,7 +86,9 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E touch "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/${flightgogglesVersionHash}.stamp"
         )
 
+if(FLIGHTGOGGLES_DOWNLOAD_BINARY)
 add_custom_target(flightgogglesBinaryUnpack ALL DEPENDS "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/${flightgogglesVersionHash}.stamp")
+endif(FLIGHTGOGGLES_DOWNLOAD_BINARY)
 
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/."
