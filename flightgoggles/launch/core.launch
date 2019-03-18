@@ -52,18 +52,26 @@
     <!-- <node type="rqt_plot" name="laser_rangefinder_plotter" pkg="rqt_plot" args="topics /uav/sensors/downward_laser_rangefinder/range"/> -->
 
     <!--Static transforms for 32cm stereo baseline -->
+    <!-- Left camera is always at center of mass of drone. Right camera is offset by 32cm. -->
     <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link" args="0 0.0 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left  " unless="$(arg render_stereo)"/>
+          name="camera_left_link" args="0 0 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left"/>
     <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link"  args="0  0.16 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left  " if="$(arg render_stereo)"/>
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_right_link" args="0 -0.16 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right  " if="$(arg render_stereo)"/>
+          name="camera_right_link" args="0 -0.32 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right" if="$(arg render_stereo)"/>
 
-      <!-- Add static transforms for each camera that translate camera into X forward config. -->
+    <!-- Transforms for internal use by ROS Bridge. Hotfixes #116. DO NOT USE THESE TFs IN ALGORITHMS. -->
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="camera_left_link_internal_hotfix" args="0 0 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left/internal_hotfix" unless="$(arg render_stereo)"/>
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="camera_left_link_internal_hotfix" args="0 0.32 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left/internal_hotfix" if="$(arg render_stereo)"/>
+    <node pkg="tf2_ros" type="static_transform_publisher"
+          name="camera_right_link_internal_hotfix" args="0 -0.32 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right/internal_hotfix" if="$(arg render_stereo)"/>
+
+
+      <!-- Add static transforms for each camera that translate camera into X forward config. Hotfixes #116. DO NOT USE THESE TFs IN ALGORITHMS. -->
       <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/nwu  " />
+          name="camera_left_link_internal_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left/internal_hotfix uav/camera/left/internal_nwu  " />
       <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_right_link_nwu" args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/right uav/camera/right/nwu  " if="$(arg render_stereo)"/>
+          name="camera_right_link_internal_nwu" args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/right/internal_hotfix uav/camera/right/internal_nwu  " if="$(arg render_stereo)"/>
 
 
     <param name="/uav/camera/render_stereo" value="$(arg render_stereo)" />

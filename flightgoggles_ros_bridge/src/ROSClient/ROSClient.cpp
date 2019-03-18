@@ -38,18 +38,18 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
         std::cout << "Did not get argument for image width. Defaulting to 1024 px" << std::endl;
     }
-    if(imageWidth_ > 1024){
-        imageWidth_ = 1024;
-        std::cout << "Image width set to maximum value (1024 px)" << std::endl;
-    }
+    //if(imageWidth_ > 1024){
+    //    imageWidth_ = 1024;
+    //    std::cout << "Image width set to maximum value (1024 px)" << std::endl;
+    //}
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_height", imageHeight_)) {
         std::cout << "Did not get argument for image height. Defaulting to 768 px" << std::endl;
     }
-    if(imageHeight_ > 768){
-        imageHeight_ = 768;
-        std::cout << "Image height set to maximum value (768 px)" << std::endl;
-    }
+    //if(imageHeight_ > 768){
+    //    imageHeight_ = 768;
+    //    std::cout << "Image height set to maximum value (768 px)" << std::endl;
+    //}
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/baseline", baseline_)) {
         std::cout << "Did not get argument for baseline. Defaulting to 0.32 m" << std::endl;
@@ -187,7 +187,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
         geometry_msgs::TransformStamped camLeftTransform;
 
         try{
-            camLeftTransform = tfBuffer_.lookupTransform("world", "uav/camera/left/nwu", ros::Time(0));
+            camLeftTransform = tfBuffer_.lookupTransform("world", "uav/camera/left/internal_nwu", ros::Time(0));
         } catch (tf2::TransformException &ex) {
             ROS_WARN("Could NOT find transform for /uav/camera/left/nwu: %s", ex.what());
         }
@@ -201,7 +201,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             geometry_msgs::TransformStamped camRightTransform;
 
             try{
-                camRightTransform = tfBuffer_.lookupTransform("world", "uav/camera/right/nwu", camLeftTransform.header.stamp);
+                camRightTransform = tfBuffer_.lookupTransform("world", "uav/camera/right/internal_nwu", camLeftTransform.header.stamp);
             } catch (tf2::TransformException &ex) {
                 ROS_WARN("Could NOT find transform for /uav/camera/right/nwu: %s", ex.what());
             }
