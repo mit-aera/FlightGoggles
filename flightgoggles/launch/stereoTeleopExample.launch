@@ -36,11 +36,6 @@
        <remap from="right/image_rect_color" to="/dev/null/right_image"/>
        <remap from="left/image_raw" to="left/image_rect_color"/>
        <remap from="right/image_raw" to="right/image_rect_color"/>
-       <param name="min_disparity" value="10"/>
-       <param name="texture_threshold" value="1"/>
-       <param name="speckle_range" value="2"/>
-       <param name="uniqueness_ratio" value="10.0"/>
-       <param name="prefilter_cap" value="5.0"/>
      </node>
   </group>
 
