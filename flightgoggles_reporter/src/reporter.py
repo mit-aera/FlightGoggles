@@ -79,7 +79,7 @@ class ReporterNode():
 		nextEventId = 0
 		eventTol    = 1.0
 		self.startTime = -1
-		rate = 150.
+		rate = 1000.
 		
 		# Log the event data for output
 		self.eventLogData = {}
@@ -178,6 +178,8 @@ class ReporterNode():
 	# @param self The object pointer
 	# @param data The collision message
 	def collisionCallback(self, data):
+		if self.startTime==-1:
+			return
 		self.eventLogData["Result"]="Collision"
 		rospy.loginfo("The drone collided!")
 		self.writeLog()
