@@ -83,6 +83,7 @@ public:
 	float baseline_ = 0.32;
 	int imageWidth_ = 1024;
 	int imageHeight_ = 768;
+    std::string sceneFilename_ = "Abandoned_Factory_Morning";
 
 	// Lidar params
 	float lidarMaxRange_ = 20; // Meters

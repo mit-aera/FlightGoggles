@@ -34,6 +34,10 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/render_stereo", render_stereo)) {
         std::cout << "Did not get argument for render_stereo. Defaulting to false" << std::endl;
     }
+
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/scene_filename", sceneFilename_)) {
+        std::cout << "Did not get argument for scene_filename. Defaulting to Abandoned_Factory_Morning" << std::endl;
+    }
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
         std::cout << "Did not get argument for image width. Defaulting to 1024 px" << std::endl;
@@ -94,20 +98,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
 
 void ROSClient::populateRenderSettings() {
     // Scene/Render settings
-    /*
-    Available scenes:
-    sceneFilename = "Butterfly_World";
-    sceneFilename = "FPS_Warehouse_Day";
-    sceneFilename = "FPS_Warehouse_Night";
-    sceneFilename = "Hazelwood_Loft_Full_Day";
-    sceneFilename = "Hazelwood_Loft_Full_Night";
-
-     // NEW for FlightGoggles v2.x.x
-     flightGoggles.state.sceneFilename = "Abandoned_Factory_Morning";
-     flightGoggles.state.sceneFilename = "Abandoned_Factory_Sunset";
-     */
-
-    flightGoggles.state.sceneFilename = "Abandoned_Factory_Morning";
+    flightGoggles.state.sceneFilename = sceneFilename_;
     flightGoggles.state.camWidth = imageWidth_;
     flightGoggles.state.camHeight = imageHeight_;
 
