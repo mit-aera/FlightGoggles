@@ -146,9 +146,9 @@ struct RenderMetadata_t
   std::vector<int> channels;
 
   // Status update from collision detectors and raycasters.
-  bool hasCameraCollision;
+  bool hasCameraCollision = false;
   std::vector<Landmark_t> landmarksInView;
-  float lidarReturn;
+  float lidarReturn = 100.0f;
 };
 
 // Json Parsers
@@ -163,15 +163,30 @@ struct RenderMetadata_t
 // RenderMetadata_t
 inline void from_json(const json &j, RenderMetadata_t &o)
 {
-  o.ntime = j.at("ntime").get<int64_t>();
+  // Get timestamp
+  if (j.find("ntime") != j.end() ){
+    o.ntime = j.at("ntime").get<int64_t>();  
+  } else {
+    // Backwards compatibility for FlightGoggles API <= v1.7.0
+    o.ntime = j.at("utime").get<int64_t>();
+  }
+   
   o.camWidth = j.at("camWidth").get<int>();
   o.camHeight = j.at("camHeight").get<int>();
   o.camDepthScale = j.at("camDepthScale").get<double>();
   o.cameraIDs = j.at("cameraIDs").get<std::vector<std::string>>();
   o.channels = j.at("channels").get<std::vector<int>>();
-  o.hasCameraCollision = j.at("hasCameraCollision").get<bool>();
-  o.landmarksInView = j.at("landmarksInView").get<std::vector<Landmark_t>>();
-  o.lidarReturn = j.at("lidarReturn").get<float>();
+  
+  // Backwards compatibility for FlightGoggles API <= v1.7.0  
+  if (j.find("hasCameraCollision") != j.end() ){
+    o.hasCameraCollision = j.at("hasCameraCollision").get<bool>();  
+  }
+  if (j.find("landmarksInView") != j.end()){
+    o.landmarksInView = j.at("landmarksInView").get<std::vector<Landmark_t>>();
+  }
+  if (j.find("lidarReturn") != j.end()){
+    o.lidarReturn = j.at("lidarReturn").get<float>();
+  }
 
 }
 
