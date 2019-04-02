@@ -13,6 +13,7 @@
     <arg name="ignore_collisions" value="$(arg ignore_collisions)"/>
     <arg name="use_dynamics" value="false"/>
     <arg name="body_frame" default="body_frame"/>
+    <arg name="sensor_package" value="blackbirdDataset"/>
   </include>
 
   <node name="trajectory_playback" pkg="rosbag" type="play" args="$(arg bagfile_path)"/>
@@ -22,7 +23,7 @@
   <param name="/uav/flightgoggles_ros_bridge/world_frame" value="mocap_NED" />
   <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
 
-  <!-- Need to include the scene render offset. -->
+  <!-- @TODO: Need to include the scene render offset. -->
 
   
 

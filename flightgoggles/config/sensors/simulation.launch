@@ -1,0 +1,49 @@
+<launch>
+
+    <!-- @TODO: Convert to URDF/XACRO -->
+
+    <group unless="$(arg render_stereo)">
+            <!-- Camera frame is EDN. Body frame is NWU. -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link" args="0 0 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left"/>
+        
+        <!-- Add static transforms for each camera that translate camera into NWU (legacy internal FlightGoggles code). -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link_internal_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/nwu" />
+        
+        <!-- Add static transforms for each camera that translate camera into NED (internal FlightGoggles code). -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link_internal_ned"  args="0  0 0 -1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/ned" />
+        
+    </group>
+
+    <!--Static transforms for 32cm stereo baseline -->
+    <group if="$(arg render_stereo)">
+        <!-- Camera frame is EDN. Body frame is NWU. -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link" args="0 0.16 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left"/>
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_right_link" args="0 -0.16 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right"/>
+
+        <!-- Add static transforms for each camera that translate camera into NWU (legacy internal FlightGoggles code). -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link_internal_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/nwu" />
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_right_link_internal_nwu" args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/right uav/camera/right/nwu"/>
+
+        <!-- Add static transforms for each camera that translate camera into NED (internal FlightGoggles code). -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link_internal_ned"  args="0  0 0 -1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/ned" />
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_right_link_internal_ned" args="0  0 0 -1.57079632679 -1.57079632679 0 uav/camera/right uav/camera/right/ned"/>
+
+    </group>
+
+    
+    <param name="/uav/camera/render_stereo" value="$(arg render_stereo)" />
+
+    <!--Static transform for ENU to NED world-->
+    <node pkg="tf2_ros" type="static_transform_publisher"
+        name="world_ned_link" args="0 0 0 1.57079632679 3.14159265359 0 'world' 'world/ned'"/>
+
+</launch>
