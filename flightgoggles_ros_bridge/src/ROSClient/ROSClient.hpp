@@ -75,15 +75,16 @@ public:
     //// @name State variables
     //@{
     bool render_stereo = false;
-    int numSimulationStepsSinceLastRender_ = 0;
-    const int numSimulationStepsBeforeRenderRequest_ = 15;
-//    sensor_msgs::PointCloud2::Ptr irBeaconGroundTruth_;
+    ros::Time timeOfLastRender_;
     sensor_msgs::CameraInfo cameraInfoLeft;
 	sensor_msgs::CameraInfo cameraInfoRight;
 	float baseline_ = 0.32;
 	int imageWidth_ = 1024;
 	int imageHeight_ = 768;
+    int framerate_ = 60;
     std::string sceneFilename_ = "Abandoned_Factory_Morning";
+    std::string worldFrame_ = "world/ned";
+    std::string bodyFrame_ = "uav/imu";
 
 	// Lidar params
 	float lidarMaxRange_ = 20; // Meters

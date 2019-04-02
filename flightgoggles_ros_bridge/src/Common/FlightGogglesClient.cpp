@@ -33,14 +33,14 @@ void FlightGogglesClient::initializeConnections()
 }
 
 /**
- * setCameraPoseUsingROSCoordinates accepts camera pose in ros frame
+ * setCameraPoseUsingROSCoordinates accepts camera pose in ros frame. Expects NED world frame and NED camera frame.
  * @param ros_pose Pose of the camera
  * @param cam_index Index of the camera
  */
 void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, int cam_index) {
   // To transforms
-  Transform3 NED_pose = convertROSToNEDCoordinates(ros_pose);
-  Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(NED_pose);
+  //Transform3 NED_pose = convertROSToNEDCoordinates(ros_pose);
+  Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(ros_pose);
 //Transform3 unity_pose = convertEDNGlobalPoseToGlobalUnityCoordinates(ros_pose);
 
   // Extract position and rotation
@@ -97,16 +97,16 @@ bool FlightGogglesClient::requestRender()
     msg << json_msg.dump();
 
     // Output debug messages at a low rate
-    if (state.ntime > last_upload_debug_utime + 1e9)
-    {
-//        std::cout << "Last message sent: \"";
-//        std::cout << msg.get<std::string>(0) << std::endl;
-//        // Print JSON object
-//        std::cout << json_msg.dump(4) << std::endl;
-//        std::cout << "===================" << std::endl;
+    // if (state.ntime > last_upload_debug_utime + 1e9)
+    // {
+       std::cout << "Last message sent: \"";
+       std::cout << msg.get<std::string>(0) << std::endl;
+       // Print JSON object
+       std::cout << json_msg.dump(4) << std::endl;
+       std::cout << "===================" << std::endl;
         // reset time of last debug message
         last_upload_debug_utime = state.ntime;
-    }
+    // }
     // Send message without blocking.
     upload_socket.send(msg, true);
     return true;

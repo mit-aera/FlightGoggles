@@ -20,23 +20,22 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     it_(ns_)
 {
 
-    // Wait for static transforms between imu/cameras.
-    try{
-        imu_T_Camera_ = tfBuffer_.lookupTransform( "uav/camera/left", "uav/imu", ros::Time(0),
-                                                    ros::Duration(10.0));
-//        imu_T_Camera_ = tfBuffer_.lookupTransform(  "uav/imu", "uav/camera/left", ros::Time(0),
-//                                                   ros::Duration(10.0));
-    } catch (tf2::TransformException &ex) {
-        ROS_WARN("Could NOT find required uav to camera transform: %s", ex.what());
-        exit(1);
-    }
-
+    
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/render_stereo", render_stereo)) {
         std::cout << "Did not get argument for render_stereo. Defaulting to false" << std::endl;
     }
 
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/scene_filename", sceneFilename_)) {
         std::cout << "Did not get argument for scene_filename. Defaulting to Abandoned_Factory_Morning" << std::endl;
+    }
+
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/body_frame", bodyFrame_)) {
+        std::cout << "Did not get argument for body_frame. Defaulting to uav/imu" << std::endl;
+    }
+
+    
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/world_frame", worldFrame_)) {
+        std::cout << "Did not get argument for world_frame. Defaulting to world/ned" << std::endl;
     }
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
@@ -49,6 +48,10 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_height", imageHeight_)) {
         std::cout << "Did not get argument for image height. Defaulting to 768 px" << std::endl;
+    }
+
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/framerate", framerate_)) {
+        std::cout << "Did not get argument for framerate. Defaulting to 60Hz" << std::endl;
     }
     //if(imageHeight_ > 768){
     //    imageHeight_ = 768;
@@ -66,7 +69,6 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_laser/rangefinder_variance", lidarVariance_)) {
         std::cout << "Did not get argument for rangefinder variance. Defaulting to 0.009 m^2" << std::endl;
     }
-
 
     // Load params
     populateRenderSettings();
@@ -90,11 +92,11 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     tfSubscriber_ = ns_.subscribe("/tf", 1, &ROSClient::tfCallback, this);
 
     // Publish the estimated latency
-    fpsPublisher_ = ns_.advertise<std_msgs::Float32>("/uav/camera/debug/fps", 1);    
+    fpsPublisher_ = ns_.advertise<std_msgs::Float32>("/uav/camera/debug/fps", 1);  
 
-    // Subscribe to IR beacon locations
-//    irSubscriber_ = ns_.subscribe("/challenge/ir_BeaconsGroundTruth", 1, &ROSClient::irBeaconPointcloudCallback, this);
-}
+    timeOfLastRender_ = ros::Time(0);
+
+    }
 
 void ROSClient::populateRenderSettings() {
     // Scene/Render settings
@@ -161,26 +163,29 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
 
     // Check if TF message is for world->uav/imu
     // This is output by dynamics node.
+    ros::Time tfTimestamp;
     for (auto transform : msg->transforms){
-        if (transform.child_frame_id == "uav/imu"){
+        if (transform.child_frame_id == bodyFrame_){
             //world_to_uav = transform;
             found_transform = true;
+            tfTimestamp = transform.header.stamp;
         }
     }
 
     // Skip if do not have transform
     if (!found_transform) return;
 
-    // Skip every other transform to get an update rate of 60hz
-    if (numSimulationStepsSinceLastRender_ >= numSimulationStepsBeforeRenderRequest_){
+    // Only send a render request if necessary to achieve the required framerate
+    if ( tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)) ){
+        timeOfLastRender_ = tfTimestamp;
 
         // Get transform for left camera
         geometry_msgs::TransformStamped camLeftTransform;
 
         try{
-            camLeftTransform = tfBuffer_.lookupTransform("world", "uav/camera/left/internal_nwu", ros::Time(0));
+            camLeftTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/left/ned", ros::Time(0));
         } catch (tf2::TransformException &ex) {
-            ROS_WARN("Could NOT find transform for /uav/camera/left/nwu: %s", ex.what());
+            ROS_WARN("Could NOT find transform for /uav/camera/left/ned: %s", ex.what());
         }
 
         Transform3 camLeftPose = tf2::transformToEigen(camLeftTransform);
@@ -192,9 +197,9 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             geometry_msgs::TransformStamped camRightTransform;
 
             try{
-                camRightTransform = tfBuffer_.lookupTransform("world", "uav/camera/right/internal_nwu", camLeftTransform.header.stamp);
+                camRightTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/right/ned", camLeftTransform.header.stamp);
             } catch (tf2::TransformException &ex) {
-                ROS_WARN("Could NOT find transform for /uav/camera/right/nwu: %s", ex.what());
+                ROS_WARN("Could NOT find transform for /uav/camera/right/ned: %s", ex.what());
             }
 
             Transform3 camRightPose = tf2::transformToEigen(camRightTransform);
@@ -207,11 +212,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
         // request render
         flightGoggles.requestRender();
 
-        numSimulationStepsSinceLastRender_ = 0;
-
-    } else {
-        numSimulationStepsSinceLastRender_++;
-    }
+    } 
 
 }
 

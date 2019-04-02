@@ -1,0 +1,29 @@
+<launch>
+  <arg name="use_external_renderer" default="true" />
+  <arg name="ignore_collisions" default="true" />
+  <arg name="render_stereo" default="false" />
+  <arg name="bagfile_path" default="$(env HOME)/catkin_ws/bags/thrice_maxSpeed6p0.bag" />
+
+
+  
+  <!--include core flightgoggles launch file-->
+  <include file="$(find flightgoggles)/launch/core.launch">
+    <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
+    <arg name="render_stereo" value="$(arg render_stereo)"/>
+    <arg name="ignore_collisions" value="$(arg ignore_collisions)"/>
+    <arg name="use_dynamics" value="false"/>
+    <arg name="body_frame" default="body_frame"/>
+  </include>
+
+  <node name="trajectory_playback" pkg="rosbag" type="play" args="$(arg bagfile_path)"/>
+    
+  <param name="/use_sim_time" value="false" />
+
+  <param name="/uav/flightgoggles_ros_bridge/world_frame" value="mocap_NED" />
+  <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
+
+  <!-- Need to include the scene render offset. -->
+
+  
+
+</launch>
