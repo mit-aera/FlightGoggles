@@ -93,17 +93,11 @@ class ReporterNode():
 
 		# Read the events from the challenge params
 		name=rospy.get_param('/uav/challenge_name', '')
-		if (name == ''):
-			rospy.logerr("Challenge name could not be read")
-			rospy.signal_shutdown("Challenge parameter [name] could not be read")
 
 		rospy.loginfo("Running challenge %s", name)
 
 		# Set a timeout to check if challenge is taking longer than allowed
 		timeout = rospy.get_param('/uav/timeout', -1)
-		if (timeout == -1):
-			rospy.logerr("Timeout not specified!")
-			rospy.signal_shutdown("Challenge parameter [timeout] could not be read")
 
 		rospy.Subscriber("/uav/collision", Empty, self.collisionCallback)
 
@@ -153,6 +147,13 @@ class ReporterNode():
 					self.writeLog()
 					rospy.loginfo("Completed the challenge")
 					rospy.signal_shutdown("Challenge complete")
+
+			if (name == ''):
+				rospy.logerr("Challenge name could not be read")
+				rospy.signal_shutdown("Challenge parameter [name] could not be read")
+			if (timeout == -1):
+				rospy.logerr("Timeout not specified!")
+				rospy.signal_shutdown("Challenge parameter [timeout] could not be read")
 
 			rospy.sleep(1./rate)
 
