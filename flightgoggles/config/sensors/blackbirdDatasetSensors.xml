@@ -3,18 +3,27 @@
 
     <!-- Static transform for monocular camera -->
     <group unless="$(arg render_stereo)">
+        <!-- Camera frame is EDN. Blackbird body is NED. -->
         <node pkg="tf2_ros" type="static_transform_publisher"
-            name="camera_left_link"     args="0  0 0 -1.57079632679 0 0 body_frame uav/camera/left" />
+            name="camera_left_link"     args="0 0 0 1.57079632679 0 1.57079632679 body_frame uav/camera/left" />
+
+        <!-- Add static transforms for each camera that translate camera into NWU (legacy internal FlightGoggles code). -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link_internal_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/nwu" />
+
+        <!-- Add static transforms for each camera that translate camera into NED (internal FlightGoggles code). -->
+        <node pkg="tf2_ros" type="static_transform_publisher"
+            name="camera_left_link_internal_ned"  args="0  0 0 -1.57079632679 -1.57079632679 0 uav/camera/left uav/camera/left/ned" />
 
     </group>
 
     <!--Static transforms for 32cm stereo baseline -->
     <group if="$(arg render_stereo)">
-        <!-- Camera frame is EDN. Blackbird IMU is ESD. -->
+        <!-- Camera frame is EDN. Blackbird body is NED. -->
         <node pkg="tf2_ros" type="static_transform_publisher"
-            name="camera_left_link"     args="-0.16 0 0 -1.57079632679 0 0 body_frame uav/camera/left" />
+            name="camera_left_link"     args="0 -0.16 0 1.57079632679 0 1.57079632679 body_frame uav/camera/left" />
         <node pkg="tf2_ros" type="static_transform_publisher"
-            name="camera_right_link"    args=" 0.16 0 0 -1.57079632679 0 0 body_frame uav/camera/right" />
+            name="camera_right_link"    args=" 0 0.16 0 -1.57079632679 0 1.57079632679 body_frame uav/camera/right" />
 
         <!-- Add static transforms for each camera that translate camera into NWU (legacy internal FlightGoggles code). -->
         <node pkg="tf2_ros" type="static_transform_publisher"
@@ -29,6 +38,8 @@
             name="camera_right_link_internal_ned" args="0  0 0 -1.57079632679 -1.57079632679 0 uav/camera/right uav/camera/right/ned" />
 
     </group>
+
+    
   
     <param name="/uav/camera/render_stereo" value="$(arg render_stereo)" />
 

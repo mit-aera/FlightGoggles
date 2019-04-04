@@ -8,7 +8,7 @@
   <arg name="gate_locations" default=""/>
   <arg name="render_quality" default="Fastest"/>
   <arg name="body_frame" default="uav/imu"/>
-  <arg name="sensor_package" default="simulation"/>
+  <arg name="sensor_package" default="simulationSensors"/>
 
   <group ns="/uav">
 
@@ -22,7 +22,7 @@
     <rosparam command="load" file="$(find flightgoggles)/config/challenges/nominal_gate_locations.yaml"/>
 
     <!-- Load static transforms for sensors -->
-    <include file="$(find flightgoggles)/config/$(arg sensor_package).launch">
+    <include file="$(find flightgoggles)/config/sensors/$(arg sensor_package).xml">
       <arg name="render_stereo" value="$(arg render_stereo)"/>
     </include>
 
@@ -61,9 +61,6 @@
 
 
     
-    <!--Static transform for ENU to NED world-->
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="world_ned_link" args="0 0 0 1.57079632679 3.14159265359 0 'world' 'world/ned'"/>
-
+    
   </group>
 </launch>
