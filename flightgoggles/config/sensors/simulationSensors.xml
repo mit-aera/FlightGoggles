@@ -1,5 +1,5 @@
 <launch>
-
+    <arg name="render_stereo" default="false" />
     <!-- @TODO: Convert to URDF/XACRO -->
 
     <group unless="$(arg render_stereo)">

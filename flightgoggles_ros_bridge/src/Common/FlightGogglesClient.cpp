@@ -99,13 +99,13 @@ bool FlightGogglesClient::requestRender()
     // Output debug messages at a low rate
     // if (state.ntime > last_upload_debug_utime + 1e9)
     // {
-       std::cout << "Last message sent: \"";
-       std::cout << msg.get<std::string>(0) << std::endl;
-       // Print JSON object
-       std::cout << json_msg.dump(4) << std::endl;
-       std::cout << "===================" << std::endl;
-        // reset time of last debug message
-        last_upload_debug_utime = state.ntime;
+    //    std::cout << "Last message sent: \"";
+    //    std::cout << msg.get<std::string>(0) << std::endl;
+    //    // Print JSON object
+    //    std::cout << json_msg.dump(4) << std::endl;
+    //    std::cout << "===================" << std::endl;
+    //     // reset time of last debug message
+    //     last_upload_debug_utime = state.ntime;
     // }
     // Send message without blocking.
     upload_socket.send(msg, true);

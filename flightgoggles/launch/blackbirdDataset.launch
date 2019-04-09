@@ -23,8 +23,6 @@
   <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
   <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
 
-  <!-- @TODO: Need to include the scene render offset. -->
-
   <!--Static transform for NED world to NED Unity world-->
   <!-- 1.1344640138 -->
   <node pkg="tf2_ros" type="static_transform_publisher"
