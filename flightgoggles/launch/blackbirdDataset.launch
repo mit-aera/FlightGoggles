@@ -17,8 +17,8 @@
   </include>
 
   <node name="trajectory_playback" pkg="rosbag" type="play" args="$(arg bagfile_path)"/>
-    
-  <param name="/use_sim_time" value="false" />
+ 
+  <param name="/use_sim_time" value="true" />
 
   <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
   <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
@@ -28,7 +28,7 @@
   <!--Static transform for NED world to NED Unity world-->
   <!-- 1.1344640138 -->
   <node pkg="tf2_ros" type="static_transform_publisher"
-      name="world_ned_link" args="0.05 1.05 -0.5 0 0 1.1344640138 'mocap_NED' 'flightgoggles/ned'"/>
+      name="world_ned_link" args="-1.7 -1.05 -0.5 0.0 0.0 1.0 0.0 'mocap_NED' 'flightgoggles/ned'"/>
   
 
 </launch>

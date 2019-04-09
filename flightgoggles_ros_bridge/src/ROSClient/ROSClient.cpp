@@ -118,7 +118,7 @@ void ROSClient::populateRenderSettings() {
     cameraInfoLeft = {};
     cameraInfoLeft.width = flightGoggles.state.camWidth;
     cameraInfoLeft.height = flightGoggles.state.camHeight;
-    cameraInfoLeft.distortion_model = "plum_bob";
+    cameraInfoLeft.distortion_model = "plumb_bob";
     float f = (cameraInfoLeft.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
     float cx = cameraInfoLeft.width / 2.0;
     float cy = cameraInfoLeft.height / 2.0;
@@ -143,7 +143,7 @@ void ROSClient::populateRenderSettings() {
         cameraInfoRight = {};
         cameraInfoRight.width = flightGoggles.state.camWidth;
         cameraInfoRight.height = flightGoggles.state.camHeight;
-        cameraInfoRight.distortion_model = "plum_bob";
+        cameraInfoRight.distortion_model = "plumb_bob";
         float f = (cameraInfoRight.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
         float cx = cameraInfoRight.width / 2.0;
         float cy = cameraInfoRight.height / 2.0;

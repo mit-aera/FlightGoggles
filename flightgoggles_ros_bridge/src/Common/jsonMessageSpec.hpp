@@ -65,7 +65,7 @@ struct StateMessage_t
   int camWidth = 1024;
   int camHeight = 768;
   float camFOV = 70.0f;
-  double camDepthScale = 0.20; // 0.xx corresponds to xx cm resolution
+  double camDepthScale = 10.0; // 0.xx corresponds to xx cm resolution
 
   // Object state update
   std::vector<Camera_t> cameras;
