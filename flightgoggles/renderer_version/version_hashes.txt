@@ -1,0 +1,8 @@
+# FlightGoggles_Data.tar.gz.md5
+
+- v2.0.3 	- 1ca07cb660744ac6425c00f030b32df0
+- v2.0.4-b1 	- 089d5ee078b93f7457a97605312099b0
+- v2.0.5 	- f57f3d23eab64f696fda77f4cb5de02b
+
+- v1.7.1 	- 99ad0a9cc6782464c943869deaf903e0
+
