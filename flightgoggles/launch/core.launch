@@ -4,9 +4,8 @@
   <arg name="use_external_renderer" default="0" />
   <arg name="ignore_collisions" default="false" />
   <arg name="render_stereo" default="0" />
-  <arg name="run_challenges" default="1" /> 
   <arg name="gate_locations" default=""/>
-  <arg name="render_quality" default="Fastest"/>
+  <arg name="render_quality" default="5"/> <!-- Quality between 0-5 -->
   <arg name="body_frame" default="uav/imu"/>
   <arg name="sensor_package" default="simulationSensors"/>
 

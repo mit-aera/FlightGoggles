@@ -42,8 +42,8 @@
     
     <param name="/uav/camera/render_stereo" value="$(arg render_stereo)" />
 
-    <!--Static transform for ENU to NED world-->
+    <!--Static transform for NWU to NED world-->
     <node pkg="tf2_ros" type="static_transform_publisher"
-        name="world_ned_link" args="0 0 0 1.57079632679 3.14159265359 0 'world' 'world/ned'"/>
+        name="world_ned_link" args="0 0 0 1 0 0 0 'world' 'world/ned'"/>
 
 </launch>
