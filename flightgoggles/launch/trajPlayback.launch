@@ -1,9 +1,9 @@
 <launch>
-  <arg name="use_external_renderer" default="false" />
+  <arg name="use_external_renderer" default="true" />
   <arg name="render_stereo" default="false" />
   <arg name="gate_locations" default=""/>
   <arg name="log_file" default=""/>
-  <arg name="playback_rate" default="0.3"/>
+  <arg name="playback_rate" default="0.75"/>
   
 
   <group ns="/uav">
