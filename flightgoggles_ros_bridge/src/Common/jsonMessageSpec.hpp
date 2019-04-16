@@ -59,6 +59,8 @@ struct StateMessage_t
   // std::string sceneFilename = "NYC_Subway";
   // std::string sceneFilename = "Museum_Day";
   std::string sceneFilename = "Museum_Day_Small";
+  std::string obstaclePerturbationFile = "";
+
 
   // Frame Metadata
   int64_t ntime;
@@ -82,6 +84,7 @@ inline void to_json(json &j, const StateMessage_t &o)
 //           {"maxFramerate", o.maxFramerate},
            {"sceneIsInternal", o.sceneIsInternal},
            {"sceneFilename", o.sceneFilename},
+           {"obstaclePerturbationFile", o.obstaclePerturbationFile},
 
            // Frame Metadata
            {"ntime", o.ntime},

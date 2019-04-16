@@ -85,6 +85,7 @@ public:
     std::string sceneFilename_ = "Abandoned_Factory_Morning";
     std::string worldFrame_ = "world/ned";
     std::string bodyFrame_ = "uav/imu";
+    std::string obstaclePerturbationFile_ = "";
 
 	// Lidar params
 	float lidarMaxRange_ = 20; // Meters

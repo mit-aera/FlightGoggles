@@ -70,6 +70,11 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
         std::cout << "Did not get argument for rangefinder variance. Defaulting to 0.009 m^2" << std::endl;
     }
 
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/obstacle_perturbation_file", obstaclePerturbationFile_)) {
+        std::cout << "Did not get argument for obstacle_perturnation_file. Defaulting to no offsets." << std::endl;
+    }
+
+
     // Load params
     populateRenderSettings();
 
@@ -103,6 +108,7 @@ void ROSClient::populateRenderSettings() {
     flightGoggles.state.sceneFilename = sceneFilename_;
     flightGoggles.state.camWidth = imageWidth_;
     flightGoggles.state.camHeight = imageHeight_;
+    flightGoggles.state.obstaclePerturbationFile = obstaclePerturbationFile_;
 
     // Prepopulate metadata of cameras
     unity_outgoing::Camera_t cam_RGB_left;
