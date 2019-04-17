@@ -86,7 +86,7 @@ public:
     std::string worldFrame_ = "world/ned";
     std::string bodyFrame_ = "uav/imu";
     std::string obstaclePerturbationFile_ = "";
-
+    std::vector<std::string> obstacleTFList_;
 	// Lidar params
 	float lidarMaxRange_ = 20; // Meters
     float lidarVariance_ = 0.0009; // Meters^2

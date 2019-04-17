@@ -74,6 +74,10 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
         std::cout << "Did not get argument for obstacle_perturnation_file. Defaulting to no offsets." << std::endl;
     }
 
+    // Load list of obstacles to spawn.
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/obstacle_frames", obstacleTFList_)) {
+        std::cout << "Did not get argument for obstacle_frames. Defaulting to using no dynamic obstacles." << std::endl;
+    }
 
     // Load params
     populateRenderSettings();
@@ -215,6 +219,23 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
 
         // Update timestamp of state message (needed to force FlightGoggles to rerender scene)
         flightGoggles.state.ntime = camLeftTransform.header.stamp.toNSec();
+       
+        // Find list of all obstacles in environment ("flightgoggles_obstacle/*")
+        for (auto obstacleTFName : obstacleTFList_){
+        
+            // Get TF for obstacle
+            geometry_msgs::TransformStamped obstacleTF;
+            try{
+                obstacleTF = tfBuffer_.lookupTransform(worldFrame_, obstacleTFName, ros::Time(0));
+            } catch (tf2::TransformException &ex) {
+                ROS_WARN("Could NOT find transform for obstacle: %s %s", obstacleTF, ex.what());
+            }
+
+            
+        }
+
+         
+
         // request render
         flightGoggles.requestRender();
 

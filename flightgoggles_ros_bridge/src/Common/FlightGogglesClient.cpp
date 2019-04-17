@@ -66,6 +66,35 @@ void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, 
 }
 
 
+void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, int obj_index) {
+  // To transforms
+  //Transform3 NED_pose = convertROSToNEDCoordinates(ros_pose);
+  Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(ros_pose);
+//Transform3 unity_pose = convertEDNGlobalPoseToGlobalUnityCoordinates(ros_pose);
+
+  // Extract position and rotation
+  std::vector<double> position = {
+    unity_pose.translation()[0],
+    unity_pose.translation()[1],
+    unity_pose.translation()[2],
+  };
+
+  Eigen::Matrix3d rotationMatrix = unity_pose.rotation();
+  Quaternionx quat(rotationMatrix);
+
+  std::vector<double> rotation = {
+    quat.x(),
+    quat.y(),
+    quat.z(),
+    quat.w(),
+  };
+
+  // Set camera position and rotation
+  state.objects[obj_index].position = position;
+  state.objects[obj_index].rotation = rotation;
+}
+
+
 /**
  * This function is called when a new pose has been received.
  * If the pose is good, asks Unity to render another frame by sending a ZMQ

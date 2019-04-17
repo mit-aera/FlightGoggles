@@ -23,6 +23,7 @@
     <!-- Load static transforms for sensors -->
     <include file="$(find flightgoggles)/config/sensors/$(arg sensor_package).xml">
       <arg name="render_stereo" value="$(arg render_stereo)"/>
+      <arg name="body_frame" value="$(arg body_frame)"/>
     </include>
 
     <!-- flightgoggles_uav_dynamics simulator -->
@@ -52,8 +53,8 @@
     <node name="flightgoggles_marker_visualizer" pkg="flightgoggles_marker_visualizer" type="flightgoggles_marker_visualizer" />
 
     <!--Run RVIZ for visualization-->
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" unless="$(arg render_stereo)"/>
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower_stereo.rviz" if="$(arg render_stereo)"/>
+    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" unless="$(arg render_stereo)"/> -->
+    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower_stereo.rviz" if="$(arg render_stereo)"/> -->
 
     <!--Run rqt_plot for plotting readings from the laser range finder-->
     <!-- <node type="rqt_plot" name="laser_rangefinder_plotter" pkg="rqt_plot" args="topics /uav/sensors/downward_laser_rangefinder/range"/> -->

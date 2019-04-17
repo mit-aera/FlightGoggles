@@ -1,0 +1,51 @@
+<launch>
+  <arg name="use_external_renderer" default="true" />
+  <arg name="render_stereo" default="false" />
+  <arg name="gate_locations" default=""/>
+  <arg name="log_file" default=""/>
+  <arg name="playback_rate" default="0.45"/>
+  <arg name="body_frame" default="uav/imu"/>
+  
+
+  <group ns="/uav">
+
+    <!--Play back previous flight's trajectory-->
+    <node name="trajectory_playback" required="true" pkg="rosbag" type="play" args="--clock -r $(arg playback_rate) $(arg log_file)">
+    </node>
+    
+    <!--include core flightgoggles launch file-->
+    <include file="$(find flightgoggles)/launch/core.launch" >
+      <!--Disable and use dynamics from rosbag-->
+      <arg name="use_dynamics" value="false"/>
+      <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
+      <arg name="render_stereo" value="$(arg render_stereo)"/>
+      <arg name="gate_locations" value="$(arg gate_locations)"/>
+      <arg name="body_frame" value="$(arg body_frame)"/>
+    </include>
+
+  </group>
+
+    <!-- Video Recorder (optional) -->
+  <node name="video_recorder" pkg="image_view" type="video_recorder">
+      <remap from="image" to="/uav/camera/left/image_rect_color" />
+      <param name="filename" value="$(arg log_file).mp4"/>
+      <param name="fps" value="60" />
+      <param name="codec" value="MP4V" />
+  </node>
+
+
+  <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
+
+  <!--
+      Using simulation time means nodes initialized after this
+      will not use the system clock for its ROS clock and
+      instead wait for simulation ticks.
+      See http://wiki.ros.org/Clock
+
+      This should be enabled if the user would like to ensure a constant 60hz camera for your algorithm.
+  -->
+  <param name="/use_sim_time" value="true" />
+  <param name="/uav/flightgoggles_ros_bridge/log_file" value="$(arg log_file)"/>
+
+  <rosparam command="load" file="$(find flightgoggles)/config/traj/multidrone.yaml"/>
+</launch>
