@@ -12,19 +12,22 @@
     <arg name="render_stereo" value="$(arg render_stereo)"/>
     <arg name="ignore_collisions" value="$(arg ignore_collisions)"/>
     <arg name="use_dynamics" value="false"/>
-    <arg name="body_frame" value="flightgoggles/ned"/>
+    <arg name="world_frame" value="flightgoggles/ned"/>
+    <arg name="body_frame" value="body_frame"/>
     <arg name="sensor_package" value="blackbirdDatasetSensors"/>
   </include>
 
   <node name="trajectory_playback" pkg="rosbag" type="play" args="$(arg bagfile_path)"/>
  
   <param name="/use_sim_time" value="true" />
-
+  
+  <!-- Remap frames to agree with those in the Blackbird Dataset. -->
   <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
   <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
 
-  <!--Static transform for NED world to NED Unity world-->
-  <!-- 1.1344640138 -->
+  <!-- MIT Blackbird dataset render transform. Transforms mocap_NED to NED Unity world.
+       This transform changes depending on which environment is being renderered from the dataset and
+       can be found in BlackbirdDataset/trajectoryOffsets.yaml -->
   <node pkg="tf2_ros" type="static_transform_publisher"
       name="world_ned_link" args="-1.7 -1.05 -0.5 0.0 0.0 1.0 0.0 'mocap_NED' 'flightgoggles/ned'"/>
   

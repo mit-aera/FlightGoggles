@@ -6,6 +6,7 @@
   <arg name="render_stereo" default="0" />
   <arg name="gate_locations" default=""/>
   <arg name="render_quality" default="5"/> <!-- Quality between 0-5 -->
+  <arg name="world_frame" default="world/ned"/>
   <arg name="body_frame" default="uav/imu"/>
   <arg name="sensor_package" default="simulationSensors"/>
 
@@ -60,7 +61,7 @@
     <!-- <node type="rqt_plot" name="laser_rangefinder_plotter" pkg="rqt_plot" args="topics /uav/sensors/downward_laser_rangefinder/range"/> -->
 
 
-    
-    
+    <param name="/uav/flightgoggles_ros_bridge/world_frame" value="$(arg world_frame)"/> 
+    <param name="/uav/flightgoggles_ros_bridge/body_frame" value="$(arg body_frame)"/> 
   </group>
 </launch>
