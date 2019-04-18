@@ -71,15 +71,16 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
   Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(ros_pose);
 
   // Check if there is a object in the object list that matches the object name.
-  auto it = std::find_if(state.objects.begin(),
-                         state.objects.end(),
+  auto it = std::find_if(std::begin(state.objects),
+                         std::end(state.objects),
                          [object_name]
                          (const unity_outgoing::Object_t& obj) -> bool {return (obj.ID.compare(object_name) == 0);});
 
   unity_outgoing::Object_t object;
   
+  std::cout << "Placing object" << object_name << std::endl;
   // Create the object if not found
-  if (it == state.objects.end()){
+  if (it == std::end(state.objects)){
     bool found_object_name = false;
     std::string object_type;
     // Find the object type:
@@ -89,6 +90,7 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
       if (object_match.size() == 2){
         object_type = object_match[1];
         found_object_name = true;
+        std::cout << "Found object type: " << object_type << std::endl;
       }
     }
 
@@ -99,18 +101,20 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
 
     // Create the object
     //unity_outgoing::Object_t object();
-    object.ID = object_name;
-    object.prefabID = object_type;
+    object.ID.assign(object_name);
+    object.prefabID.assign(object_type);
     state.objects.push_back(object);
 
   }
   
   // We found the object!
-  if (it != state.objects.end()){
-    object = *it;
+  if (it != std::end(state.objects)){
+    std::cout << "Found object in list" << std::endl;
+    //object = *it;
+    std::cout << it->ID << std::endl;
   }
 
-    
+  std::cout << "Trying to do placement calculations" << std::endl;  
 
   // Extract position and rotation
   std::vector<double> position = {
@@ -169,11 +173,11 @@ bool FlightGogglesClient::requestRender()
     // Output debug messages at a low rate
     // if (state.ntime > last_upload_debug_utime + 1e9)
     // {
-    //    std::cout << "Last message sent: \"";
-    //    std::cout << msg.get<std::string>(0) << std::endl;
-    //    // Print JSON object
-    //    std::cout << json_msg.dump(4) << std::endl;
-    //    std::cout << "===================" << std::endl;
+        std::cout << "Last message sent: \"";
+        std::cout << msg.get<std::string>(0) << std::endl;
+        // Print JSON object
+        std::cout << json_msg.dump(4) << std::endl;
+        std::cout << "===================" << std::endl;
     //     // reset time of last debug message
     //     last_upload_debug_utime = state.ntime;
     // }

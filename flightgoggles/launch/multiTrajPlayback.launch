@@ -2,9 +2,9 @@
   <arg name="use_external_renderer" default="true" />
   <arg name="render_stereo" default="false" />
   <arg name="gate_locations" default=""/>
-  <arg name="log_file" default=""/>
+  <arg name="log_file" default="$(env HOME)/catkin_ws/bags/run_0_aggregated.bag"/>
   <arg name="playback_rate" default="0.45"/>
-  <arg name="body_frame" default="uav/imu"/>
+  <arg name="body_frame" default="flightgoggles_obstacle/drone_w_trail/19"/>
   
 
   <group ns="/uav">
@@ -47,5 +47,7 @@
   <param name="/use_sim_time" value="true" />
   <param name="/uav/flightgoggles_ros_bridge/log_file" value="$(arg log_file)"/>
 
-  <rosparam command="load" file="$(find flightgoggles)/config/traj/multidrone.yaml"/>
+  <group ns="/uav">
+    <rosparam command="load" file="$(find flightgoggles)/config/traj/multidrone.yaml"/>
+  </group>
 </launch>

@@ -230,13 +230,13 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
                 obstacleTF = tfBuffer_.lookupTransform(worldFrame_, obstacleTFName, ros::Time(0));
                 foundTransform = true;
             } catch (tf2::TransformException &ex) {
-                //ROS_WARN("Could NOT find transform for obstacle: %s %s", obstacleTF, ex.what());
+                ROS_WARN("Could NOT find transform for obstacle: %s %s", obstacleTF, ex.what());
             }
 
             // @TODO: Populate obstacle structure w/ transform. Setter function should check that prefab name has already been populated.  
             if (foundTransform) {
-            
-
+                Transform3 objectPose = tf2::transformToEigen(obstacleTF);
+		flightGoggles.setObjectPoseUsingROSCoordinates(objectPose, obstacleTFName);
             }
         }
 
