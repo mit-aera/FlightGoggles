@@ -66,11 +66,51 @@ void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, 
 }
 
 
-void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, int obj_index) {
-  // To transforms
-  //Transform3 NED_pose = convertROSToNEDCoordinates(ros_pose);
+void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, std::string object_name) {
+  
   Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(ros_pose);
-//Transform3 unity_pose = convertEDNGlobalPoseToGlobalUnityCoordinates(ros_pose);
+
+  // Check if there is a object in the object list that matches the object name.
+  auto it = std::find_if(state.objects.begin(),
+                         state.objects.end(),
+                         [object_name]
+                         (const unity_outgoing::Object_t& obj) -> bool {return (obj.ID.compare(object_name) == 0);});
+
+  unity_outgoing::Object_t object;
+  
+  // Create the object if not found
+  if (it == state.objects.end()){
+    bool found_object_name = false;
+    std::string object_type;
+    // Find the object type:
+    const std::regex object_name_regex("flightgoggles_obstacle/(.*)/.*");
+    std::smatch object_match;
+    if (std::regex_match(object_name, object_match, object_name_regex)) {
+      if (object_match.size() == 2){
+        object_type = object_match[1];
+        found_object_name = true;
+      }
+    }
+
+    if (!found_object_name){
+      std::cerr << "Cannot find object name! Are you sure that the object name is of the form 'flightgoggles_obstacle/objPrefabName/idx'" << std::endl;
+      return;
+    }
+
+    // Create the object
+    //unity_outgoing::Object_t object();
+    object.ID = object_name;
+    object.prefabID = object_type;
+    state.objects.push_back(object);
+
+  }
+  
+  // We found the object!
+  if (it != state.objects.end()){
+    object = *it;
+  }
+
+    
 
   // Extract position and rotation
   std::vector<double> position = {
@@ -82,7 +122,7 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
   Eigen::Matrix3d rotationMatrix = unity_pose.rotation();
   Quaternionx quat(rotationMatrix);
 
-  std::vector<double> rotation = {
+    std::vector<double> rotation = {
     quat.x(),
     quat.y(),
     quat.z(),
@@ -90,8 +130,9 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
   };
 
   // Set camera position and rotation
-  state.objects[obj_index].position = position;
-  state.objects[obj_index].rotation = rotation;
+  object.position = position;
+  object.rotation = rotation;
+  
 }
 
 

@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <chrono>
+#include <regex>
 
 // Include ZMQ bindings for comms with Unity.
 #include <iostream>
@@ -69,7 +70,7 @@ class FlightGogglesClient
 
     /// Set camera pose using ROS coordinates.
     void setCameraPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, int cam_index);
-    void setObjectPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, int obj_index);
+    void setObjectPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, std::string object_name);
 
     /// Send render request to Unity
     bool requestRender();
