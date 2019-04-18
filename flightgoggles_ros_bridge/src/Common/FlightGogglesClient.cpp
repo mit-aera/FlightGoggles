@@ -7,6 +7,8 @@
 
 #include "FlightGogglesClient.hpp"
 
+#define DEBUG false
+
 /**
  * Constructor
  */
@@ -76,11 +78,11 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
                          [object_name]
                          (const unity_outgoing::Object_t& obj) -> bool {return (obj.ID.compare(object_name) == 0);});
 
-  unity_outgoing::Object_t object;
   
-  std::cout << "Placing object" << object_name << std::endl;
+  //std::cout << "Placing object" << object_name << std::endl;
   // Create the object if not found
   if (it == std::end(state.objects)){
+    unity_outgoing::Object_t object;
     bool found_object_name = false;
     std::string object_type;
     // Find the object type:
@@ -90,7 +92,7 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
       if (object_match.size() == 2){
         object_type = object_match[1];
         found_object_name = true;
-        std::cout << "Found object type: " << object_type << std::endl;
+        //std::cout << "Found object type: " << object_type << std::endl;
       }
     }
 
@@ -104,17 +106,12 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
     object.ID.assign(object_name);
     object.prefabID.assign(object_type);
     state.objects.push_back(object);
+    // Get iterator that points to object
+    it = std::prev(std::end(state.objects),1);
 
   }
-  
-  // We found the object!
-  if (it != std::end(state.objects)){
-    std::cout << "Found object in list" << std::endl;
-    //object = *it;
-    std::cout << it->ID << std::endl;
-  }
 
-  std::cout << "Trying to do placement calculations" << std::endl;  
+  //std::cout << "Trying to do placement calculations" << std::endl;  
 
   // Extract position and rotation
   std::vector<double> position = {
@@ -134,8 +131,8 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
   };
 
   // Set camera position and rotation
-  object.position = position;
-  object.rotation = rotation;
+  it->position = position;
+  it->rotation = rotation;
   
 }
 
@@ -170,17 +167,14 @@ bool FlightGogglesClient::requestRender()
     json json_msg = state;
     msg << json_msg.dump();
 
-    // Output debug messages at a low rate
-    // if (state.ntime > last_upload_debug_utime + 1e9)
-    // {
-        std::cout << "Last message sent: \"";
-        std::cout << msg.get<std::string>(0) << std::endl;
-        // Print JSON object
-        std::cout << json_msg.dump(4) << std::endl;
-        std::cout << "===================" << std::endl;
-    //     // reset time of last debug message
-    //     last_upload_debug_utime = state.ntime;
-    // }
+    if (DEBUG) {
+      std::cout << "Last message sent: \"";
+      std::cout << msg.get<std::string>(0) << std::endl;
+      // Print JSON object
+      std::cout << json_msg.dump(4) << std::endl;
+      std::cout << "===================" << std::endl;
+    }
+    
     // Send message without blocking.
     upload_socket.send(msg, true);
     return true;
