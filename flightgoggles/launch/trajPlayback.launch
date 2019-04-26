@@ -52,6 +52,6 @@
       This should be enabled if the user would like to ensure a constant 60hz camera for your algorithm.
   -->
   <param name="/use_sim_time" value="true" />
-  <!-- <param name="/uav/flightgoggles_ros_bridge/obstacle_perturbation_file" value="C:\perturbations\perturbed_gates_$(arg gate_locations).yaml"/> -->
+  <param name="/uav/flightgoggles_ros_bridge/obstacle_perturbation_file" value="C:\perturbations\perturbed_gates_$(arg gate_locations).yaml"/>
   <param name="/uav/flightgoggles_ros_bridge/log_file" value="$(arg log_file)"/> -->
 </launch>

@@ -49,10 +49,11 @@ flightgoggles_pid:
 flightgoggles_ros_bridge:
    # For <= v1.7.1, scene_filename: Butterfly_World, Hazelwood_Loft_Full_Day, Hazelwood_Loft_Full_Night, NYC_Subway, Museum_Day, Museum_Day_Small
    # For >= 2.0.0,  scene_filename: Abandoned_Factory_Morning, Abandoned_Factory_Morning_No_Gates, Abandoned_Factory_Sunset, Abandoned_Factory_Sunset_No_Gates
-   scene_filename: Abandoned_Factory_Morning_No_Gates
+   scene_filename: Abandoned_Factory_Morning
    image_width: 1024
    image_height: 768
+   #image_width: 1920
    baseline: 0.32
    collider_radius: 0.15
-   framerate: 60
+   framerate: 140
    #world_frame: "world/ned"

@@ -78,6 +78,17 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/obstacle_frames", obstacleTFList_)) {
         std::cout << "Did not get argument for obstacle_frames. Defaulting to using no dynamic obstacles." << std::endl;
     }
+    // Load list of obstacles to ignore
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/ignored_obstacle_frames", obstacleIgnoreList_)) {
+        std::cout << "Did not get argument for ignored_obstacle_frames. Defaulting to ignoring body_frame object" << std::endl;
+        obstacleIgnoreList_.push_back(bodyFrame_);
+    }
+
+    // Remove ignored obstacles from list of obstacles to spawn
+    for (auto ignoredObstacle : obstacleIgnoreList_){
+      auto itr = std::find(obstacleTFList_.begin(), obstacleTFList_.end(), ignoredObstacle);
+      if (itr != obstacleTFList_.end()) obstacleTFList_.erase(itr);
+    }
 
     // Load params
     populateRenderSettings();

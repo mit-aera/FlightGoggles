@@ -24,10 +24,10 @@ void FlightGogglesClient::initializeConnections()
 {
     std::cout << "Initializing ZMQ connections..." << std::endl;
     // create and bind a upload_socket
-    upload_socket.set(zmqpp::socket_option::send_high_water_mark, 6);
+    //upload_socket.set(zmqpp::socket_option::send_high_water_mark, 6);
     upload_socket.bind(client_address + ":" + upload_port);
     // create and bind a download_socket
-    download_socket.set(zmqpp::socket_option::receive_high_water_mark, 6);
+    //download_socket.set(zmqpp::socket_option::receive_high_water_mark, 6);
 //    download_socket.set(zmqpp::socket_option::receive_buffer_size, 1024*768*3*6);
     download_socket.bind(client_address + ":" + download_port);
     download_socket.subscribe("");
@@ -120,6 +120,10 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
     unity_pose.translation()[2],
   };
 
+  if (unity_pose.translation()[0] == 0) {
+    std::cout << "Got zero transform!!" << std::endl;
+  }
+
   Eigen::Matrix3d rotationMatrix = unity_pose.rotation();
   Quaternionx quat(rotationMatrix);
 
@@ -173,7 +177,7 @@ bool FlightGogglesClient::requestRender()
       // Print JSON object
       std::cout << json_msg.dump(4) << std::endl;
       std::cout << "===================" << std::endl;
-    }
+    } 
     
     // Send message without blocking.
     upload_socket.send(msg, true);
