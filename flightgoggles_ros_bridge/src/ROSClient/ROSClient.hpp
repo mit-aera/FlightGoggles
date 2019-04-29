@@ -70,6 +70,7 @@ public:
     ros::Publisher lidarPub_;
     ros::Publisher irMarkerPub_;
     ros::Publisher fpsPublisher_;
+    ros::Publisher imageTriggerDebugPublisher_;
     //@}
 
     //// @name State variables

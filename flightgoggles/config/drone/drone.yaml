@@ -55,5 +55,5 @@ flightgoggles_ros_bridge:
    #image_width: 1920
    baseline: 0.32
    collider_radius: 0.15
-   framerate: 140
+   framerate: 60
    #world_frame: "world/ned"

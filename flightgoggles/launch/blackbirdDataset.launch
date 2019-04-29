@@ -1,10 +1,16 @@
 <launch>
+  
+  <arg name="bagfile_path" default="$(env HOME)/catkin_ws/bags/ampersand_maxSpeed2p0.bag" />
+  <arg name="offset_transform" default="0 0 0 0 0 0 1" />
+  <arg name="scene_filename" default="Butterfly_World" />
+
+  <arg name="output_folder" default="$(arg bagfile_path)_images" /> 
+  <arg name="fps" default="30" />
+  <arg name="playback_rate" default="1.0" />
+  
   <arg name="use_external_renderer" default="true" />
   <arg name="ignore_collisions" default="true" />
-  <arg name="render_stereo" default="false" />
-  <arg name="bagfile_path" default="$(env HOME)/catkin_ws/bags/ampersand_maxSpeed2p0.bag" />
-
-
+  <arg name="render_stereo" default="true" />
   
   <!--include core flightgoggles launch file-->
   <include file="$(find flightgoggles)/launch/core.launch">
@@ -16,20 +22,38 @@
     <arg name="body_frame" value="body_frame"/>
     <arg name="sensor_package" value="blackbirdDatasetSensors"/>
   </include>
-
-  <node name="trajectory_playback" pkg="rosbag" type="play" args="$(arg bagfile_path)"/>
- 
-  <param name="/use_sim_time" value="true" />
   
-  <!-- Remap frames to agree with those in the Blackbird Dataset. -->
-  <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
-  <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
-
+  <!-- Bag playback -->
+  <node name="trajectory_playback" pkg="rosbag" type="play" args=" --clock --hz=1000  -r $(arg playback_rate)  $(arg bagfile_path)"/>
+ 
+ 
   <!-- MIT Blackbird dataset render transform. Transforms mocap_NED to NED Unity world.
        This transform changes depending on which environment is being renderered from the dataset and
        can be found in BlackbirdDataset/trajectoryOffsets.yaml -->
   <node pkg="tf2_ros" type="static_transform_publisher"
-      name="world_ned_link" args="-1.7 -1.05 -0.5 0.0 0.0 1.0 0.0 'mocap_NED' 'flightgoggles/ned'"/>
+      name="world_ned_link" args="$(arg offset_transform) 'mocap_NED' 'flightgoggles/ned'"/>
+  
+  <!-- Image savers for RGBD -->
+  <!-- Uses image_saver fork from git@github.com:21Ansh/image_pipeline.git -->
+  <node name="image_saver_rgb" pkg="image_view" type="image_saver">
+      <remap from="image" to="/uav/camera/left/image_rect_color" />
+      <param name="filename_format" value="$(arg output_folder)/rgb_"/>
+  </node>
+  
+  <node name="image_saver_depth" pkg="image_view" type="image_saver">
+      <remap from="image" to="/uav/camera/right/image_rect_color" />
+      <param name="filename_format" value="$(arg output_folder)/depth_"/>
+      <param name="encoding" value="8UC1" />
+  </node>
+
+
+  <!-- Parameter overrides -->
+  
+  <param name="/use_sim_time" value="true" />
+  <param name="/uav/flightgoggles_ros_bridge/scene_filename" value="$(arg scene_filename)" /> 
+  <param name="/uav/flightgoggles_ros_bridge/framerate" type="double" value="$(arg fps)" /> 
+  <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
+  <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
   
 
 </launch>

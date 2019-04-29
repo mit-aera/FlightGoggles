@@ -98,6 +98,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if(render_stereo) {
         imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 1);
     }
+    imageTriggerDebugPublisher_ = ns_.advertise<std_msgs::Empty>("/uav/camera/debug/render_trigger", 1);
 
     // Collision publisher
     collisionPub_ = ns_.advertise<std_msgs::Empty>("/uav/collision", 1);
@@ -152,9 +153,9 @@ void ROSClient::populateRenderSettings() {
 
     if (render_stereo) {
         unity_outgoing::Camera_t cam_RGB_right;
-        cam_RGB_right.ID = "Camera_RGB_right";
-        cam_RGB_right.channels = 3;
-        cam_RGB_right.isDepth = false;
+        cam_RGB_right.ID = "Camera_D";
+        cam_RGB_right.channels = 1;
+        cam_RGB_right.isDepth = true;
         cam_RGB_right.outputIndex = 1;
         cam_RGB_right.hasCollisionCheck = false;
         cam_RGB_right.doesLandmarkVisCheck = false;
@@ -218,7 +219,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             geometry_msgs::TransformStamped camRightTransform;
 
             try{
-                camRightTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/right/ned", camLeftTransform.header.stamp);
+                camRightTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/left/ned", camLeftTransform.header.stamp);
             } catch (tf2::TransformException &ex) {
                 ROS_WARN("Could NOT find transform for /uav/camera/right/ned: %s", ex.what());
             }
@@ -241,7 +242,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
                 obstacleTF = tfBuffer_.lookupTransform(worldFrame_, obstacleTFName, ros::Time(0));
                 foundTransform = true;
             } catch (tf2::TransformException &ex) {
-                ROS_WARN("Could NOT find transform for obstacle: %s %s", obstacleTF, ex.what());
+                ROS_WARN("Could NOT find transform for obstacle: %s", ex.what());
             }
 
             // @TODO: Populate obstacle structure w/ transform. Setter function should check that prefab name has already been populated.  
@@ -255,6 +256,10 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
 
         // request render
         flightGoggles.requestRender();
+        // Send shutter trigger
+        std_msgs::Empty msg;
+    	imageTriggerDebugPublisher_.publish(msg);
+        
 
     } 
 
@@ -299,7 +304,7 @@ void imageConsumer(ROSClient *self){
 	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
 
 	    if (self->render_stereo) {
-            sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), "bgr8",
+            sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), "8UC1",
                                                                  renderOutput.images[1]).toImageMsg();
             msg_right->header.stamp = imageTimestamp;
             msg_right->header.frame_id = "/uav/camera/right";
