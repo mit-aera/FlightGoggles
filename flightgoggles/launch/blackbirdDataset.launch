@@ -5,8 +5,8 @@
   <arg name="scene_filename" default="Butterfly_World" />
 
   <arg name="output_folder" default="$(arg bagfile_path)_images" /> 
-  <arg name="fps" default="30" />
-  <arg name="playback_rate" default="1.0" />
+  <arg name="fps" default="31" />
+  <arg name="playback_rate" default="2.0" />
   
   <arg name="use_external_renderer" default="true" />
   <arg name="ignore_collisions" default="true" />
@@ -24,7 +24,7 @@
   </include>
   
   <!-- Bag playback -->
-  <node name="trajectory_playback" pkg="rosbag" type="play" args=" --clock --hz=1000  -r $(arg playback_rate)  $(arg bagfile_path)"/>
+  <node name="trajectory_playback" pkg="rosbag" required="true" type="play" args=" --clock --hz=1000  -r $(arg playback_rate)  $(arg bagfile_path)" launch-prefix="bash -c 'sleep 2; $0 $@; sleep 10'" />
  
  
   <!-- MIT Blackbird dataset render transform. Transforms mocap_NED to NED Unity world.

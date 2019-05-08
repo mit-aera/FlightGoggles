@@ -94,9 +94,9 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     populateRenderSettings();
 
     // init image publisher
-    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 1);
+    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 10);
     if(render_stereo) {
-        imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 1);
+        imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 10);
     }
     imageTriggerDebugPublisher_ = ns_.advertise<std_msgs::Empty>("/uav/camera/debug/render_trigger", 1);
 
@@ -294,7 +294,7 @@ void imageConsumer(ROSClient *self){
         }
 
         // Convert OpenCV image to image message
-        sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", renderOutput.images[0]).toImageMsg();
+        sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[0] == 3) ? "bgr8" : "8UC1", renderOutput.images[0]).toImageMsg();
         msg->header.stamp = imageTimestamp;
         msg->header.frame_id = "/uav/camera/left";
         // Add Camera info message for camera
@@ -304,7 +304,7 @@ void imageConsumer(ROSClient *self){
 	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
 
 	    if (self->render_stereo) {
-            sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), "8UC1",
+            sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[1] == 3) ? "bgr8" : "8UC1",
                                                                  renderOutput.images[1]).toImageMsg();
             msg_right->header.stamp = imageTimestamp;
             msg_right->header.frame_id = "/uav/camera/right";
