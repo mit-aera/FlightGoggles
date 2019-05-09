@@ -94,11 +94,11 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     populateRenderSettings();
 
     // init image publisher
-    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 10);
+    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 60);
     if(render_stereo) {
-        imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 10);
+        imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 60);
     }
-    imageTriggerDebugPublisher_ = ns_.advertise<std_msgs::Empty>("/uav/camera/debug/render_trigger", 1);
+    imageTriggerDebugPublisher_ = ns_.advertise<std_msgs::Empty>("/uav/camera/debug/render_trigger", 60);
 
     // Collision publisher
     collisionPub_ = ns_.advertise<std_msgs::Empty>("/uav/collision", 1);
