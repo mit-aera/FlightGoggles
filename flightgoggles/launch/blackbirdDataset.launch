@@ -1,11 +1,16 @@
 <launch>
   
-  <arg name="bagfile_path" default="$(env HOME)/catkin_ws/bags/ampersand_maxSpeed2p0.bag" />
-  <arg name="offset_transform" default="0 0 0 0 0 0 1" />
+  <arg name="base_data_path" default="$(env HOME)/catkin_ws/bags/ampersand_maxSpeed2p0" />
+  <arg name="bagfile_path" default="$(arg base_data_path).bag" />
+  <arg name="offset_path" default="$(arg base_data_path)_poses_offset.csv" />
+
+  <arg name="render_offset_rotation" default="0 0 0 0 0 0 1" />
+  <arg name="render_offset_translation" default="0 0 0 0 0 0 1" />
+  <arg name="trajectory_offset_transform" default="0 0 0 0 0 0 1" />
   <arg name="scene_filename" default="Butterfly_World" />
 
   <arg name="output_folder" default="$(arg bagfile_path)_images" /> 
-  <arg name="fps" default="31" />
+  <arg name="fps" default="30" />
   <arg name="playback_rate" default="2.0" />
   
   <arg name="use_external_renderer" default="true" />
@@ -21,18 +26,26 @@
     <arg name="world_frame" value="flightgoggles/ned"/>
     <arg name="body_frame" value="body_frame"/>
     <arg name="sensor_package" value="blackbirdDatasetSensors"/>
+    <arg name="exit_after_rendering" value="true" />
   </include>
   
   <!-- Bag playback -->
-  <node name="trajectory_playback" pkg="rosbag" required="true" type="play" args=" --clock --hz=1000  -r $(arg playback_rate)  $(arg bagfile_path)" launch-prefix="bash -c 'sleep 2; $0 $@; sleep 10'" />
+  <node name="trajectory_playback" pkg="rosbag" type="play" args=" --clock --hz=1000  -r $(arg playback_rate)  $(arg bagfile_path)" launch-prefix="bash -c 'sleep 2; $0 $@; sleep 10'" />
  
  
   <!-- MIT Blackbird dataset render transform. Transforms mocap_NED to NED Unity world.
        This transform changes depending on which environment is being renderered from the dataset and
        can be found in BlackbirdDataset/trajectoryOffsets.yaml -->
   <node pkg="tf2_ros" type="static_transform_publisher"
-      name="world_ned_link" args="$(arg offset_transform) 'mocap_NED' 'flightgoggles/ned'"/>
+      name="render_ned_link_2" args="$(arg render_offset_rotation) 'trajectory_NED' 'trajectory_NED_translation'"/>
   
+  <node pkg="tf2_ros" type="static_transform_publisher"
+      name="render_ned_link" args="$(arg render_offset_translation) 'trajectory_NED_translation' 'flightgoggles/ned'"/>
+
+  <!-- MIT Blackbird dataset per-trajectory centering transform. -->
+  <node pkg="tf2_ros" type="static_transform_publisher"
+      name="world_ned_link" args="$(arg trajectory_offset_transform) 'mocap_NED' 'trajectory_NED'"/>
+   
   <!-- Image savers for RGBD -->
   <!-- Uses image_saver fork from git@github.com:21Ansh/image_pipeline.git -->
   <node name="image_saver_rgb" pkg="image_view" type="image_saver">
