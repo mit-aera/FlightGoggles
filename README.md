@@ -3,6 +3,10 @@
 ## Documentation, Installation, & Usage Instructions
 Please refer to the [wiki-page](https://github.com/mit-fast/FlightGoggles/wiki) for code documentation, installation, usage instructions. An [FAQ](https://github.com/mit-fast/FlightGoggles/wiki/FAQ) is also available there.
 
+## Downloading Environment Assets / Using FlightGoggles with Unity3D
+
+Please refer to the [Unity3D Usage Guide](https://github.com/mit-fast/FlightGoggles/wiki/Unity3D-Usage_Guide)
+
 ## Description
 
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
