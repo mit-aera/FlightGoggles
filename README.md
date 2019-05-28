@@ -11,7 +11,7 @@ Please refer to the [Unity3D Usage Guide](https://github.com/mit-fast/FlightGogg
 
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
-[![Video Link](Images/Abandoned_Factory_2.jpg)](https://youtu.be/e_3Yw0uPRKE)
+[![Video Link](Images/Abandoned_Factory_2.jpg)](https://www.youtube.com/watch?v=QCnU_M6DhYU)
 
 ![](Images/Abandoned_Factory25.jpg)
 
