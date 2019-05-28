@@ -5,7 +5,7 @@ Please refer to the [wiki-page](https://github.com/mit-fast/FlightGoggles/wiki) 
 
 ## Downloading Environment Assets / Using FlightGoggles with Unity3D
 
-Please refer to the [Unity3D Usage Guide](https://github.com/mit-fast/FlightGoggles/wiki/Unity3D-Usage_Guide)
+Please refer to the [Unity3D Usage Guide](https://github.com/mit-fast/FlightGoggles/wiki/Unity3D-Usage_Guide).
 
 ## Description
 
@@ -20,6 +20,26 @@ A framework for photorealistic hardware-in-the-loop agile flight simulation usin
 ## Citation
 If you find this work useful for your research, please cite:
 ```bibtex
+@misc{1905.11377,
+  Title = {FlightGoggles: Photorealistic Sensor Simulation for Perception-driven Robotics using Photogrammetry and Virtual Reality},
+  Author = {Winter Guerra and Ezra Tal and Varun Murali and Gilhyun Ryou and Sertac Karaman},
+  Year = {2019},
+  Eprint = {arXiv:1905.11377},
+}
+```
+FlightGoggles: [Paper](https://arxiv.org/abs/1905.11377) [Website](http://flightgoggles.mit.edu)
+
+## Papers using this work
+
+```bibtex
+@inproceedings{antonini2018blackbird,
+  title={The Blackbird Dataset: A large-scale dataset for UAV perception in aggressive flight},
+  author={Antonini, Amado and Guerra, Winter and Murali, Varun and Sayre-McCord, Thomas and Karaman, Sertac},
+  booktitle={International Symposium on Experimental Robotics, {ISER} 2018, Buenos Aires,
+               Argentina, November 5-8, 2018.},
+  year={2018}
+}
+
 @inproceedings{sayremccord2018visual,
   title={Visual-inertial navigation algorithm development using photorealistic camera simulation in the loop},
   author={Sayre-McCord, Thomas and
@@ -41,17 +61,9 @@ If you find this work useful for your research, please cite:
   year={2018}
 }
 ```
-## Papers using this work
-```bibtex
-@inproceedings{antonini2018blackbird,
-  title={The Blackbird Dataset: A large-scale dataset for UAV perception in aggressive flight},
-  author={Antonini, Amado and Guerra, Winter and Murali, Varun and Sayre-McCord, Thomas and Karaman, Sertac},
-  booktitle={International Symposium on Experimental Robotics, {ISER} 2018, Buenos Aires,
-               Argentina, November 5-8, 2018.},
-  year={2018}
-}
-```
 Blackbird Dataset: [Paper](https://arxiv.org/abs/1810.01987) [Website](https://github.com/mit-fast/Blackbird-Dataset)
+
+Visual-inertial navigation algorithm development using photorealistic camera simulation in the loop: [Paper](https://doi.org/10.1109/icra.2018.8460692)
 
 ## Core Contributers
 
@@ -59,7 +71,5 @@ Blackbird Dataset: [Paper](https://arxiv.org/abs/1810.01987) [Website](https://g
 Winter Guerra
 Ezra Tal
 Varun Murali
-Sebastian Quilter
-John Aleman
 Sertac Karaman
 ```
