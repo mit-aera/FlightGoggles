@@ -27,7 +27,7 @@ If you find this work useful for your research, please cite:
   Eprint = {arXiv:1905.11377},
 }
 ```
-FlightGoggles: [Paper](https://arxiv.org/abs/1905.11377) [Website](http://flightgoggles.mit.edu)
+FlightGoggles: [Paper](https://arxiv.org/abs/1905.11377), [Website](http://flightgoggles.mit.edu)
 
 ## Papers using this work
 
@@ -61,7 +61,7 @@ FlightGoggles: [Paper](https://arxiv.org/abs/1905.11377) [Website](http://flight
   year={2018}
 }
 ```
-Blackbird Dataset: [Paper](https://arxiv.org/abs/1810.01987) [Website](https://github.com/mit-fast/Blackbird-Dataset)
+Blackbird Dataset: [Paper](https://arxiv.org/abs/1810.01987), [Website](https://github.com/mit-fast/Blackbird-Dataset)
 
 Visual-inertial navigation algorithm development using photorealistic camera simulation in the loop: [Paper](https://doi.org/10.1109/icra.2018.8460692)
 
