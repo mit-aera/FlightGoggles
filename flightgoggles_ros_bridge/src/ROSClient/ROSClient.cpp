@@ -21,66 +21,59 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
 {
 
     
-    if (!ros::param::get("/uav/flightgoggles_ros_bridge/render_stereo", render_stereo)) {
-        std::cout << "Did not get argument for render_stereo. Defaulting to false" << std::endl;
-    }
+    // if (!ros::param::get("/uav/flightgoggles_ros_bridge/render_stereo", render_stereo)) {
+    //     ROS_INFO( "Did not get argument for render_stereo. Defaulting to false" );
+    // }
 
+    // Get Global render/scene configs
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/scene_filename", sceneFilename_)) {
-        std::cout << "Did not get argument for scene_filename. Defaulting to Abandoned_Factory_Morning" << std::endl;
+        ROS_INFO("Did not get argument for scene_filename. Defaulting to Abandoned_Factory_Morning");
     }
 
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/body_frame", bodyFrame_)) {
-        std::cout << "Did not get argument for body_frame. Defaulting to uav/imu" << std::endl;
+        ROS_INFO( "Did not get argument for body_frame. Defaulting to uav/imu" );
     }
-
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/world_frame", worldFrame_)) {
-        std::cout << "Did not get argument for world_frame. Defaulting to world/ned" << std::endl;
+        ROS_INFO( "Did not get argument for world_frame. Defaulting to world/ned" );
     }
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
-        std::cout << "Did not get argument for image width. Defaulting to 1024 px" << std::endl;
+        ROS_INFO( "Did not get argument for image width. Defaulting to 1024 px" );
     }
     //if(imageWidth_ > 1024){
     //    imageWidth_ = 1024;
-    //    std::cout << "Image width set to maximum value (1024 px)" << std::endl;
+    //    ROS_INFO( "Image width set to maximum value (1024 px)" );
     //}
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_height", imageHeight_)) {
-        std::cout << "Did not get argument for image height. Defaulting to 768 px" << std::endl;
+        ROS_INFO( "Did not get argument for image height. Defaulting to 768 px" );
     }
 
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/framerate", framerate_)) {
-        std::cout << "Did not get argument for framerate. Defaulting to 60Hz" << std::endl;
+        ROS_INFO( "Did not get argument for framerate. Defaulting to 60Hz" );
     }
-    //if(imageHeight_ > 768){
-    //    imageHeight_ = 768;
-    //    std::cout << "Image height set to maximum value (768 px)" << std::endl;
-    //}
     
-    if (!ros::param::get("/uav/flightgoggles_ros_bridge/baseline", baseline_)) {
-        std::cout << "Did not get argument for baseline. Defaulting to 0.32 m" << std::endl;
-    }
-
     if (!ros::param::get("/uav/flightgoggles_laser/rangefinder_max_range", lidarMaxRange_)) {
-        std::cout << "Did not get argument for rangefinder max range. Defaulting to 20 m" << std::endl;
+        ROS_INFO( "Did not get argument for rangefinder max range. Defaulting to 20 m" );
     }
 
     if (!ros::param::get("/uav/flightgoggles_laser/rangefinder_variance", lidarVariance_)) {
-        std::cout << "Did not get argument for rangefinder variance. Defaulting to 0.009 m^2" << std::endl;
+        ROS_INFO( "Did not get argument for rangefinder variance. Defaulting to 0.009 m^2" );
     }
 
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/obstacle_perturbation_file", obstaclePerturbationFile_)) {
-        std::cout << "Did not get argument for obstacle_perturnation_file. Defaulting to no offsets." << std::endl;
+        ROS_INFO( "Did not get argument for obstacle_perturbation_file. Defaulting to no offsets." );
     }
 
+    
     // Load list of obstacles to spawn.
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/obstacle_frames", obstacleTFList_)) {
-        std::cout << "Did not get argument for obstacle_frames. Defaulting to using no dynamic obstacles." << std::endl;
+        ROS_INFO( "Did not get argument for obstacle_frames. Defaulting to using no dynamic obstacles." );
     }
     // Load list of obstacles to ignore
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/ignored_obstacle_frames", obstacleIgnoreList_)) {
-        std::cout << "Did not get argument for ignored_obstacle_frames. Defaulting to ignoring body_frame object" << std::endl;
+        ROS_INFO( "Did not get argument for ignored_obstacle_frames. Defaulting to ignoring body_frame object" );
         obstacleIgnoreList_.push_back(bodyFrame_);
     }
 
@@ -90,14 +83,20 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
       if (itr != obstacleTFList_.end()) obstacleTFList_.erase(itr);
     }
 
+    // Get list of cameras
+    if (!ros::param::get("/sensors/camera/camera_list", cameraNameList_)) {
+        ROS_ERROR( "Did not get list of cameras! This must be defined in /sensors/camera/camera_list." );
+        
+    }
+
+
     // Load params
     populateRenderSettings();
 
-    // init image publisher
-    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 60);
-    if(render_stereo) {
-        imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 60);
-    }
+    // imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 60);
+    // if(render_stereo) {
+    //     imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 60);
+    // }
     imageTriggerDebugPublisher_ = ns_.advertise<std_msgs::Empty>("/uav/camera/debug/render_trigger", 60);
 
     // Collision publisher
@@ -119,6 +118,38 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
 
     }
 
+sensor_msgs::CameraInfo ROSClient::GetCameraInfo(std::string &camera_name) {
+    
+    sensor_msgs::CameraInfo cameraInfo; 
+    cameraInfo.width = flightGoggles.state.camWidth;
+    cameraInfo.height = flightGoggles.state.camHeight;
+    cameraInfo.distortion_model = "plumb_bob";
+    float f = (cameraInfo.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
+    float cx = cameraInfo.width / 2.0;
+    float cy = cameraInfo.height / 2.0;
+    // Check if camera is the right camera in a stereo pair. Use 0 by default.
+    double baseline_translation = 0;
+    ros::param::param<double>("/sensors/camera/"+camera_name+"/baseline_translation", baseline_translation,0); 
+    float tx = -f * baseline_translation ; // -fx' * B
+    float ty = 0.0;
+    cameraInfo.D = {0.0, 0.0, 0.0, 0.0, 0.0};
+    cameraInfo.K = {f, 0.0, cx, 0.0, f, cy, 0.0, 0.0, 1.0};
+    cameraInfo.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    cameraInfo.P = {f, 0.0, cx, tx, 0.0, f, cy, ty, 0.0, 0.0, 1.0,
+                            0.0};
+    return cameraInfo;
+}
+
+unity_outgoing::Camera_t ROSClient::GetCameraRenderInfo(std::string &camera_name) {
+  unity_outgoing::Camera_t camera;
+  camera.ID = camera_name;
+  ros::param::param<int>("/sensors/camera/"+camera_name+"/outputShaderType", camera.outputShaderType, -1);
+  ros::param::param<bool>("/sensors/camera/"+camera_name+"/hasCollisionCheck", camera.hasCollisionCheck, false);
+  ros::param::param<bool>("/sensors/camera/"+camera_name+"/doesLandmarkVisCheck", camera.doesLandmarkVisCheck, false);
+  return camera;
+}
+
+
 void ROSClient::populateRenderSettings() {
     // Scene/Render settings
     flightGoggles.state.sceneFilename = sceneFilename_;
@@ -126,58 +157,16 @@ void ROSClient::populateRenderSettings() {
     flightGoggles.state.camHeight = imageHeight_;
     flightGoggles.state.obstaclePerturbationFile = obstaclePerturbationFile_;
 
-    // Prepopulate metadata of cameras
-    unity_outgoing::Camera_t cam_RGB_left;
-    cam_RGB_left.ID = "Camera_RGB_left";
-    cam_RGB_left.channels = 3;
-    cam_RGB_left.isDepth = false;
-    cam_RGB_left.outputIndex = 0;
-    cam_RGB_left.hasCollisionCheck = true;
-    cam_RGB_left.doesLandmarkVisCheck = true;
-    // Add cameras to persistent state
-    flightGoggles.state.cameras.push_back(cam_RGB_left);
-    // set up the CameraInfo struct
-    cameraInfoLeft = {};
-    cameraInfoLeft.width = flightGoggles.state.camWidth;
-    cameraInfoLeft.height = flightGoggles.state.camHeight;
-    cameraInfoLeft.distortion_model = "plumb_bob";
-    float f = (cameraInfoLeft.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
-    float cx = cameraInfoLeft.width / 2.0;
-    float cy = cameraInfoLeft.height / 2.0;
-    float tx = 0.0;
-    float ty = 0.0;
-    cameraInfoLeft.D = {0.0, 0.0, 0.0, 0.0, 0.0};
-    cameraInfoLeft.K = {f, 0.0, cx, 0.0, f, cy, 0.0, 0.0, 1.0};
-    cameraInfoLeft.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-    cameraInfoLeft.P = {f, 0.0, cx, tx, 0.0, f, cy, ty, 0.0, 0.0, 1.0, 0.0};
-
-    if (render_stereo) {
-        unity_outgoing::Camera_t cam_RGB_right;
-        cam_RGB_right.ID = "Camera_D";
-        cam_RGB_right.channels = 1;
-        cam_RGB_right.isDepth = true;
-        cam_RGB_right.outputIndex = 1;
-        cam_RGB_right.hasCollisionCheck = false;
-        cam_RGB_right.doesLandmarkVisCheck = false;
-
-        flightGoggles.state.cameras.push_back(cam_RGB_right);
-
-        cameraInfoRight = {};
-        cameraInfoRight.width = flightGoggles.state.camWidth;
-        cameraInfoRight.height = flightGoggles.state.camHeight;
-        cameraInfoRight.distortion_model = "plumb_bob";
-        float f = (cameraInfoRight.height / 2.0) / tan((M_PI * (flightGoggles.state.camFOV / 180.0)) / 2.0);
-        float cx = cameraInfoRight.width / 2.0;
-        float cy = cameraInfoRight.height / 2.0;
-        float tx = -f * baseline_ ; // -fx' * B
-        float ty = 0.0;
-        cameraInfoRight.D = {0.0, 0.0, 0.0, 0.0, 0.0};
-        cameraInfoRight.K = {f, 0.0, cx, 0.0, f, cy, 0.0, 0.0, 1.0};
-        cameraInfoRight.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-        cameraInfoRight.P = {f, 0.0, cx, tx, 0.0, f, cy, ty, 0.0, 0.0, 1.0,
-                            0.0};
+    for (auto camera_name : cameraNameList_){
+        // Add camera settings to list.
+        cameraInfoList_.push_back(GetCameraInfo(camera_name));
+        cameraMetadataList_.push_back(GetCameraRenderInfo(camera_name));
+        imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+"/image_rect_color", 60));
     }
+
 }
+
+
 // Subscribe to all TF messages to avoid lag.
 void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     //geometry_msgs::TransformStamped world_to_uav;
@@ -201,36 +190,29 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     if ( tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)) ){
         timeOfLastRender_ = tfTimestamp;
 
-        // Get transform for left camera
-        geometry_msgs::TransformStamped camLeftTransform;
-
-        try{
-            camLeftTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/left/ned", ros::Time(0));
-        } catch (tf2::TransformException &ex) {
-            ROS_WARN("Could NOT find transform for /uav/camera/left/ned: %s", ex.what());
-        }
-
-        Transform3 camLeftPose = tf2::transformToEigen(camLeftTransform);
-        flightGoggles.setCameraPoseUsingROSCoordinates(camLeftPose, 0);
-
-        // Get transform for second camera (right)
-        if (render_stereo) {
-
-            geometry_msgs::TransformStamped camRightTransform;
-
+        // Send request for all cameras.
+        for (int i =0; i < cameraNameList_.size(); i++) {
+            std::string camera_name = cameraNameList_[i];
+            // Get transform.
+            geometry_msgs::TransformStamped camTransform;
             try{
-                camRightTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/left/ned", camLeftTransform.header.stamp);
+                camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", ros::Time(0));
             } catch (tf2::TransformException &ex) {
-                ROS_WARN("Could NOT find transform for /uav/camera/right/ned: %s", ex.what());
+                ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
             }
 
-            Transform3 camRightPose = tf2::transformToEigen(camRightTransform);
+            Transform3 camPose = tf2::transformToEigen(camTransform);
+            flightGoggles.setCameraPoseUsingROSCoordinates(camPose, i);
+            
+            // Check that render timestamps are sync'd
+            if (i>0 && flightGoggles.state.ntime != camTransform.header.stamp.toNSec()){
+                ROS_ERROR("Warning: Camera TF timestamps do not match!");                
+            }
 
-            flightGoggles.setCameraPoseUsingROSCoordinates(camRightPose, 1);
+            // Update timestamp of state message (needed to force FlightGoggles to rerender scene)
+            flightGoggles.state.ntime = camTransform.header.stamp.toNSec();
+
         }
-
-        // Update timestamp of state message (needed to force FlightGoggles to rerender scene)
-        flightGoggles.state.ntime = camLeftTransform.header.stamp.toNSec();
        
         // Find list of all obstacles in environment ("flightgoggles_obstacle/*")
         for (auto obstacleTFName : obstacleTFList_){
@@ -248,22 +230,19 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             // @TODO: Populate obstacle structure w/ transform. Setter function should check that prefab name has already been populated.  
             if (foundTransform) {
                 Transform3 objectPose = tf2::transformToEigen(obstacleTF);
-		flightGoggles.setObjectPoseUsingROSCoordinates(objectPose, obstacleTFName);
+                flightGoggles.setObjectPoseUsingROSCoordinates(objectPose, obstacleTFName);
             }
         }
-
-         
-
         // request render
         flightGoggles.requestRender();
         // Send shutter trigger
         std_msgs::Empty msg;
     	imageTriggerDebugPublisher_.publish(msg);
-        
 
-    } 
+    }
+} 
 
-}
+
 
 //void ROSClient::irBeaconPointcloudCallback(sensor_msgs::PointCloud2::Ptr msg) {
 //    irBeaconGroundTruth_ = msg;
@@ -293,26 +272,17 @@ void imageConsumer(ROSClient *self){
             self->timeSinceLastMeasure_ = ros::WallTime::now();
         }
 
-        // Convert OpenCV image to image message
-        sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[0] == 3) ? "bgr8" : "8UC1", renderOutput.images[0]).toImageMsg();
-        msg->header.stamp = imageTimestamp;
-        msg->header.frame_id = "/uav/camera/left";
-        // Add Camera info message for camera
-        sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoLeft));
-        cameraInfoMsgCopy->header.frame_id = "/uav/camera/left";
-	cameraInfoMsgCopy->header.stamp = imageTimestamp;
-	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
-
-	    if (self->render_stereo) {
-            sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[1] == 3) ? "bgr8" : "8UC1",
-                                                                 renderOutput.images[1]).toImageMsg();
-            msg_right->header.stamp = imageTimestamp;
-            msg_right->header.frame_id = "/uav/camera/right";
+        // Loop through and republish all images
+        for (int i = 0; i < renderOutput.images.size(); i ++){
+            // Convert OpenCV image to image message
+            sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[i] == 3) ? "bgr8" : "8UC1", renderOutput.images[0]).toImageMsg();
+            msg->header.stamp = imageTimestamp;
+            msg->header.frame_id = "/uav/camera/"+self->cameraNameList_[i];
             // Add Camera info message for camera
-            sensor_msgs::CameraInfoPtr cameraInfoMsgCopy_Right(new sensor_msgs::CameraInfo(self->cameraInfoRight));
-            cameraInfoMsgCopy_Right->header.frame_id = "/uav/camera/right";
-            cameraInfoMsgCopy_Right->header.stamp = imageTimestamp;
-            self->imagePubRight_.publish(msg_right, cameraInfoMsgCopy_Right);
+            sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoList_[i]));
+            cameraInfoMsgCopy->header.frame_id = "/uav/camera/"+self->cameraNameList_[i];
+        cameraInfoMsgCopy->header.stamp = imageTimestamp;
+            self->imagePubList_[i].publish(msg, cameraInfoMsgCopy);
         }
 
         // Check for camera collision

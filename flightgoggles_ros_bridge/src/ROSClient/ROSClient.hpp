@@ -75,18 +75,24 @@ public:
 
     //// @name State variables
     //@{
-    bool render_stereo = false;
     ros::Time timeOfLastRender_;
-    sensor_msgs::CameraInfo cameraInfoLeft;
-	sensor_msgs::CameraInfo cameraInfoRight;
-	float baseline_ = 0.32;
-	int imageWidth_ = 1024;
+    
+    // Camera configs
+    std::vector<std::string> cameraNameList_;
+    std::vector<sensor_msgs::CameraInfo> cameraInfoList_;
+    std::vector<unity_outgoing::Camera_t> cameraMetadataList_;
+    std::vector<image_transport::CameraPublisher> imagePubList_;
+
+    // Global camera configs
+    int imageWidth_ = 1024;
 	int imageHeight_ = 768;
     int framerate_ = 60;
+    // Global render/scene configs
     std::string sceneFilename_ = "Abandoned_Factory_Morning";
     std::string worldFrame_ = "world/ned";
     std::string bodyFrame_ = "uav/imu";
     std::string obstaclePerturbationFile_ = "";
+    // List of dynamic objects to render and ignore
     std::vector<std::string> obstacleTFList_;
     std::vector<std::string> obstacleIgnoreList_;
 
@@ -113,7 +119,8 @@ public:
 
 	// Populate starting settings into state
 	void populateRenderSettings();
-
+    sensor_msgs::CameraInfo GetCameraInfo(std::string &camera_name);
+    unity_outgoing::Camera_t GetCameraRenderInfo(std::string &camera_name);
 
 	/// @name Callbacks
 	void tfCallback(tf2_msgs::TFMessage::Ptr msg);

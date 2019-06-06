@@ -1,6 +1,6 @@
 # Always compile these dirs
 add_subdirectory(Common)
-add_subdirectory(GeneralClient)
+#add_subdirectory(GeneralClient) # deprecated
 
 # Only compile ROS client if ROS is installed.
 if(COMPILE_ROSCLIENT)

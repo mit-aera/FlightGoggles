@@ -12,7 +12,7 @@
   
   <arg name="use_external_renderer" default="true" />
   <arg name="ignore_collisions" default="true" />
-  <arg name="render_stereo" default="true" />
+  <arg name="render_stereo" default="false" />
   
   <!--include core flightgoggles launch file-->
   <include file="$(find flightgoggles)/launch/core.launch">
@@ -22,7 +22,7 @@
     <arg name="use_dynamics" value="false"/>
     <arg name="world_frame" value="flightgoggles/ned"/>
     <arg name="body_frame" value="body_frame"/>
-    <arg name="sensor_package" value="blackbirdDatasetSensors"/>
+    <arg name="sensor_package" value="blackbirdDatasetSensorTransforms"/>
     <arg name="exit_after_rendering" value="true" />
   </include>
   

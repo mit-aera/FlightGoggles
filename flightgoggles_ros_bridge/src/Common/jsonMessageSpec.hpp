@@ -27,9 +27,17 @@ struct Camera_t
   std::vector<double> position;
   std::vector<double> rotation;
   // Metadata
-  int channels;
-  bool isDepth;
-  int outputIndex;
+  // enum CameraShader {
+  //   RGB = -1,
+  //   InstanceID = 0,
+  //   SemanticID = 1,
+  //   DepthCompressed = 2,
+  //   DepthMultiChannel = 3,
+  //   SurfaceNormals =4
+  //   grayscale=5
+  //   }
+  int outputShaderType = -1;
+  
   // Should this camera collision check or check for visibility?
   bool hasCollisionCheck = true;
   bool doesLandmarkVisCheck = false;
@@ -104,9 +112,7 @@ inline void to_json(json &j, const Camera_t &o)
   j = json{{"ID", o.ID},
            {"position", o.position},
            {"rotation", o.rotation},
-           {"channels", o.channels},
-           {"isDepth", o.isDepth},
-           {"outputIndex", o.outputIndex},
+           {"outputShaderType", o.outputShaderType},
            {"hasCollisionCheck", o.hasCollisionCheck},
            {"doesLandmarkVisCheck", o.doesLandmarkVisCheck}
   };

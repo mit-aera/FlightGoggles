@@ -1,0 +1,19 @@
+
+left:
+    ID: "Camera_RGB_left"
+    outputShaderType: -1 #rgb
+    hasCollisionCheck: true
+    doesLandMarkVisCheck: false
+
+right:
+    ID: "Camera_RGB_right"
+    outputShaderType: -1 #rgb
+    hasCollisionCheck: true
+    doesLandMarkVisCheck: false
+    baseline_translation: 0.10
+
+# down:
+#     ID: "Camera_RGB_down"
+#     outputShaderType: -1 #rgb
+#     hasCollisionCheck: false
+#     doesLandMarkVisCheck: false
