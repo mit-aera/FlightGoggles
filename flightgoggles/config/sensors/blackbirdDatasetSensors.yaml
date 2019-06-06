@@ -1,8 +1,8 @@
-camera_list: [left, right]
+camera_list: [left, down]
 
 left:
-    ID: "Camera_RGB_left"
-    outputShaderType: -1 #rgb
+    ID: "Camera_Depth_left"
+    outputShaderType: 2 #Depth
     hasCollisionCheck: true
     doesLandMarkVisCheck: false
 
@@ -13,8 +13,8 @@ right:
     doesLandMarkVisCheck: false
     baseline_translation: 0.10
 
-# down:
-#     ID: "Camera_RGB_down"
-#     outputShaderType: -1 #rgb
-#     hasCollisionCheck: false
-#     doesLandMarkVisCheck: false
+down:
+    ID: "Camera_Depth_down"
+    outputShaderType: 2 #rgb
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
