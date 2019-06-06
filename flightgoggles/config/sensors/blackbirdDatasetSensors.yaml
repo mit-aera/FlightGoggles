@@ -1,3 +1,4 @@
+camera_list: [left, right]
 
 left:
     ID: "Camera_RGB_left"

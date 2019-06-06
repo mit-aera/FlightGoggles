@@ -22,7 +22,7 @@
     <arg name="use_dynamics" value="false"/>
     <arg name="world_frame" value="flightgoggles/ned"/>
     <arg name="body_frame" value="body_frame"/>
-    <arg name="sensor_package" value="blackbirdDatasetSensorTransforms"/>
+    <arg name="sensor_package" value="blackbirdDatasetSensors"/>
     <arg name="exit_after_rendering" value="true" />
   </include>
   

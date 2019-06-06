@@ -160,8 +160,9 @@ void ROSClient::populateRenderSettings() {
     for (auto camera_name : cameraNameList_){
         // Add camera settings to list.
         cameraInfoList_.push_back(GetCameraInfo(camera_name));
-        cameraMetadataList_.push_back(GetCameraRenderInfo(camera_name));
+        // cameraMetadataList_.push_back(GetCameraRenderInfo(camera_name));
         imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+"/image_rect_color", 60));
+        flightGoggles.state.cameras.push_back(GetCameraRenderInfo(camera_name));
     }
 
 }

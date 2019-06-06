@@ -26,7 +26,7 @@
     </group>
 
     
-    
-    <rosparam ns="/sensors/camera/" command="load" file="$(find flightgoggles)/config/sensors/blackbirdDatasetSensors.yaml"/>
-
+    <group ns="/sensors/camera/">
+        <rosparam command="load" file="$(find flightgoggles)/config/sensors/blackbirdDatasetSensors.yaml"/>
+    </group>
 </launch>
