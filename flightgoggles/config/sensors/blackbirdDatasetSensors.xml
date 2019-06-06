@@ -9,7 +9,7 @@
         <node pkg="tf2_ros" type="static_transform_publisher"
             name="camera_left_link"     args="0 -0.05 0 1.57079632679 0 1.57079632679 $(arg body_frame) uav/camera/left" />
         <node pkg="tf2_ros" type="static_transform_publisher" 
-            name="camera_right_link"    args=" 0 0.05 0 -1.57079632679 0 1.57079632679 $(arg body_frame) uav/camera/right" />
+            name="camera_right_link"    args=" 0 0.05 0 1.57079632679 0 1.57079632679 $(arg body_frame) uav/camera/right" />
 
         <!-- Add static transforms for each camera that translate camera into NWU (legacy internal FlightGoggles code). -->
         <node pkg="tf2_ros" type="static_transform_publisher"

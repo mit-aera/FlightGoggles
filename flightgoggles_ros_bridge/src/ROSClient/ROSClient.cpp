@@ -191,13 +191,34 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     if ( tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)) ){
         timeOfLastRender_ = tfTimestamp;
 
+        
+
         // Send request for all cameras.
         for (int i =0; i < cameraNameList_.size(); i++) {
             std::string camera_name = cameraNameList_[i];
-            // Get transform.
             geometry_msgs::TransformStamped camTransform;
+
+            // Get time of transform
+            if (i ==0){
+                try{
+                    camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", ros::Time(0));
+                } catch (tf2::TransformException &ex) {
+                    ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
+                }
+                long mostRecentCaptureTime = camTransform.header.stamp.toNSec();
+                // Check that capture time is progressing forwards.
+                if (mostRecentCaptureTime < flightGoggles.state.ntime + 1.0f/(framerate_ + 1e-9)){
+                    ROS_WARN("New render request is happening before it should based on the intended framerate.");
+                }
+
+                flightGoggles.state.ntime = camTransform.header.stamp.toNSec();
+            }
+            
+            // Get transform (synced).
+            ros::Time captureTime;
+            captureTime.fromNSec(flightGoggles.state.ntime);
             try{
-                camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", ros::Time(0));
+                camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", captureTime);
             } catch (tf2::TransformException &ex) {
                 ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
             }
@@ -207,7 +228,9 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             
             // Check that render timestamps are sync'd
             if (i>0 && flightGoggles.state.ntime != camTransform.header.stamp.toNSec()){
-                ROS_ERROR("Warning: Camera TF timestamps do not match!");                
+                ROS_ERROR("Warning: Camera TF timestamps do not match!"); 
+                std::cout << flightGoggles.state.ntime << " " << camTransform.header.stamp.toNSec() << std::endl;
+                // ROS_ERROR(camTransform.header.stamp.toNSec());               
             }
 
             // Update timestamp of state message (needed to force FlightGoggles to rerender scene)
