@@ -60,8 +60,6 @@ public:
     /// @name Image publishers
     //@{
 	image_transport::ImageTransport it_;
-	image_transport::CameraPublisher imagePubLeft_;
-	image_transport::CameraPublisher imagePubRight_;
 	//@}
 
 	/// @name Topic publishers
@@ -79,6 +77,7 @@ public:
     
     // Camera configs
     std::vector<std::string> cameraNameList_;
+    std::vector<std::string> cameraTFList_;
     std::vector<sensor_msgs::CameraInfo> cameraInfoList_;
     std::vector<unity_outgoing::Camera_t> cameraMetadataList_;
     std::vector<image_transport::CameraPublisher> imagePubList_;
@@ -95,6 +94,10 @@ public:
     // List of dynamic objects to render and ignore
     std::vector<std::string> obstacleTFList_;
     std::vector<std::string> obstacleIgnoreList_;
+
+    // List of timestamps to render (if running from rosbag)
+    std::string timestampFilePath_;
+    std::vector<long> timestampsToRender_;
 
     // Lidar params
     float lidarMaxRange_ = 20; // Meters

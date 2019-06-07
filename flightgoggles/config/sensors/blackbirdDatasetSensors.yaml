@@ -1,20 +1,41 @@
-camera_list: [left, down]
+camera_list: [left_depth, down_depth]
 
-left:
-    ID: "Camera_Depth_left"
-    outputShaderType: 2 #Depth
+# enum outputShaderType {
+#   RGB = -1,
+#   InstanceID = 0,
+#   SemanticID = 1,
+#   DepthCompressed = 2,
+#   DepthMultiChannel = 3,
+#   SurfaceNormals =4
+#   grayscale=5
+# }
+
+# exampleCam:
+#     tf: left                    # What TF to use 
+#     ID: "exampleCam_Depth"      # unique internal camera name @TODO remove this requirement.
+#     outputShaderType: 2         # Camera type
+#     hasCollisionCheck: true     # report collisions for this camera?
+#     doesLandMarkVisCheck: false # Does this camera have an IR beacon sensor?
+
+
+# right_stereo:
+#     tf: right
+#     outputShaderType: -1 
+#     hasCollisionCheck: true
+#     doesLandMarkVisCheck: false
+#     baseline_translation: 0.10
+
+left_depth:
+    tf: left
+    ID: "Camera_Left_Depth"                     
+    outputShaderType: 2         
     hasCollisionCheck: true
     doesLandMarkVisCheck: false
 
-right:
-    ID: "Camera_RGB_right"
-    outputShaderType: -1 #rgb
-    hasCollisionCheck: true
-    doesLandMarkVisCheck: false
-    baseline_translation: 0.10
 
-down:
-    ID: "Camera_Depth_down"
-    outputShaderType: 2 #rgb
+down_depth:
+    tf: down
+    ID: "Camera_Down_Depth"
+    outputShaderType: 2 
     hasCollisionCheck: false
     doesLandMarkVisCheck: false

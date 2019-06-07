@@ -10,6 +10,7 @@
   <arg name="body_frame" default="uav/imu"/>
   <arg name="sensor_package" default="simulationSensors"/>
   <arg name="exit_after_rendering" default="false"/>
+  <arg name="timestampfile_path" default="" />
 
   <group ns="/uav">
 
@@ -47,7 +48,8 @@
 
     <!-- FlightGoggles ROS Bridge -->
     <node name="flightgoggles_ros_bridge" pkg="flightgoggles_ros_bridge" type="ROSClient" output="screen" >
-    <param name="render_stereo" type="bool" value="$(arg render_stereo)" />
+      <param name="render_stereo" type="bool" value="$(arg render_stereo)" />
+      <param name="timestampfile_path" value="$(arg timestampfile_path)" />
     </node>
 
     <!-- FlightGoggles IR Marker visualizer -->
@@ -55,14 +57,6 @@
 
     <!-- Run node that will die after rendering is finished. Useful for rendering datasets. -->
     <node name="flightgoggles_render_monitor" pkg="flightgoggles_render_monitor" type="flightgoggles_render_monitor.py" if="$(arg exit_after_rendering)" required="true" />
-
-    <!--Run RVIZ for visualization-->
-    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" unless="$(arg render_stereo)"/> -->
-    <!-- <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower_stereo.rviz" if="$(arg render_stereo)"/> -->
-
-    <!--Run rqt_plot for plotting readings from the laser range finder-->
-    <!-- <node type="rqt_plot" name="laser_rangefinder_plotter" pkg="rqt_plot" args="topics /uav/sensors/downward_laser_rangefinder/range"/> -->
-
 
     <param name="/uav/flightgoggles_ros_bridge/world_frame" value="$(arg world_frame)"/> 
     <param name="/uav/flightgoggles_ros_bridge/body_frame" value="$(arg body_frame)"/> 

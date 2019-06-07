@@ -1,5 +1,6 @@
 <launch>
-  <arg name="bagfile_path" default="" />
+  <arg name="bagfile_path" default="/media/medusa/RAID/BlackbirdDataset/BlackbirdDatasetData/sphinx/yawForward/maxSpeed2p0/sphinx_maxSpeed2p0.bag" />
+  <arg name="timestampfile_path" default="" />
   <arg name="output_folder" default="$(arg bagfile_path)_images" />
 
   <arg name="render_offset_rotation" default="0 0 0 1" />
@@ -24,6 +25,7 @@
     <arg name="body_frame" value="body_frame"/>
     <arg name="sensor_package" value="blackbirdDatasetSensors"/>
     <arg name="exit_after_rendering" value="true" />
+    <arg name="timestampfile_path" value="$(arg timestampfile_path)" />
   </include>
   
   <!-- Bag playback -->

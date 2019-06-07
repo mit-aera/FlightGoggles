@@ -89,14 +89,22 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
         
     }
 
+    // Load list of timestamps to render (if running from rosbag)
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/timestampfile_path", timestampFilePath_)) {
+        ROS_INFO( "Did not get argument for timestampfile_path. Will render all frames" );
+    } else {
+        // Load the timestamps
+        std::ifstream fStream(timestampFilePath_);
+        std::istream_iterator<double> start(fStream), end;
+        timestampsToRender_.assign(start, end);
+    }
+
+    
+
 
     // Load params
     populateRenderSettings();
 
-    // imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 60);
-    // if(render_stereo) {
-    //     imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 60);
-    // }
     imageTriggerDebugPublisher_ = ns_.advertise<std_msgs::Empty>("/uav/camera/debug/render_trigger", 60);
 
     // Collision publisher
@@ -142,7 +150,7 @@ sensor_msgs::CameraInfo ROSClient::GetCameraInfo(std::string &camera_name) {
 
 unity_outgoing::Camera_t ROSClient::GetCameraRenderInfo(std::string &camera_name) {
   unity_outgoing::Camera_t camera;
-  camera.ID = camera_name;
+  ros::param::param<std::string>("/sensors/camera/"+camera_name+"/tf", camera.ID, camera_name);
   ros::param::param<int>("/sensors/camera/"+camera_name+"/outputShaderType", camera.outputShaderType, -1);
   ros::param::param<bool>("/sensors/camera/"+camera_name+"/hasCollisionCheck", camera.hasCollisionCheck, false);
   ros::param::param<bool>("/sensors/camera/"+camera_name+"/doesLandmarkVisCheck", camera.doesLandmarkVisCheck, false);
@@ -162,16 +170,21 @@ void ROSClient::populateRenderSettings() {
         cameraInfoList_.push_back(GetCameraInfo(camera_name));
         // cameraMetadataList_.push_back(GetCameraRenderInfo(camera_name));
         imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+"/image_rect_color", 60));
-        flightGoggles.state.cameras.push_back(GetCameraRenderInfo(camera_name));
+        unity_outgoing::Camera_t cam_obj = GetCameraRenderInfo(camera_name);
+        flightGoggles.state.cameras.push_back(cam_obj);
+        cameraTFList_.push_back(cam_obj.ID);
     }
 
 }
 
 
-// Subscribe to all TF messages to avoid lag.
+// Subscribe to all TF messages.
+// To make sure that all all TFs are populated in the tree,
+// this callback buffers requests by 1 frame.
 void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     //geometry_msgs::TransformStamped world_to_uav;
     bool found_transform = false;
+    usleep(1000);
 
     // Check if TF message is for world->uav/imu
     // This is output by dynamics node.
@@ -188,39 +201,46 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     if (!found_transform) return;
 
     // Only send a render request if necessary to achieve the required framerate
-    if ( tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)) ){
+    bool renderFrameBasedOnFramerate = (tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)));
+    bool timestampAppearsInFile = std::binary_search(timestampsToRender_.begin(), timestampsToRender_.end(), tfTimestamp.toNSec());
+    bool shouldUseFileTimes = timestampsToRender_.size();
+
+    if ( (shouldUseFileTimes && timestampAppearsInFile) || (!shouldUseFileTimes && renderFrameBasedOnFramerate) ){
+        long renderTimestamp = timeOfLastRender_.toNSec();
         timeOfLastRender_ = tfTimestamp;
 
-        
+        // Try setting the render request timestamp to that of the received timestamp (dangerous)
+        flightGoggles.state.ntime = renderTimestamp;
 
         // Send request for all cameras.
         for (int i =0; i < cameraNameList_.size(); i++) {
             std::string camera_name = cameraNameList_[i];
+            std::string tf_name = cameraTFList_[i];
             geometry_msgs::TransformStamped camTransform;
 
             // Get time of transform
-            if (i ==0){
-                try{
-                    camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", ros::Time(0));
-                } catch (tf2::TransformException &ex) {
-                    ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
-                }
-                long mostRecentCaptureTime = camTransform.header.stamp.toNSec();
-                // Check that capture time is progressing forwards.
-                if (mostRecentCaptureTime < flightGoggles.state.ntime + 1.0f/(framerate_ + 1e-9)){
-                    ROS_WARN("New render request is happening before it should based on the intended framerate.");
-                }
+            // if (i ==0){
+            //     try{
+            //         camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", ros::Time(0));
+            //     } catch (tf2::TransformException &ex) {
+            //         ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
+            //     }
+            //     long mostRecentCaptureTime = camTransform.header.stamp.toNSec();
+            //     // Check that capture time is progressing forwards.
+            //     if (mostRecentCaptureTime < flightGoggles.state.ntime + 1.0f/(framerate_ + 1e-9)){
+            //         ROS_WARN("New render request is happening before it should based on the intended framerate.");
+            //     }
 
-                flightGoggles.state.ntime = camTransform.header.stamp.toNSec();
-            }
+            //     flightGoggles.state.ntime = camTransform.header.stamp.toNSec();
+            // }
             
             // Get transform (synced).
             ros::Time captureTime;
             captureTime.fromNSec(flightGoggles.state.ntime);
             try{
-                camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", captureTime);
+                camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+tf_name+"/ned", captureTime);
             } catch (tf2::TransformException &ex) {
-                ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
+                ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", tf_name.c_str(), ex.what());
             }
 
             Transform3 camPose = tf2::transformToEigen(camTransform);
