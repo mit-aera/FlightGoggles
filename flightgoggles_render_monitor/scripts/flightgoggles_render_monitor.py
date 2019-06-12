@@ -20,7 +20,15 @@ class FlightGogglesRenderMonitor():
         self.num_seconds_without_data = 0
         self.max_num_seconds_without_data = 5
 
-        pub = rospy.Subscriber('/uav/camera/left/camera_info', CameraInfo, self.cameraInfoCallback)
+        # Get list of cameras
+        camera_name_list = rospy.get_param('/sensors/camera/camera_list', default=[])
+        # Pick a main camera to monitor
+        cam_name = camera_name_list[0]
+        cameraID = rospy.get_param('/sensors/camera/{}/ID'.format(cam_name), default="")
+        camera_info_topic_name = "/uav/camera/{}/camera_info".format(cam_name)
+        
+        # Subscribe to camera info
+        pub = rospy.Subscriber(camera_info_topic_name, CameraInfo, self.cameraInfoCallback)
 
 
     def cameraInfoCallback(self, data):
