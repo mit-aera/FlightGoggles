@@ -43,18 +43,12 @@
   <node pkg="tf2_ros" type="static_transform_publisher"
       name="world_ned_link" args="$(arg trajectory_offset_transform) 'mocap_NED' 'trajectory_NED'"/>
    
-  <!-- Image savers for RGBD -->
-  <!-- Uses image_saver fork from git@github.com:21Ansh/image_pipeline.git -->
-  <node name="image_saver_rgb" pkg="image_view" type="image_saver">
-      <remap from="image" to="/uav/camera/left/image_rect_color" />
-      <param name="filename_format" value="$(arg output_folder)/rgb_"/>
+  <!-- Image saver orchestrator. Will save all camera feeds. -->
+  <!-- Uses image_saver fork from git@github.com:21Ansh/image_pipeline.git.-->
+  <node name="flightgoggles_image_saver_orchestrator" pkg="flightgoggles" type="flightgoggles_multicamera_saver.py" output="screen">
+      <param name="output_folder" value="$(arg output_folder)"/>
   </node>
-  <node name="image_saver_depth" pkg="image_view" type="image_saver">
-      <remap from="image" to="/uav/camera/right/image_rect_color" />
-      <param name="filename_format" value="$(arg output_folder)/depth_"/>
-      <param name="encoding" value="8UC1" />
-  </node>
-
+  
   <!-- Parameter overrides -->
   <param name="/use_sim_time" value="true" />
   <param name="/uav/flightgoggles_ros_bridge/scene_filename" value="$(arg scene_filename)" /> 

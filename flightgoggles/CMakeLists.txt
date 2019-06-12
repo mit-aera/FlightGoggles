@@ -109,6 +109,7 @@ install(DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
         ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/FlightGoggles.x86_64
+        scripts/flightgoggles_multicamera_saver.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 

@@ -20,10 +20,6 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     it_(ns_)
 {
 
-    
-    // if (!ros::param::get("/uav/flightgoggles_ros_bridge/render_stereo", render_stereo)) {
-    //     ROS_INFO( "Did not get argument for render_stereo. Defaulting to false" );
-    // }
 
     // Get Global render/scene configs
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/scene_filename", sceneFilename_)) {
@@ -41,10 +37,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
         ROS_INFO( "Did not get argument for image width. Defaulting to 1024 px" );
     }
-    //if(imageWidth_ > 1024){
-    //    imageWidth_ = 1024;
-    //    ROS_INFO( "Image width set to maximum value (1024 px)" );
-    //}
+
     
     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_height", imageHeight_)) {
         ROS_INFO( "Did not get argument for image height. Defaulting to 768 px" );
@@ -169,8 +162,8 @@ void ROSClient::populateRenderSettings() {
         // Add camera settings to list.
         cameraInfoList_.push_back(GetCameraInfo(camera_name));
         // cameraMetadataList_.push_back(GetCameraRenderInfo(camera_name));
-        imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+"/image_rect_color", 60));
         unity_outgoing::Camera_t cam_obj = GetCameraRenderInfo(camera_name);
+        imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+(((cam_obj.outputShaderType != 2) && (cam_obj.outputShaderType != 5))? "/image_rect_color" : "/grayscale"), 60));
         flightGoggles.state.cameras.push_back(cam_obj);
         cameraTFList_.push_back(cam_obj.ID);
     }
@@ -206,10 +199,9 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     bool shouldUseFileTimes = timestampsToRender_.size();
 
     if ( (shouldUseFileTimes && timestampAppearsInFile) || (!shouldUseFileTimes && renderFrameBasedOnFramerate) ){
+        // Buffer render requests by 1 frame to allow for TFs to arrive on time.
         long renderTimestamp = timeOfLastRender_.toNSec();
         timeOfLastRender_ = tfTimestamp;
-
-        // Try setting the render request timestamp to that of the received timestamp (dangerous)
         flightGoggles.state.ntime = renderTimestamp;
 
         // Send request for all cameras.
@@ -218,22 +210,6 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             std::string tf_name = cameraTFList_[i];
             geometry_msgs::TransformStamped camTransform;
 
-            // Get time of transform
-            // if (i ==0){
-            //     try{
-            //         camTransform = tfBuffer_.lookupTransform(worldFrame_, "uav/camera/"+camera_name+"/ned", ros::Time(0));
-            //     } catch (tf2::TransformException &ex) {
-            //         ROS_WARN("Could NOT find transform for /uav/camera/%s/ned: %s", camera_name.c_str(), ex.what());
-            //     }
-            //     long mostRecentCaptureTime = camTransform.header.stamp.toNSec();
-            //     // Check that capture time is progressing forwards.
-            //     if (mostRecentCaptureTime < flightGoggles.state.ntime + 1.0f/(framerate_ + 1e-9)){
-            //         ROS_WARN("New render request is happening before it should based on the intended framerate.");
-            //     }
-
-            //     flightGoggles.state.ntime = camTransform.header.stamp.toNSec();
-            // }
-            
             // Get transform (synced).
             ros::Time captureTime;
             captureTime.fromNSec(flightGoggles.state.ntime);
@@ -285,12 +261,6 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
 
     }
 } 
-
-
-
-//void ROSClient::irBeaconPointcloudCallback(sensor_msgs::PointCloud2::Ptr msg) {
-//    irBeaconGroundTruth_ = msg;
-//}
 
 // New thread for republishing received images
 void imageConsumer(ROSClient *self){
@@ -401,10 +371,6 @@ int main(int argc, char **argv) {
     // Fork a sample image consumer thread
     std::thread imageConsumerThread(imageConsumer, &client);
 
-    // Start render requests
-
-//    callback tfCallback = boost::bind(&ROSClient::renderLoopTimerCallback, &client, _1);
-//    ros::Subscriber sub = ns.subscribe("/tf", 1, tfSubscriber);
 
     // Spin
     ros::spin();
