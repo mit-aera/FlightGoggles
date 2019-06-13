@@ -292,7 +292,8 @@ void imageConsumer(ROSClient *self){
         // Loop through and republish all images
         for (int i = 0; i < renderOutput.images.size(); i++){
             // Convert OpenCV image to image message
-            sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[i] == 3) ? "bgr8" : "8UC1", renderOutput.images[0]).toImageMsg();
+
+            sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[i] == 3) ? "bgr8" : "8UC1", renderOutput.images[i]).toImageMsg();
             msg->header.stamp = imageTimestamp;
             msg->header.frame_id = "/uav/camera/"+self->cameraTFList_[i];
             // Add Camera info message for camera

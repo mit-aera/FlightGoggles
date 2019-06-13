@@ -45,7 +45,7 @@ if __name__ == '__main__':
             pass
         os.mkdir(cameraOutputFolder)
         
-        command = "rosrun image_view image_saver image:={} _output_folder:={}/ _encoding:={}".format(cameraTopicName, cameraOutputFolder, cameraEncoding) 
+        command = "rosrun image_view image_saver image:={} _output_folder:={}/".format(cameraTopicName, cameraOutputFolder )#, "bgr8") #cameraEncoding) 
         print command
 
         # Spawn an image saver node
