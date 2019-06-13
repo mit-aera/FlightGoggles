@@ -89,8 +89,9 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
         uint64_t stamp_us;
         std::ifstream infile (timestampFilePath_);
         while (infile >> stamp_us) {
-            timestampsToRender_.push_back(stamp_us);
+            timestampsToRender_.insert({stamp_us, true});
         }
+	timestampsToRender_.max_load_factor ( 0.25 );
     }
 
     
@@ -111,7 +112,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
 
 
     // Subscribe to TF messages
-    tfSubscriber_ = ns_.subscribe("/tf", 1, &ROSClient::tfCallback, this);
+    tfSubscriber_ = ns_.subscribe("/tf", 120, &ROSClient::tfCallback, this);
 
     // Publish the estimated latency
     fpsPublisher_ = ns_.advertise<std_msgs::Float32>("/uav/camera/debug/fps", 1);  
@@ -178,7 +179,7 @@ void ROSClient::populateRenderSettings() {
 void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     //geometry_msgs::TransformStamped world_to_uav;
     bool found_transform = false;
-    usleep(1000);
+    //usleep(1000);
 
     // Check if TF message is for world->uav/imu
     // This is output by dynamics node.
@@ -196,15 +197,19 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
 
     // Only send a render request if necessary to achieve the required framerate
     bool renderFrameBasedOnFramerate = (tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)));
-    bool timestampAppearsInFile = std::binary_search(timestampsToRender_.begin(), timestampsToRender_.end(), uint64_t(tfTimestamp.toNSec()*1e-3));
+    bool timestampAppearsInFile = timestampsToRender_.count(uint64_t(tfTimestamp.toNSec()*1e-3));
     bool shouldUseFileTimes = timestampsToRender_.size();
+    //ROS_INFO("%d %d %d", shouldUseFileTimes, timestampAppearsInFile, renderFrameBasedOnFramerate);
+
 
     if ( (shouldUseFileTimes && timestampAppearsInFile) || (!shouldUseFileTimes && renderFrameBasedOnFramerate) ){
         // Buffer render requests by 1 frame to allow for TFs to arrive on time.
         long renderTimestamp = timeOfLastRender_.toNSec();
         timeOfLastRender_ = tfTimestamp;
         flightGoggles.state.ntime = renderTimestamp;
-
+        // Timestamps of t=0 are not allowed and usually mean something is wrong.
+        if (flightGoggles.state.ntime == 0) return;
+        
         // Send request for all cameras.
         for (int i =0; i < cameraNameList_.size(); i++) {
             std::string camera_name = cameraNameList_[i];
@@ -224,11 +229,11 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             flightGoggles.setCameraPoseUsingROSCoordinates(camPose, i);
             
             // Check that render timestamps are sync'd
-            if (i>0 && flightGoggles.state.ntime != camTransform.header.stamp.toNSec()){
-                ROS_ERROR("Warning: Camera TF timestamps do not match!"); 
-                std::cout << flightGoggles.state.ntime << " " << camTransform.header.stamp.toNSec() << std::endl;
-                // ROS_ERROR(camTransform.header.stamp.toNSec());               
-            }
+            //if (i>0 && flightGoggles.state.ntime != camTransform.header.stamp.toNSec()){
+            //    ROS_ERROR("Warning: Camera TF timestamps do not match!"); 
+            //    std::cout << flightGoggles.state.ntime << " " << camTransform.header.stamp.toNSec() << std::endl;
+            //    // ROS_ERROR(camTransform.header.stamp.toNSec());               
+            //}
 
         }
        

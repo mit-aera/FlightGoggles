@@ -97,7 +97,7 @@ public:
 
     // List of timestamps to render (if running from rosbag)
     std::string timestampFilePath_;
-    std::vector<uint64_t> timestampsToRender_;
+    std::unordered_map<uint64_t,bool> timestampsToRender_;
 
     // Lidar params
     float lidarMaxRange_ = 20; // Meters

@@ -20,12 +20,12 @@ if __name__ == '__main__':
     cameraNameList = rospy.get_param('/sensors/camera/camera_list', default=[])
 
     # ensure that parent directory exists
-    try:
-        shutil.rmtree(outputFolder)
-    except:
-        pass
+    #try:
+    #    shutil.rmtree(outputFolder)
+    #except:
+    #    pass
     
-    os.mkdir(outputFolder)
+    #os.mkdir(outputFolder)
         
 
     # Get image types for each camera
@@ -43,7 +43,6 @@ if __name__ == '__main__':
             shutil.rmtree(cameraOutputFolder)
         except:
             pass
-        
         os.mkdir(cameraOutputFolder)
         
         command = "rosrun image_view image_saver image:={} _output_folder:={}/ _encoding:={}".format(cameraTopicName, cameraOutputFolder, cameraEncoding) 
