@@ -28,6 +28,8 @@ using json = nlohmann::json;
 // For converting ROS/LCM coordinates to Unity coordinates
 #include "transforms.hpp"
 
+#include <omp.h>
+
 class FlightGogglesClient
 {
   public:

@@ -9,7 +9,7 @@
   <arg name="scene_filename" default="Butterfly_World" />
 
   <arg name="fps" default="31" />
-  <arg name="playback_rate" default="2.0" />
+  <arg name="playback_rate" default="0.5" />
   
   <arg name="use_external_renderer" default="true" />
   <arg name="ignore_collisions" default="true" />
@@ -29,7 +29,7 @@
   </include>
   
   <!-- Bag playback -->
-  <node name="trajectory_playback" pkg="rosbag" type="play" args=" --delay=10  --clock --queue=1000 --hz=360 -r $(arg playback_rate)  $(arg bagfile_path)" />
+  <node name="trajectory_playback" pkg="rosbag" type="play" args=" --delay=2  --clock --queue=1000 --hz=360 -r $(arg playback_rate)  $(arg bagfile_path)" />
 
   <!-- MIT Blackbird dataset render transforms. Transforms mocap_NED to flightgoggles/ned.
        This transform changes depending on which environment is being rendered from the dataset and

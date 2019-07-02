@@ -31,8 +31,8 @@ if __name__ == '__main__':
     # Get image types for each camera
     for cam_name in cameraNameList:
         
-        cameraOutputType = rospy.get_param('/sensors/camera/{}/outputShaderType'.format(cam_name), default=-1),
-        outputIsGrayscale = (cameraOutputType is 2 or cameraOutputType is 5),
+        cameraOutputType = rospy.get_param('/sensors/camera/{}/outputShaderType'.format(cam_name), default=-1)
+        outputIsGrayscale = ((cameraOutputType == 2) or (cameraOutputType == 5))
         cameraID = rospy.get_param('/sensors/camera/{}/ID'.format(cam_name), default="")
         cameraTopicName = "/uav/camera/{}/{}".format(cam_name, "image_rect_color" if (not outputIsGrayscale) else "grayscale")
         cameraOutputFolder = os.path.join(outputFolder, cameraID)
@@ -50,6 +50,12 @@ if __name__ == '__main__':
 
         # Spawn an image saver node
         process = subprocess.Popen(command, shell=True) #, stdout="/dev/null")
+
+        # If in debug mode, spawn viewer windows.
+        #command = "rosrun image_view image_view image:={} _autosize:=true".format(cameraTopicName)
+        #process = subprocess.Popen(command, shell=True)
+        
+
         # process.wait()   
 
     

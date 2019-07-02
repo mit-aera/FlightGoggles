@@ -145,8 +145,10 @@ sensor_msgs::CameraInfo ROSClient::GetCameraInfo(std::string &camera_name) {
 
 unity_outgoing::Camera_t ROSClient::GetCameraRenderInfo(std::string &camera_name) {
   unity_outgoing::Camera_t camera;
-  ros::param::param<std::string>("/sensors/camera/"+camera_name+"/tf", camera.ID, camera_name);
+  ros::param::param<std::string>("/sensors/camera/"+camera_name+"/tf", camera.TF, camera_name);
+  camera.ID = camera_name;
   ros::param::param<int>("/sensors/camera/"+camera_name+"/outputShaderType", camera.outputShaderType, -1);
+  ros::param::param<float>("/sensors/camera/"+camera_name+"/motionBlurPercent", camera.motionBlurPercent, 0.0);
   ros::param::param<bool>("/sensors/camera/"+camera_name+"/hasCollisionCheck", camera.hasCollisionCheck, false);
   ros::param::param<bool>("/sensors/camera/"+camera_name+"/doesLandmarkVisCheck", camera.doesLandmarkVisCheck, false);
   return camera;
@@ -167,7 +169,7 @@ void ROSClient::populateRenderSettings() {
         unity_outgoing::Camera_t cam_obj = GetCameraRenderInfo(camera_name);
         imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+(((cam_obj.outputShaderType != 2) && (cam_obj.outputShaderType != 5))? "/image_rect_color" : "/grayscale"), 60));
         flightGoggles.state.cameras.push_back(cam_obj);
-        cameraTFList_.push_back(cam_obj.ID);
+        cameraTFList_.push_back(cam_obj.TF);
     }
 
 }

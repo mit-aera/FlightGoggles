@@ -21,6 +21,7 @@ namespace unity_outgoing
 struct Camera_t
 {
   std::string ID;
+  std::string TF;
   // Position and rotation use Unity left-handed coordinates.
   // Z North, X East, Y up.
   // E.G. East, Up, North.
@@ -35,8 +36,12 @@ struct Camera_t
   //   DepthMultiChannel = 3,
   //   SurfaceNormals =4
   //   grayscale=5
+  //   
   //   }
   int outputShaderType = -1;
+
+  // Motion blur, can takes values from [0,1], where 1.0 means that the shutter is open across the entire exposure time.
+  float motionBlurPercent = 0.0;
   
   // Should this camera collision check or check for visibility?
   bool hasCollisionCheck = true;
@@ -113,6 +118,7 @@ inline void to_json(json &j, const Camera_t &o)
            {"position", o.position},
            {"rotation", o.rotation},
            {"outputShaderType", o.outputShaderType},
+           {"motionBlurPercent", o.motionBlurPercent},
            {"hasCollisionCheck", o.hasCollisionCheck},
            {"doesLandmarkVisCheck", o.doesLandmarkVisCheck}
   };

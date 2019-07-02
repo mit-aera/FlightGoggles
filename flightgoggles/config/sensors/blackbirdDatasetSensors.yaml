@@ -1,4 +1,4 @@
-camera_list: [left_depth, down_depth]
+camera_list: [left_rgb_blurred, left_depth, down_depth, down_rgb_blurred, left_segmented, down_segmented]
 
 # enum outputShaderType {
 #   RGB = -1,
@@ -10,26 +10,12 @@ camera_list: [left_depth, down_depth]
 #   grayscale=5
 # }
 
-# exampleCam:
-#     tf: left                    # What TF to use 
-#     ID: "exampleCam_Depth"      # unique internal camera name @TODO remove this requirement.
-#     outputShaderType: 2         # Camera type
-#     hasCollisionCheck: true     # report collisions for this camera?
-#     doesLandMarkVisCheck: false # Does this camera have an IR beacon sensor?
-
-
-# right_stereo:
-#     tf: right
-#     outputShaderType: -1 
-#     hasCollisionCheck: true
-#     doesLandMarkVisCheck: false
-#     baseline_translation: 0.10
-
+# Depth
 left_depth:
     tf: left
     ID: "Camera_Left_Depth"                     
     outputShaderType: 2         
-    hasCollisionCheck: true
+    hasCollisionCheck: false
     doesLandMarkVisCheck: false
 
 
@@ -37,5 +23,64 @@ down_depth:
     tf: down
     ID: "Camera_Down_Depth"
     outputShaderType: 2 
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+# RGB Blurred
+left_rgb_blurred:
+    tf: left
+    ID: "Camera_Left_RGB"
+    motionBlurPercent: 1.0                     
+    outputShaderType: -1        
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+down_rgb_blurred:
+    tf: down
+    ID: "Camera_Down_RGB"
+    motionBlurPercent: 1.0                     
+    outputShaderType: -1        
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+# Grayscale
+left_gray:
+    tf: left
+    ID: "Camera_Left_Gray"
+    motionBlurPercent: 0.0                     
+    outputShaderType: 5        
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+right_gray:
+    tf: right
+    ID: "Camera_Right_Gray"
+    motionBlurPercent: 0.0                     
+    outputShaderType: 5        
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+down_gray:
+    tf: down
+    ID: "Camera_Down_Gray"
+    motionBlurPercent: 0.0                     
+    outputShaderType: 5        
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+# Segmentation
+left_segmented:
+    tf: left
+    ID: "Camera_Left_Segmented"
+    motionBlurPercent: 0.0                     
+    outputShaderType: 1        
+    hasCollisionCheck: false
+    doesLandMarkVisCheck: false
+
+down_segmented:
+    tf: down
+    ID: "Camera_Down_Segmented"
+    motionBlurPercent: 0.0                     
+    outputShaderType: 1        
     hasCollisionCheck: false
     doesLandMarkVisCheck: false
