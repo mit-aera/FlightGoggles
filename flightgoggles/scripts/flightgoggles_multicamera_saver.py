@@ -19,6 +19,10 @@ if __name__ == '__main__':
     # Get list of cameras
     cameraNameList = rospy.get_param('/sensors/camera/camera_list', default=[])
 
+    # Get list of cameras
+    shouldDisplayImages = rospy.get_param('/sensors/camera/should_display_images', default=False)
+
+
     # ensure that parent directory exists
     #try:
     #    shutil.rmtree(outputFolder)
@@ -52,8 +56,9 @@ if __name__ == '__main__':
         process = subprocess.Popen(command, shell=True) #, stdout="/dev/null")
 
         # If in debug mode, spawn viewer windows.
-        #command = "rosrun image_view image_view image:={} _autosize:=true".format(cameraTopicName)
-        #process = subprocess.Popen(command, shell=True)
+        if shouldDisplayImages:
+            command = "rosrun rqt_image_view rqt_image_view {}".format(cameraTopicName)
+            process = subprocess.Popen(command, shell=True)
         
 
         # process.wait()   

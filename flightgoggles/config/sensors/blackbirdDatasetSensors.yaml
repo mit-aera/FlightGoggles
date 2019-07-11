@@ -1,4 +1,4 @@
-camera_list: [left_rgb_blurred, left_depth, down_depth, down_rgb_blurred, left_segmented, down_segmented]
+camera_list: [left_gray, right_gray, down_gray, left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
 
 # enum outputShaderType {
 #   RGB = -1,
@@ -10,77 +10,65 @@ camera_list: [left_rgb_blurred, left_depth, down_depth, down_rgb_blurred, left_s
 #   grayscale=5
 # }
 
-# Depth
-left_depth:
-    tf: left
-    ID: "Camera_Left_Depth"                     
-    outputShaderType: 2         
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
 
-
-down_depth:
-    tf: down
-    ID: "Camera_Down_Depth"
-    outputShaderType: 2 
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
-
-# RGB Blurred
-left_rgb_blurred:
-    tf: left
-    ID: "Camera_Left_RGB"
-    motionBlurPercent: 1.0                     
-    outputShaderType: -1        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
-
-down_rgb_blurred:
-    tf: down
-    ID: "Camera_Down_RGB"
-    motionBlurPercent: 1.0                     
-    outputShaderType: -1        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
-
-# Grayscale
+# Grayscale (120Hz)
 left_gray:
     tf: left
     ID: "Camera_Left_Gray"
     motionBlurPercent: 0.0                     
     outputShaderType: 5        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
 
 right_gray:
     tf: right
     ID: "Camera_Right_Gray"
     motionBlurPercent: 0.0                     
     outputShaderType: 5        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
 
 down_gray:
     tf: down
     ID: "Camera_Down_Gray"
     motionBlurPercent: 0.0                     
-    outputShaderType: 5        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
+    outputShaderType: 5     
 
-# Segmentation
+# Depth (120Hz/2 = 60Hz)
+left_depth:
+    tf: left
+    ID: "Camera_Left_Depth"                     
+    outputShaderType: 2        
+    inverseRelativeFramerate: 2
+
+down_depth:
+    tf: down
+    ID: "Camera_Down_Depth"
+    outputShaderType: 2 
+    inverseRelativeFramerate: 2
+
+# RGB Blurred (120Hz/2 = 60Hz)
+left_rgb_blurred:
+    tf: left
+    ID: "Camera_Left_RGB"
+    motionBlurPercent: 1.0                     
+    outputShaderType: -1       
+    inverseRelativeFramerate: 2
+
+down_rgb_blurred:
+    tf: down
+    ID: "Camera_Down_RGB"
+    motionBlurPercent: 1.0                     
+    outputShaderType: -1      
+    inverseRelativeFramerate: 2 
+
+# Segmentation (120Hz/2 = 60Hz)
 left_segmented:
     tf: left
     ID: "Camera_Left_Segmented"
     motionBlurPercent: 0.0                     
-    outputShaderType: 1        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
+    outputShaderType: 1    
+    inverseRelativeFramerate: 2    
 
 down_segmented:
     tf: down
     ID: "Camera_Down_Segmented"
     motionBlurPercent: 0.0                     
-    outputShaderType: 1        
-    hasCollisionCheck: false
-    doesLandMarkVisCheck: false
+    outputShaderType: 1   
+    inverseRelativeFramerate: 2     

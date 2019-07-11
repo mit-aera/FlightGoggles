@@ -46,6 +46,13 @@ struct Camera_t
   // Should this camera collision check or check for visibility?
   bool hasCollisionCheck = true;
   bool doesLandmarkVisCheck = false;
+
+  // Should this camera render this frame?
+  bool shouldRenderThisFrame = true;
+
+  // For internal use by the client
+  int inverseRelativeFramerate = 1;
+  int numberOfFramesSinceLastRender = 0;
 };
 
 // Window class for decoding the ZMQ messages.
@@ -120,7 +127,8 @@ inline void to_json(json &j, const Camera_t &o)
            {"outputShaderType", o.outputShaderType},
            {"motionBlurPercent", o.motionBlurPercent},
            {"hasCollisionCheck", o.hasCollisionCheck},
-           {"doesLandmarkVisCheck", o.doesLandmarkVisCheck}
+           {"doesLandmarkVisCheck", o.doesLandmarkVisCheck},
+           {"shouldRenderThisFrame", o.shouldRenderThisFrame}
   };
 }
 
@@ -158,7 +166,9 @@ struct RenderMetadata_t
   double camDepthScale;
   // Object state update
   std::vector<std::string> cameraIDs;
+  std::vector<int> cameraIndexes;
   std::vector<int> channels;
+
 
   // Status update from collision detectors and raycasters.
   bool hasCameraCollision = false;
@@ -190,6 +200,7 @@ inline void from_json(const json &j, RenderMetadata_t &o)
   o.camHeight = j.at("camHeight").get<int>();
   o.camDepthScale = j.at("camDepthScale").get<double>();
   o.cameraIDs = j.at("cameraIDs").get<std::vector<std::string>>();
+  o.cameraIndexes = j.at("cameraIndexes").get<std::vector<int>>();
   o.channels = j.at("channels").get<std::vector<int>>();
   
   // Backwards compatibility for FlightGoggles API <= v1.7.0  

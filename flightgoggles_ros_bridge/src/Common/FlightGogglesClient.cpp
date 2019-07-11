@@ -181,8 +181,8 @@ bool FlightGogglesClient::requestRender()
       std::cout << "===================" << std::endl;
     } 
     
-    // Send message without blocking.
-    upload_socket.send(msg, true);
+    // Send message 
+    upload_socket.send(msg);
     return true;
 }
 
@@ -228,9 +228,11 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
     output.images.resize(renderMetadata.cameraIDs.size());
 
     // For each camera, save the received image.
-    // #pragma omp target map(to: msg) map(from: output)
-    // #pragma omp parallel for
-    for (uint i = 0; i < renderMetadata.cameraIDs.size(); i++)
+    //#pragma omp target map(to: msg) map(from: output)
+    auto num_threads = renderMetadata.cameraIDs.size();
+    // #pragma omp parallel
+    // #pragma omp for
+    for (int i = 0; i < num_threads; i++)
     {
 
         // Reshape the received image
@@ -247,9 +249,7 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
         // Pack image into cv::Mat
         cv::Mat new_image = cv::Mat(renderMetadata.camHeight, renderMetadata.camWidth, CV_MAKETYPE(CV_8U, 4));
 	    memcpy(new_image.data, imageData, imageLen);
-	    // Flip image since OpenCV origin is upper left, but Unity's is lower left.
-	    cv::flip(new_image, new_image, 0);
-
+	    
       // Debug
       // cv::imshow("Debug", new_image);
       // cv::waitKey(0);
@@ -260,6 +260,10 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
         } else {
             cv::cvtColor(new_image, new_image, CV_BGRA2GRAY);
         }
+
+        // Flip image since OpenCV origin is upper left, but Unity's is lower left.
+	      cv::flip(new_image, new_image, 0);
+
 
         // Add image to output vector
         output.images.at(i) = new_image;

@@ -151,6 +151,7 @@ unity_outgoing::Camera_t ROSClient::GetCameraRenderInfo(std::string &camera_name
   ros::param::param<float>("/sensors/camera/"+camera_name+"/motionBlurPercent", camera.motionBlurPercent, 0.0);
   ros::param::param<bool>("/sensors/camera/"+camera_name+"/hasCollisionCheck", camera.hasCollisionCheck, false);
   ros::param::param<bool>("/sensors/camera/"+camera_name+"/doesLandmarkVisCheck", camera.doesLandmarkVisCheck, false);
+  ros::param::param<int>("/sensors/camera/"+camera_name+"/inverseRelativeFramerate", camera.inverseRelativeFramerate, 1);
   return camera;
 }
 
@@ -198,7 +199,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
     if (!found_transform) return;
 
     // Only send a render request if necessary to achieve the required framerate
-    bool renderFrameBasedOnFramerate = (tfTimestamp >= timeOfLastRender_ + ros::Duration(1.0f/(framerate_ + 1e-9)));
+    bool renderFrameBasedOnFramerate = (tfTimestamp >= timeOfLastRender_ + ros::Duration(0.9f/(framerate_ + 1e-9)));
     bool timestampAppearsInFile = timestampsToRender_.count(uint64_t(tfTimestamp.toNSec()*1e-3));
     bool shouldUseFileTimes = timestampsToRender_.size();
     //ROS_INFO("%d %d %d", shouldUseFileTimes, timestampAppearsInFile, renderFrameBasedOnFramerate);
@@ -214,6 +215,19 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
         
         // Send request for all cameras.
         for (int i =0; i < cameraNameList_.size(); i++) {
+
+            // Check if we should render this camera (Might be lower framerate camera)
+            if ( (flightGoggles.state.cameras[i].numberOfFramesSinceLastRender % flightGoggles.state.cameras[i].inverseRelativeFramerate) != 0 ){
+                // Should skip this frame
+                flightGoggles.state.cameras[i].shouldRenderThisFrame = false;
+                flightGoggles.state.cameras[i].numberOfFramesSinceLastRender++;
+            } else {
+                // Should render this frame, just reset the counter
+                flightGoggles.state.cameras[i].shouldRenderThisFrame = true;
+                flightGoggles.state.cameras[i].numberOfFramesSinceLastRender = 1;
+            }
+            
+
             std::string camera_name = cameraNameList_[i];
             std::string tf_name = cameraTFList_[i];
             geometry_msgs::TransformStamped camTransform;
@@ -294,15 +308,16 @@ void imageConsumer(ROSClient *self){
         // Loop through and republish all images
         for (int i = 0; i < renderOutput.images.size(); i++){
             // Convert OpenCV image to image message
-
             sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[i] == 3) ? "bgr8" : "8UC1", renderOutput.images[i]).toImageMsg();
             msg->header.stamp = imageTimestamp;
-            msg->header.frame_id = "/uav/camera/"+self->cameraTFList_[i];
+            // get camera index
+            int camIdx = renderOutput.renderMetadata.cameraIndexes[i];
+            msg->header.frame_id = "/uav/camera/"+self->cameraTFList_[camIdx];
             // Add Camera info message for camera
-            sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoList_[i]));
-            cameraInfoMsgCopy->header.frame_id = "/uav/camera/"+self->cameraTFList_[i];
+            sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoList_[camIdx]));
+            cameraInfoMsgCopy->header.frame_id = "/uav/camera/"+self->cameraTFList_[camIdx];
         cameraInfoMsgCopy->header.stamp = imageTimestamp;
-            self->imagePubList_[i].publish(msg, cameraInfoMsgCopy);
+            self->imagePubList_[camIdx].publish(msg, cameraInfoMsgCopy);
         }
 
         // Check for camera collision
