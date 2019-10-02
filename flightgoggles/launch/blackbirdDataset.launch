@@ -9,7 +9,7 @@
   <arg name="scene_filename" default="Butterfly_World" />
 
   <arg name="fps" default="31" />
-  <arg name="playback_rate" default="0.12" />
+  <arg name="playback_rate" default="0.06" />
   
   <arg name="use_external_renderer" default="true" />
   <arg name="ignore_collisions" default="true" />

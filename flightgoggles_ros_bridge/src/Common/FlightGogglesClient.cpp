@@ -230,6 +230,7 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
     // For each camera, save the received image.
     //#pragma omp target map(to: msg) map(from: output)
     auto num_threads = renderMetadata.cameraIDs.size();
+    const uint8_t stride = 3;
     // #pragma omp parallel
     // #pragma omp for
     for (int i = 0; i < num_threads; i++)
@@ -237,7 +238,7 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
 
         // Reshape the received image
         // Calculate how long the casted and reshaped image will be.
-        uint32_t imageLen = renderMetadata.camWidth * renderMetadata.camHeight * 4;
+        uint32_t imageLen = renderMetadata.camWidth * renderMetadata.camHeight * stride;
         // Get raw image bytes from ZMQ message.
         // WARNING: This is a zero-copy operation that also casts the input to an array of unit8_t.
         // when the message is deleted, this pointer is also dereferenced.
@@ -247,7 +248,7 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
         // uint32_t bufferRowLength = renderMetadata.camWidth * renderMetadata.channels[i];
 
         // Pack image into cv::Mat
-        cv::Mat new_image = cv::Mat(renderMetadata.camHeight, renderMetadata.camWidth, CV_MAKETYPE(CV_8U, 4));
+        cv::Mat new_image = cv::Mat(renderMetadata.camHeight, renderMetadata.camWidth, CV_MAKETYPE(CV_8U, stride));
 	    memcpy(new_image.data, imageData, imageLen);
 	    
       // Debug
@@ -256,8 +257,14 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
 
         // Tell OpenCv that the input is RGB.
         if (renderMetadata.channels[i]==3){
-            cv::cvtColor(new_image, new_image, CV_BGRA2BGR);
+            if (stride == 3)
+              cv::cvtColor(new_image, new_image, CV_RGB2BGR);
+            if (stride == 4)
+              cv::cvtColor(new_image, new_image, CV_BGRA2BGR);
         } else {
+            if (stride == 3)
+            cv::cvtColor(new_image, new_image, CV_RGB2GRAY);
+            if (stride == 4)
             cv::cvtColor(new_image, new_image, CV_BGRA2GRAY);
         }
 
