@@ -200,7 +200,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
 
     // Only send a render request if necessary to achieve the required framerate
     bool renderFrameBasedOnFramerate = (tfTimestamp >= timeOfLastRender_ + ros::Duration(0.9f/(framerate_ + 1e-9)));
-    bool timestampAppearsInFile = timestampsToRender_.count(uint64_t(tfTimestamp.toNSec()*1e-3));
+    bool timestampAppearsInFile = timestampsToRender_.count(uint64_t(tfTimestamp.toNSec()));
     bool shouldUseFileTimes = timestampsToRender_.size();
     //ROS_INFO("%d %d %d", shouldUseFileTimes, timestampAppearsInFile, renderFrameBasedOnFramerate);
 
