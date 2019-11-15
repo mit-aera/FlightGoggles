@@ -134,6 +134,9 @@ include_directories(
 #   src/${PROJECT_NAME}/flightgoggles_uav_dynamics.cpp
 # )
 
+add_library(inertialMeasurementSim libs/multicopterDynamicsSim/inertialMeasurementSim.cpp)
+add_library(multicopterDynamicsSim libs/multicopterDynamicsSim/multicopterDynamicsSim.cpp)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -158,6 +161,9 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
+
+target_link_libraries(multicopterDynamicsSim inertialMeasurementSim)
+target_link_libraries(${PROJECT_NAME}_node multicopterDynamicsSim)
 
 #############
 ## Install ##

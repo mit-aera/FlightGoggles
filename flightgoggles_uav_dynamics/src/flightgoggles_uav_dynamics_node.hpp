@@ -1,59 +1,50 @@
 /**
- * @file flightgoggles_uav_dynamics.hpp
+ * @file flightgoggles_uav_dynamics_node.hpp
  * @author Ezra Tal
  * @author Winter Guerra
  * @author Varun Murali
- * @brief Header file for UAV dynamics and imu simulation
+ * @brief Header file for UAV dynamics, IMU, and angular rate control simulation node
+ * 
  */
 
 #ifndef UAV_DYNAMICS_HPP
 #define UAV_DYNAMICS_HPP
 
-// ROS includes.
+// ROS includes
 #include <ros/ros.h>
 #include <ros/time.h>
-#include <tf2_ros/transform_listener.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 
 // Messages
 #include <mav_msgs/RateThrust.h>
+#include <mav_msgs/Actuators.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Empty.h>
 #include <rosgraph_msgs/Clock.h>
+
+#include "../libs/multicopterDynamicsSim/multicopterDynamicsSim.hpp"
 
 #include <sstream>
 #include <random>
 
-class Uav_Imu {
-    // This class can be extended if IMU noise is needed etc.
-    public:
-        /// @name Constructor
-        Uav_Imu();
-        /// @name Accessors
-        void getMeasurement(sensor_msgs::Imu & meas,
-            double * angVel, double * accel, ros::Time currTime);
-        
-    private:
-        /// @name Noise Generation Helpers
-        //@{
-        std::default_random_engine randomNumberGenerator_;
-        std::normal_distribution<double> standardNormalDistribution_ = std::normal_distribution<double>(0.0,1.0);
-        double accMeasNoiseVariance_ = 0.005; // m^2/s^4
-        double gyroMeasNoiseVariance_ = 0.003; // rad^2/s^2
-        //@}
-};
-
+/**
+ * @brief Low-pass filter class used for angular rate control.
+ * 
+ */
 class Uav_LowPassFilter{
     public:
         /// @name Constructor
         Uav_LowPassFilter();
-        void proceedState(geometry_msgs::Vector3 & value, double dt);
+
+        void proceedState(Eigen::Vector3d & input, double dt);
         void resetState(void);
 
-        /// @name Low-Pass Filter State Variables
+        /// @name Low-Pass Filter State Vector and Derivative
         //@{
         double filterState_[3] = {0.,0.,0.};
         double filterStateDer_[3] = {0.,0.,0.};
@@ -67,51 +58,81 @@ class Uav_LowPassFilter{
         //@}
 };
 
+/**
+ * @brief PID controller class used for angular rate control.
+ * 
+ */
 class Uav_Pid {
     public:
         /// @name Constructor
         Uav_Pid();
-        void controlUpdate(geometry_msgs::Vector3 & command, double * curval,
-                      double * curder, double * out, double dt);
+
+        void controlUpdate(geometry_msgs::Vector3 & command, double thrustCommand,
+                      double * curval, double * curder,
+                      std::vector<double> & propSpeedCommand, double dt);
         void resetState(void);
+        void thrustMixing(std::vector<double> & propSpeedCommand, double * angAccCommand, double thrustCommand);
 
     private:
-        /// @name PID Controller Parameters
+        /// @name PID Controller Gains
         //@{
         double propGain_[3] = {9.0, 9.0, 9.0};
         double intGain_[3] = {3.0, 3.0, 3.0};
         double derGain_[3] = {0.3, 0.3, 0.3};
+        //@}
+
+        /// @name PID Controller Integrator State and Bound
+        //@{
         double intState_[3] = {0.,0.,0.};
         double intBound_[3] = {1000.,1000.,1000.};
         //@}
+
+        /// @name PID Controller Vehicle Parameters
+        //@{
+        double vehicleInertia_[3] = {0.0049, 0.0049, 0.0069};
+        double momentArm_ = 0.08;
+        double thrustCoeff_ = 1.91e-6;
+        double torqueCoeff_ = 2.6e-7;
+        //@}
 };
 
+/**
+ * @brief UAV Dynamics class used for dynamics, IMU, and angular rate control simulation node
+ * 
+ */
 class Uav_Dynamics {
     public:
         /// @name Constructor
-        // Requires nodehandle
         Uav_Dynamics(ros::NodeHandle nh);
         
         /// @name Node handle
         ros::NodeHandle node_;
 
-        /// @name Transform Publishers and Subscribers
+        /// @name Transform Publishers
         //@{
         tf2_ros::TransformBroadcaster tfPub_;
-        tf2_ros::Buffer tfBuffer_;
-        tf2_ros::TransformListener tfListener_;
+        tf2_ros::StaticTransformBroadcaster staticTfPub_;
         //@}
 
         /// @name Publishers
         //@{
         ros::Publisher imuPub_;
         ros::Publisher clockPub_;
+
+        void publishState(void);
+        void publishIMUMeasurement(void);
+        void publishStaticMotorTransform(
+            const ros::Time & timeStamp, const char * frame_id,
+            const char * child_frame_id, const Eigen::Isometry3d & motorFrame);
         //@}
 
         /// @name Subscribers
         //@{
         ros::Subscriber inputCommandSub_;
+        ros::Subscriber inputMotorspeedCommandSub_;
         ros::Subscriber collisionSub_;
+        ros::Subscriber armSub_;
+        ros::Subscriber resetSub_;
 	    ros::Subscriber frameRateSub_;
         //@}
 
@@ -124,94 +145,75 @@ class Uav_Dynamics {
         //@{
         void simulationLoopTimerCallback(const ros::WallTimerEvent& event);
         void inputCallback(mav_msgs::RateThrust::Ptr msg);
+        void inputMotorspeedCallback(mav_msgs::Actuators::Ptr msg);
+        void armCallback(std_msgs::Empty::Ptr msg);
+        void resetCallback(std_msgs::Empty::Ptr msg);
         void collisionCallback(std_msgs::Empty::Ptr msg);
 	    void fpsCallback(std_msgs::Float32::Ptr msg);
         //@}
 
-        /// @name Storage Variables
+        /// @name Control inputs
         //@{
         mav_msgs::RateThrust::Ptr lastCommandMsg_;
-        sensor_msgs::Imu imuMeasurement_;
-        ros::Time currentTime_;
-        ros::Time timeLastReset_;
+        mav_msgs::Actuators::Ptr lastMotorspeedCommandMsg_;
         //@}
 
+        /// @name Time keeping variables
+        //@{
+        ros::Time currentTime_;
         double dt_secs = 1.0f/960.;
         bool useAutomaticClockscale_ = false;
         double clockScale = 1.0;
         double actualFps  = -1;
-
-        double resetTimeout_ = 0.1;
-        // Min input thrust required before drone is allowed to take off.
-        double minArmingThrust_ = 9.9; // Newtons
-
-
-    private:
-
-        void computeMotorSpeedCommand(void);
-        void proceedState(void);
-        void resetState(void);
-        void publishState(void);
-
-        Uav_Imu imu_;
-        Uav_Pid pid_;
-        Uav_LowPassFilter lpf_;
-
-        /// @name UAV Dynamics Flags
-        //@{
-        bool includeDrag_ = true;
-        bool hasCollided_ = false;
-        bool ignoreCollisions_ = false;
-	    bool useSimTime_ = false;
-	    bool armed_ = false;
+        bool useSimTime_ = false;
         //@}
 
-        /* Everything defined as standard in ROS:
+        /// @name Simulation state control parameters and flags
+        //@{
+        bool hasCollided_ = false;
+        bool ignoreCollisions_ = false;
+	    bool armed_ = false;
+        bool resetRequested_ = false;
+        bool useRateThrustController_ = true;
+        bool useRungeKutta4Integrator_ = false;
+        //@}
+
+        void resetState(void);
+
+        /// @name Angular rate control PID controller and LPF
+        //@{
+        Uav_Pid pid_;
+        Uav_LowPassFilter lpf_;
+        //@}
+
+        /// @name Vehicle dynamics simulator
+        //@{
+        /* As standard in ROS:
         x : forward
         y : leftward
         z : upward */
 
         /* Motors are numbered counterclockwise (look at quadcopter from above) with
            motor 1 in the positive quadrant of the X-Y plane (i.e. front left). */
-       
-        /// @name Vehicle properties
-        //@{
-        double vehicleMass_ = 1.0; // kg
-        double vehicleInertia_[3] = {0.0049,0.0049,0.0069}; // kg m^2
-        double motorTimeconstant_ = 0.02; // s
-        double maxPropSpeed_ = 2200.; // rad/s per motor
-        double momentArm_ = 0.08; // m moment arm from motor position to cog
-        const double grav_ = 9.81; // m/s^2
-        double thrustCoeff_ = 1.91e-6; // N/(rad/s)^2
-        double torqueCoeff_ = 2.6e-7; // Nm/(rad/s)^2
-        double dragCoeff_ = 0.1; // N/(m/s)^2
+
+        MulticopterDynamicsSim * multicopterSim_;
         //@}
 
-        /// @name State variables
+        /// @name Initial conditions
         //@{
-        std::vector<double> initPose_;
-
-        double position_[3]; // m
-        double attitude_[4]; // quaternion [x,y,z,w]
-        double angVelocity_[3] = {0.,0.,0.}; // rad/s
-        double velocity_[3] = {0.,0.,0.}; // m/s
-        double specificForce_[3] = {0.,0.,9.81}; // N/kg or m/s^2
-        double specificForceBodyFrame_[3]; // N/kg or m/s^2
-        double propSpeed_[4]; // rad/s
+        Eigen::Vector3d initPosition_;
+        Eigen::Quaterniond initAttitude_;
+        double initPropSpeed_;
         //@}
 
-        /// @name Standard normal distrubution RNG
+        /// @name IMU measurements and variances
         //@{
-        std::default_random_engine randomNumberGenerator_;
-        std::normal_distribution<double> standardNormalDistribution_ = std::normal_distribution<double>(0.0,1.0);
-        double angAccelProcessNoiseAutoCorrelation_ = 0.00025; // rad^2/s^2
-        double linAccelProcessNoiseAutoCorrelation_ = 0.0005; // m^2/s^3
-        //@}
-
-        /// @name Control
-        //@{
-        double angAccCommand_[3];
-        double propSpeedCommand_[4];
+        Eigen::Vector3d imuAccOutput_ = Eigen::Vector3d::Zero();
+        Eigen::Vector3d imuGyroOutput_ = Eigen::Vector3d::Zero();
+        double gyroMeasNoiseVariance_;
+        double accMeasNoiseVariance_;
+        double accBiasInitVar_;
+        double gyroBiasInitVar_;
         //@}
 };
 
