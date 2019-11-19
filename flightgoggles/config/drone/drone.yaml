@@ -9,6 +9,7 @@ flightgoggles_uav_dynamics:
     vehicle_inertia_xx: 0.0049
     vehicle_inertia_yy: 0.0049
     vehicle_inertia_zz: 0.0049
+    vehicle_inertia_xz: 0.0
     max_prop_speed: 2200.0
     moment_arm: 0.08
     motor_time_constant: 0.02

@@ -177,7 +177,10 @@ class Uav_Dynamics {
         /// @name Vehicle properties
         //@{
         double vehicleMass_ = 1.0; // kg
-        double vehicleInertia_[3] = {0.0049,0.0049,0.0069}; // kg m^2
+        double Ixx = 0.0049; // kg m^2
+        double Iyy = 0.0049;
+        double Izz = 0.0069;
+        double Ixz = 0.0;
         double motorTimeconstant_ = 0.02; // s
         double maxPropSpeed_ = 2200.; // rad/s per motor
         double momentArm_ = 0.08; // m moment arm from motor position to cog
