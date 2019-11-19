@@ -73,19 +73,19 @@ initPose_(7,0)
       std::cout << "Did not get the drag coefficient from the params, defaulting to 0.1" << std::endl;
   }
 
-  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_xx", Ixx)) { 
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_xx", Ixx_)) { 
       std::cout << "Did not get the inertia (x) from the params, defaulting to 0.0049 kg m^2" << std::endl;
   }
   
-  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_yy", Iyy)) { 
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_yy", Iyy_)) { 
       std::cout << "Did not get the inertia (y) from the params, defaulting to 0.0049 kg m^2" << std::endl;
   }
 
-  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_zz", Izz)) { 
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_zz", Izz_)) { 
       std::cout << "Did not get the inertia (z) from the params, defaulting to 0.0069 kg m^2" << std::endl;
   }
 
-  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_xz", Ixz)) { 
+  if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_xz", Ixz_)) { 
       std::cout << "Did not get the inertia (xz) from the params, defaulting to 0.0 kg m^2" << std::endl;
   }
 
@@ -264,9 +264,9 @@ void Uav_Dynamics::collisionCallback(std_msgs::Empty::Ptr msg){
  */
 void Uav_Dynamics::computeMotorSpeedCommand(void){
   double momentThrust[4] = {
-    Ixx*angAccCommand_[0],
-    Iyy*angAccCommand_[1],
-    Izz*angAccCommand_[2],
+    Ixx_*angAccCommand_[0],
+    Iyy_*angAccCommand_[1],
+    Izz_*angAccCommand_[2],
     lastCommandMsg_->thrust.z
   };
 
@@ -329,20 +329,20 @@ void Uav_Dynamics::proceedState(void){
                  momentArm_*thrustCoeff_*(-pow(propSpeed_[0],2.) +pow(propSpeed_[1],2.) +pow(propSpeed_[2],2.) -pow(propSpeed_[3],2.)),
                  torqueCoeff_*(-pow(propSpeed_[0],2.) +pow(propSpeed_[1],2.) -pow(propSpeed_[2],2.) +pow(propSpeed_[3],2.))};
 
-  double gamma = Ixx*Izz - Ixz*Ixz;
+  double gamma = Ixx_*Izz_ - Ixz_*Ixz_;
 
   double angAccel[3];
-	angAccel[0] = ( Izz*M[0] + Ixz*M[2] +
-		              angVelocity_[1]*angVelocity_[2]*( Izz*( Iyy - Izz ) -Ixz*Ixz ) +
-		              angVelocity_[0]*angVelocity_[1]*Ixz*( Ixx - Iyy + Izz ))/gamma;
+	angAccel[0] = ( Izz_*M[0] + Ixz_*M[2] +
+		              angVelocity_[1]*angVelocity_[2]*( Izz_*( Iyy_ - Izz_ ) -Ixz_*Ixz_ ) +
+		              angVelocity_[0]*angVelocity_[1]*Ixz_*( Ixx_ - Iyy_ + Izz_ ))/gamma;
 
 	angAccel[1] = ( M[1] +
-		              angVelocity_[2]*angVelocity_[0]*( Izz - Ixx ) +
-		              (angVelocity_[2]*angVelocity_[2] -  angVelocity_[0]*angVelocity_[0])*Ixz)/Iyy;
+		              angVelocity_[2]*angVelocity_[0]*( Izz_ - Ixx_ ) +
+		              (angVelocity_[2]*angVelocity_[2] -  angVelocity_[0]*angVelocity_[0])*Ixz_)/Iyy_;
 
-	angAccel[2] = ( Ixz*M[0] + Ixx*M[2] +
-		              angVelocity_[0]*angVelocity_[1]*( Ixx*( Ixx - Iyy ) + Ixz*Ixz) +
-		              angVelocity_[1]*angVelocity_[2]*Ixz*( Iyy - Izz - Ixx ))/gamma;
+	angAccel[2] = ( Ixz_*M[0] + Ixx_*M[2] +
+		              angVelocity_[0]*angVelocity_[1]*( Ixx_*( Ixx_ - Iyy_ ) + Ixz_*Ixz_) +
+		              angVelocity_[1]*angVelocity_[2]*Ixz_*( Iyy_ - Izz_ - Ixx_ ))/gamma;
 
   for(size_t i = 0; i < 3; i++)
     angAccel[i] += angAccelProcessNoise[i];                 
