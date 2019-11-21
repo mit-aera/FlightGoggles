@@ -1,10 +1,24 @@
 # NOTE: Full sensor rendering requires a backbuffer of 1024x6912.
 # NOTE 2: First element in list should be the highest FPS camera. 
 # Every other camera has a camera with a relative framerate to that camera. 
+#
 
-camera_list: [left_gray, right_gray, down_gray, left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
+# All sensors for new scenes & trjectories
+#camera_list: [left_gray, right_gray, down_gray, left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
 
-#camera_list: [left_gray,left_segmented]
+# For testing
+#camera_list: [left_gray]
+#camera_list: [left_gray, right_gray, down_gray]
+
+# new for IJRR
+#camera_list: [left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
+
+# HEVC compressed IJRR sensors
+camera_list: [left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
+
+# New environment grayscales.
+#camera_list: [left_gray, right_gray, down_gray]
+
 
 # enum outputShaderType {
 #   RGB = -1,

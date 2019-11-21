@@ -112,7 +112,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
 
 
     // Subscribe to TF messages
-    tfSubscriber_ = ns_.subscribe("/tf", 120, &ROSClient::tfCallback, this);
+    tfSubscriber_ = ns_.subscribe("/tf", 10000, &ROSClient::tfCallback, this);
 
     // Publish the estimated latency
     fpsPublisher_ = ns_.advertise<std_msgs::Float32>("/uav/camera/debug/fps", 1);  
@@ -168,7 +168,7 @@ void ROSClient::populateRenderSettings() {
         cameraInfoList_.push_back(GetCameraInfo(camera_name));
         // cameraMetadataList_.push_back(GetCameraRenderInfo(camera_name));
         unity_outgoing::Camera_t cam_obj = GetCameraRenderInfo(camera_name);
-        imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+(((cam_obj.outputShaderType != 2) && (cam_obj.outputShaderType != 5))? "/image_rect_color" : "/grayscale"), 60));
+        imagePubList_.push_back(it_.advertiseCamera("/uav/camera/"+camera_name+(((cam_obj.outputShaderType != 2) && (cam_obj.outputShaderType != 5))? "/image_rect_color" : "/grayscale"), 10000));
         flightGoggles.state.cameras.push_back(cam_obj);
         cameraTFList_.push_back(cam_obj.TF);
     }
@@ -213,6 +213,8 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
         // Timestamps of t=0 are not allowed and usually mean something is wrong.
         if (flightGoggles.state.ntime == 0) return;
         
+        // If all cameras are skipping this frame, do not send the frame request.
+        bool allCamerasDisabledThisFrame = true;
         // Send request for all cameras.
         for (int i =0; i < cameraNameList_.size(); i++) {
 
@@ -225,6 +227,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
                 // Should render this frame, just reset the counter
                 flightGoggles.state.cameras[i].shouldRenderThisFrame = true;
                 flightGoggles.state.cameras[i].numberOfFramesSinceLastRender = 1;
+                allCamerasDisabledThisFrame = false;
             }
             
 
@@ -252,6 +255,9 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             //}
 
         }
+        
+        // Exit early if all cameras are skipping this frame
+        if (allCamerasDisabledThisFrame) return;
        
         // Find list of all obstacles in environment ("flightgoggles_obstacle/*")
         for (auto obstacleTFName : obstacleTFList_){
