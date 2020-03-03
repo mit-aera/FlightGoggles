@@ -314,7 +314,15 @@ void imageConsumer(ROSClient *self){
         // Loop through and republish all images
         for (int i = 0; i < renderOutput.images.size(); i++){
             // Convert OpenCV image to image message
-            sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), (renderOutput.renderMetadata.channels[i] == 3) ? "bgr8" : "8UC1", renderOutput.images[i]).toImageMsg();
+	    std::string imageEncoding;
+	    if (renderOutput.renderMetadata.channels[i] == 3) {
+                imageEncoding = "bgr8";
+	    } else if (renderOutput.renderMetadata.channels[i] == 1){
+	        imageEncoding = "mono8";
+	    } else if (renderOutput.renderMetadata.channels[i] == 2){
+	        imageEncoding = "mono16";
+	    } 
+            sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), imageEncoding, renderOutput.images[i]).toImageMsg();
             msg->header.stamp = imageTimestamp;
             // get camera index
             int camIdx = renderOutput.renderMetadata.cameraIndexes[i];

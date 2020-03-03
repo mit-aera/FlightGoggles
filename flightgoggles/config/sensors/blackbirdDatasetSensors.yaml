@@ -14,7 +14,10 @@
 #camera_list: [left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
 
 # HEVC compressed IJRR sensors
-camera_list: [left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
+#camera_list: [left_rgb_blurred, down_rgb_blurred, left_depth, down_depth, left_segmented, down_segmented]
+
+# Raycasted depth sensors
+camera_list: [left_depth, down_depth]
 
 # New environment grayscales.
 #camera_list: [left_gray, right_gray, down_gray]
@@ -54,13 +57,13 @@ down_gray:
 left_depth:
     tf: left
     ID: "Camera_Left_Depth"                     
-    outputShaderType: 2        
+    outputShaderType: 3        
     inverseRelativeFramerate: 2
 
 down_depth:
     tf: down
     ID: "Camera_Down_Depth"
-    outputShaderType: 2 
+    outputShaderType: 3 
     inverseRelativeFramerate: 2
 
 # RGB Blurred (120Hz/2 = 60Hz)

@@ -87,7 +87,7 @@ struct StateMessage_t
   int camWidth = 1024;
   int camHeight = 768;
   float camFOV = 60.0f;
-  double camDepthScale = 10.0; // 0.xx corresponds to xx cm resolution
+  float camDepthScale = 10.0; // 0.xx corresponds to xx cm resolution
 
   // Object state update
   std::vector<Camera_t> cameras;
@@ -163,7 +163,7 @@ struct RenderMetadata_t
   int64_t ntime;
   int camWidth;
   int camHeight;
-  double camDepthScale;
+  float camDepthScale;
   // Object state update
   std::vector<std::string> cameraIDs;
   std::vector<int> cameraIndexes;
@@ -198,7 +198,7 @@ inline void from_json(const json &j, RenderMetadata_t &o)
    
   o.camWidth = j.at("camWidth").get<int>();
   o.camHeight = j.at("camHeight").get<int>();
-  o.camDepthScale = j.at("camDepthScale").get<double>();
+  o.camDepthScale = j.at("camDepthScale").get<float>();
   o.cameraIDs = j.at("cameraIDs").get<std::vector<std::string>>();
   o.cameraIndexes = j.at("cameraIndexes").get<std::vector<int>>();
   o.channels = j.at("channels").get<std::vector<int>>();
