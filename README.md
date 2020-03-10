@@ -26,7 +26,7 @@ If you find this work useful for your research, please cite:
   year = {2019},
   month = nov,
   publisher = {{IEEE}},
-  author = {Winter Guerra and Ezra Tal and Varun Murali and Gilhyun Ryou and Sertac Karaman},
+  author = {Guerra, Winter and Tal, Ezra and Murali, Varun and Ryou, Gilhyun and Karaman, Sertac},
   title = {{FlightGoggles}: Photorealistic Sensor Simulation for Perception-driven Robotics using Photogrammetry and Virtual Reality},
   booktitle = {2019 {IEEE}/{RSJ} International Conference on Intelligent Robots and Systems ({IROS})}
 }
