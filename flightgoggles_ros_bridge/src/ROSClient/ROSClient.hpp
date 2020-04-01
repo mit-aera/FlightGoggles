@@ -84,13 +84,14 @@ public:
 
     // Global camera configs
     int imageWidth_ = 1024;
-	int imageHeight_ = 768;
+    int imageHeight_ = 768;
     int framerate_ = 60;
     // Global render/scene configs
     std::string sceneFilename_ = "Abandoned_Factory_Morning";
     std::string worldFrame_ = "world/ned";
     std::string bodyFrame_ = "uav/imu";
     std::string obstaclePerturbationFile_ = "";
+    double sceneScale_ = 1.0;
     // List of dynamic objects to render and ignore
     std::vector<std::string> obstacleTFList_;
     std::vector<std::string> obstacleIgnoreList_;

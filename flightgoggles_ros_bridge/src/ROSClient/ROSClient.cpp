@@ -34,7 +34,10 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
         ROS_INFO( "Did not get argument for world_frame. Defaulting to world/ned" );
     }
     
-    if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
+    if (!ros::param::get("/uav/flightgoggles_ros_bridge/scene_scale", sceneScale_)) {
+        ROS_INFO( "Did not get argument for scene_scale. Defaulting to 1.0" );
+    }
+     if (!ros::param::get("/uav/flightgoggles_ros_bridge/image_width", imageWidth_)) {
         ROS_INFO( "Did not get argument for image width. Defaulting to 1024 px" );
     }
 
@@ -245,7 +248,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             }
 
             Transform3 camPose = tf2::transformToEigen(camTransform);
-            flightGoggles.setCameraPoseUsingROSCoordinates(camPose, i);
+            flightGoggles.setCameraPoseUsingROSCoordinates(camPose, i, sceneScale_);
             
             // Check that render timestamps are sync'd
             //if (i>0 && flightGoggles.state.ntime != camTransform.header.stamp.toNSec()){
@@ -275,7 +278,7 @@ void ROSClient::tfCallback(tf2_msgs::TFMessage::Ptr msg){
             // @TODO: Populate obstacle structure w/ transform. Setter function should check that prefab name has already been populated.  
             if (foundTransform) {
                 Transform3 objectPose = tf2::transformToEigen(obstacleTF);
-                flightGoggles.setObjectPoseUsingROSCoordinates(objectPose, obstacleTFName);
+                flightGoggles.setObjectPoseUsingROSCoordinates(objectPose, obstacleTFName, sceneScale_);
             }
         }
         // request render

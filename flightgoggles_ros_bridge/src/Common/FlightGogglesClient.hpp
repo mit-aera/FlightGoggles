@@ -71,9 +71,9 @@ class FlightGogglesClient
     void initializeConnections();
 
     /// Set camera pose using ROS coordinates.
-    void setCameraPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, int cam_index);
-    void setObjectPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, std::string object_name);
-
+    void setCameraPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, int cam_index, double scene_scale=1.0);
+    void setObjectPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, std::string object_name, double scene_scale=1.0);
+    
     /// Send render request to Unity
     bool requestRender();
 

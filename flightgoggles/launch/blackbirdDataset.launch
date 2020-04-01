@@ -7,9 +7,10 @@
   <arg name="render_offset_translation" default="0 0 0" />
   <arg name="trajectory_offset_transform" default="0 0 0 0 0 0 1" />
   <arg name="scene_filename" default="Butterfly_World" />
+  <arg name="scene_scale" default="1.0" />
 
   <arg name="fps" default="31" />
-  <arg name="playback_rate" default="0.07" />
+  <arg name="playback_rate" default="0.05" />
   
   <arg name="use_external_renderer" default="true" />
   <arg name="ignore_collisions" default="true" />
@@ -52,6 +53,7 @@
   <!-- Parameter overrides -->
   <param name="/use_sim_time" value="true" />
   <param name="/uav/flightgoggles_ros_bridge/scene_filename" value="$(arg scene_filename)" /> 
+  <param name="/uav/flightgoggles_ros_bridge/scene_scale" value="$(arg scene_scale)" /> 
   <param name="/uav/flightgoggles_ros_bridge/framerate" type="double" value="$(arg fps)" /> 
   <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
   <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />

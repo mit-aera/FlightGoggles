@@ -41,7 +41,7 @@ void FlightGogglesClient::initializeConnections()
  * @param ros_pose Pose of the camera
  * @param cam_index Index of the camera
  */
-void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, int cam_index) {
+void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, int cam_index, double scene_scale/*=1.0*/) {
   // To transforms
   //Transform3 NED_pose = convertROSToNEDCoordinates(ros_pose);
   Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(ros_pose);
@@ -49,9 +49,9 @@ void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, 
 
   // Extract position and rotation
   std::vector<double> position = {
-    unity_pose.translation()[0],
-    unity_pose.translation()[1],
-    unity_pose.translation()[2],
+    unity_pose.translation()[0]*scene_scale,
+    unity_pose.translation()[1]*scene_scale,
+    unity_pose.translation()[2]*scene_scale,
   };
 
   Eigen::Matrix3d rotationMatrix = unity_pose.rotation();
@@ -70,7 +70,7 @@ void FlightGogglesClient::setCameraPoseUsingROSCoordinates(Transform3 ros_pose, 
 }
 
 
-void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, std::string object_name) {
+void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, std::string object_name, double scene_scale/*=1.0*/) {
   
   Transform3 unity_pose = convertNEDGlobalPoseToGlobalUnityCoordinates(ros_pose);
 
@@ -117,9 +117,9 @@ void FlightGogglesClient::setObjectPoseUsingROSCoordinates(Transform3 ros_pose, 
 
   // Extract position and rotation
   std::vector<double> position = {
-    unity_pose.translation()[0],
-    unity_pose.translation()[1],
-    unity_pose.translation()[2],
+    unity_pose.translation()[0]*scene_scale,
+    unity_pose.translation()[1]*scene_scale,
+    unity_pose.translation()[2]*scene_scale,
   };
 
   if (unity_pose.translation()[0] == 0) {
