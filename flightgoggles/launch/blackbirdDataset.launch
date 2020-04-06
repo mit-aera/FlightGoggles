@@ -1,0 +1,62 @@
+<launch>
+  <arg name="bagfile_path" default="/media/medusa/RAID/BlackbirdDataset/BlackbirdDatasetData/sphinx/yawForward/maxSpeed2p0/sphinx_maxSpeed2p0.bag" />
+  <arg name="timestampfile_path" default="" />
+  <arg name="output_folder" default="$(arg bagfile_path)_images" />
+
+  <arg name="render_offset_rotation" default="0 0 0 1" />
+  <arg name="render_offset_translation" default="0 0 0" />
+  <arg name="trajectory_offset_transform" default="0 0 0 0 0 0 1" />
+  <arg name="scene_filename" default="Butterfly_World" />
+  <arg name="scene_scale" default="1.0" />
+
+  <arg name="fps" default="31" />
+  <arg name="playback_rate" default="0.05" />
+  
+  <arg name="use_external_renderer" default="true" />
+  <arg name="ignore_collisions" default="true" />
+  <arg name="render_stereo" default="false" />
+  
+  <!--include core flightgoggles launch file-->
+  <include file="$(find flightgoggles)/launch/core.launch">
+    <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
+    <arg name="render_stereo" value="$(arg render_stereo)"/>
+    <arg name="ignore_collisions" value="$(arg ignore_collisions)"/>
+    <arg name="use_dynamics" value="false"/>
+    <arg name="world_frame" value="flightgoggles/ned"/>
+    <arg name="body_frame" value="body_frame"/>
+    <arg name="sensor_package" value="blackbirdDatasetSensors"/>
+    <arg name="exit_after_rendering" value="true" />
+    <arg name="timestampfile_path" value="$(arg timestampfile_path)" />
+  </include>
+  
+  <!-- Bag playback -->
+  <node name="trajectory_playback" pkg="rosbag" type="play" args=" --delay=2  --clock --queue=1000 --hz=360 -r $(arg playback_rate)  $(arg bagfile_path)" />
+
+  <!-- MIT Blackbird dataset render transforms. Transforms mocap_NED to flightgoggles/ned.
+       This transform changes depending on which environment is being rendered from the dataset and
+       can be found in BlackbirdDataset/trajectoryOffsets.yaml. -->
+  <node pkg="tf2_ros" type="static_transform_publisher"
+      name="render_ned_link_2" args="0 0 0 $(arg render_offset_rotation) 'trajectory_NED' 'trajectory_NED_translation'"/>
+  <node pkg="tf2_ros" type="static_transform_publisher"
+      name="render_ned_link" args="$(arg render_offset_translation) 0 0 0 1 'trajectory_NED_translation' 'flightgoggles/ned'"/>
+
+  <!-- MIT Blackbird dataset per-trajectory centering transform.  -->
+  <node pkg="tf2_ros" type="static_transform_publisher"
+      name="world_ned_link" args="$(arg trajectory_offset_transform) 'mocap_NED' 'trajectory_NED'"/>
+   
+  <!-- Image saver orchestrator. Will save all camera feeds. -->
+  <!-- Uses image_saver fork from git@github.com:21Ansh/image_pipeline.git.-->
+  <node name="flightgoggles_image_saver_orchestrator" pkg="flightgoggles" type="flightgoggles_multicamera_saver.py" output="screen">
+      <param name="output_folder" value="$(arg output_folder)"/>
+  </node>
+  
+  <!-- Parameter overrides -->
+  <param name="/use_sim_time" value="true" />
+  <param name="/uav/flightgoggles_ros_bridge/scene_filename" value="$(arg scene_filename)" /> 
+  <param name="/uav/flightgoggles_ros_bridge/scene_scale" value="$(arg scene_scale)" /> 
+  <param name="/uav/flightgoggles_ros_bridge/framerate" type="double" value="$(arg fps)" /> 
+  <param name="/uav/flightgoggles_ros_bridge/world_frame" value="flightgoggles/ned" />
+  <param name="/uav/flightgoggles_ros_bridge/body_frame" value="body_frame" />
+  
+
+</launch>

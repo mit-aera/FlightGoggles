@@ -60,8 +60,6 @@ public:
     /// @name Image publishers
     //@{
 	image_transport::ImageTransport it_;
-	image_transport::CameraPublisher imagePubLeft_;
-	image_transport::CameraPublisher imagePubRight_;
 	//@}
 
 	/// @name Topic publishers
@@ -70,22 +68,40 @@ public:
     ros::Publisher lidarPub_;
     ros::Publisher irMarkerPub_;
     ros::Publisher fpsPublisher_;
+    ros::Publisher imageTriggerDebugPublisher_;
     //@}
 
     //// @name State variables
     //@{
-    bool render_stereo = false;
-    int numSimulationStepsSinceLastRender_ = 0;
-    const int numSimulationStepsBeforeRenderRequest_ = 15;
-//    sensor_msgs::PointCloud2::Ptr irBeaconGroundTruth_;
-    sensor_msgs::CameraInfo cameraInfoLeft;
-	sensor_msgs::CameraInfo cameraInfoRight;
-	float baseline_ = 0.32;
-	int imageWidth_ = 1024;
-	int imageHeight_ = 768;
+    ros::Time timeOfLastRender_;
+    
+    // Camera configs
+    std::vector<std::string> cameraNameList_;
+    std::vector<std::string> cameraTFList_;
+    std::vector<sensor_msgs::CameraInfo> cameraInfoList_;
+    std::vector<unity_outgoing::Camera_t> cameraMetadataList_;
+    std::vector<image_transport::CameraPublisher> imagePubList_;
 
-	// Lidar params
-	float lidarMaxRange_ = 20; // Meters
+    // Global camera configs
+    int imageWidth_ = 1024;
+    int imageHeight_ = 768;
+    int framerate_ = 60;
+    // Global render/scene configs
+    std::string sceneFilename_ = "Abandoned_Factory_Morning";
+    std::string worldFrame_ = "world/ned";
+    std::string bodyFrame_ = "uav/imu";
+    std::string obstaclePerturbationFile_ = "";
+    double sceneScale_ = 1.0;
+    // List of dynamic objects to render and ignore
+    std::vector<std::string> obstacleTFList_;
+    std::vector<std::string> obstacleIgnoreList_;
+
+    // List of timestamps to render (if running from rosbag)
+    std::string timestampFilePath_;
+    std::unordered_map<uint64_t,bool> timestampsToRender_;
+
+    // Lidar params
+    float lidarMaxRange_ = 20; // Meters
     float lidarVariance_ = 0.0009; // Meters^2
 
     // Noise generators for lidar
@@ -107,7 +123,8 @@ public:
 
 	// Populate starting settings into state
 	void populateRenderSettings();
-
+    sensor_msgs::CameraInfo GetCameraInfo(std::string &camera_name);
+    unity_outgoing::Camera_t GetCameraRenderInfo(std::string &camera_name);
 
 	/// @name Callbacks
 	void tfCallback(tf2_msgs::TFMessage::Ptr msg);

@@ -1,0 +1,61 @@
+<launch>
+  <arg name="use_external_renderer" default="true" />
+  <arg name="render_stereo" default="false" />
+  <arg name="run_number" default="0"/>
+  <arg name="gate_locations" default="$(arg run_number)"/>
+  <arg name="log_file" default="/media/medusa/RAID5/AlphaPilotBags/aggregated_bags_with_clock_and_wo_missing_team/aggregated_w_clock_run_$(arg run_number).bag"/>
+  <arg name="playback_rate" default="0.1"/>
+  <arg name="drone_index" default="0"/>
+  <arg name="body_frame" default="flightgoggles_obstacle/drone_w_trail/$(arg drone_index)"/>
+  
+
+  <group ns="/uav">
+
+    <!--Play back previous flight's trajectory-->
+    <node name="trajectory_playback" required="true" pkg="rosbag" type="play" args="--clock -r $(arg playback_rate) $(arg log_file)" launch-prefix="bash -c 'sleep 2; $0 $@; sleep 10' ">
+    </node>
+    
+    <!--include core flightgoggles launch file-->
+    <include file="$(find flightgoggles)/launch/core.launch" >
+      <!--Disable and use dynamics from rosbag-->
+      <arg name="use_dynamics" value="false"/>
+      <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
+      <arg name="render_stereo" value="$(arg render_stereo)"/>
+      <arg name="gate_locations" value="$(arg gate_locations)"/>
+      <arg name="body_frame" value="$(arg body_frame)"/>
+    </include>
+
+  </group>
+
+    <!-- Video Recorder (optional) -->
+  <!-- <node name="video_recorder" pkg="image_view" type="video_recorder">
+      <remap from="image" to="/uav/camera/left/image_rect_color" />
+      <param name="filename" value="$(arg log_file)_drone_$(arg drone_index).mp4"/>
+      <param name="fps" value="30" />
+      <param name="codec" value="MP4V" />
+  </node> -->
+
+  <!-- Uses image_saver fork from git@github.com:21Ansh/image_pipeline.git -->
+  <node name="image_saver" pkg="image_view" type="image_saver">
+      <remap from="image" to="/uav/camera/left/image_rect_color" />
+      <param name="filename_format" value="/media/medusa/RAID5/tmp_images/run_$(arg run_number)/drone_$(arg drone_index)/"/>
+  </node>
+
+  <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
+
+  <!--
+      Using simulation time means nodes initialized after this
+      will not use the system clock for its ROS clock and
+      instead wait for simulation ticks.
+      See http://wiki.ros.org/Clock
+
+      This should be enabled if the user would like to ensure a constant 60hz camera for your algorithm.
+  -->
+  <param name="/use_sim_time" value="true" />
+  <param name="/uav/flightgoggles_ros_bridge/log_file" value="$(arg log_file)"/>
+  <param name="/uav/flightgoggles_ros_bridge/obstacle_perturbation_file" value="C:\perturbations\perturbed_gates_$(arg gate_locations).yaml"/>
+  
+  <group ns="/uav">
+    <rosparam command="load" file="$(find flightgoggles)/config/traj/multidrone.yaml"/>
+  </group>
+</launch>

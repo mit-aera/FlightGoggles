@@ -1,21 +1,44 @@
 <launch>
-  <arg name="use_external_renderer" default="0" />
-  <arg name="render_stereo" default="0" />
+  <arg name="use_external_renderer" default="true" />
+  <arg name="render_stereo" default="false" />
+  <arg name="gate_locations" default=""/>
+  <arg name="log_file" default=""/>
+  <arg name="playback_rate" default="0.45"/>
+  
+
   <group ns="/uav">
 
-    <!--Play back previous flight's trajectory using a restamping tool-->
-    <!--<node name="trajectory_playback" pkg="rosbag" type="play" args="$(find flightgoggles)/bags/example_flight.bag"/>-->
-    <node name="log_restamper" pkg="rosbaglive" type="play.py" args="$(find flightgoggles)/bags/example_flight.bag" respawn="true"/>
+    <!--Play back previous flight's trajectory-->
+    <node name="trajectory_playback" required="true" pkg="rosbag" type="play" args="--clock -r $(arg playback_rate) $(arg log_file)">
+      <remap from="/tf" to="/tf_old" />
+      <remap from="/tf_static" to="/tf_static_old" />
+    </node>
+    
+    <!-- Override TFs for sensors by only including TF for body frame -->
+    <node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
+      <rosparam param="mappings">
+        [{old: /uav/imu, new: /uav/imu}]
+      </rosparam>
+    </node>
 
     <!--include core flightgoggles launch file-->
     <include file="$(find flightgoggles)/launch/core.launch" >
       <!--Disable and use dynamics from rosbag-->
-      <arg name="use_dynamics" value="0"/>
+      <arg name="use_dynamics" value="false"/>
       <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
       <arg name="render_stereo" value="$(arg render_stereo)"/>
+      <arg name="gate_locations" value="$(arg gate_locations)"/>
     </include>
 
   </group>
+
+    <!-- Video Recorder (optional) -->
+  <node name="video_recorder" pkg="image_view" type="video_recorder">
+      <remap from="image" to="/uav/camera/left/image_rect_color" />
+      <param name="filename" value="$(arg log_file).mp4"/>
+      <param name="fps" value="60" />
+      <param name="codec" value="MP4V" />
+  </node>
 
 
   <!-- Launch override settings. Must be placed at end of file to override params set in core launchfile. -->
@@ -28,6 +51,7 @@
 
       This should be enabled if the user would like to ensure a constant 60hz camera for your algorithm.
   -->
-  <param name="/use_sim_time" value="false" />
-
+  <param name="/use_sim_time" value="true" />
+  <param name="/uav/flightgoggles_ros_bridge/obstacle_perturbation_file" value="C:\perturbations\perturbed_gates_$(arg gate_locations).yaml"/>
+  <param name="/uav/flightgoggles_ros_bridge/log_file" value="$(arg log_file)"/> -->
 </launch>
