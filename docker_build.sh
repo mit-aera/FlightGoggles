@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build . -t mit-aera/flightgoggles_ros:latest
+docker build . -t winterg/flightgoggles_ros:latest
