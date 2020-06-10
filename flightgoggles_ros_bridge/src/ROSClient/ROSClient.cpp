@@ -255,10 +255,10 @@ void imageConsumer(ROSClient *self){
         // Convert OpenCV image to image message
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", renderOutput.images[0]).toImageMsg();
         msg->header.stamp = imageTimestamp;
-        msg->header.frame_id = "/uav/camera/left";
+        msg->header.frame_id = "uav/camera/left";
         // Add Camera info message for camera
         sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoLeft));
-        cameraInfoMsgCopy->header.frame_id = "/uav/camera/left";
+        cameraInfoMsgCopy->header.frame_id = "uav/camera/left";
 	cameraInfoMsgCopy->header.stamp = imageTimestamp;
 	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
 
@@ -266,10 +266,10 @@ void imageConsumer(ROSClient *self){
             sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), "bgr8",
                                                                  renderOutput.images[1]).toImageMsg();
             msg_right->header.stamp = imageTimestamp;
-            msg_right->header.frame_id = "/uav/camera/right";
+            msg_right->header.frame_id = "uav/camera/right";
             // Add Camera info message for camera
             sensor_msgs::CameraInfoPtr cameraInfoMsgCopy_Right(new sensor_msgs::CameraInfo(self->cameraInfoRight));
-            cameraInfoMsgCopy_Right->header.frame_id = "/uav/camera/right";
+            cameraInfoMsgCopy_Right->header.frame_id = "uav/camera/right";
             cameraInfoMsgCopy_Right->header.stamp = imageTimestamp;
             self->imagePubRight_.publish(msg_right, cameraInfoMsgCopy_Right);
         }
@@ -283,7 +283,7 @@ void imageConsumer(ROSClient *self){
         // Publish lidar range finder message
         sensor_msgs::Range lidarReturnMsg;
         lidarReturnMsg.header.stamp = imageTimestamp;
-        lidarReturnMsg.header.frame_id = "/uav/imu";
+        lidarReturnMsg.header.frame_id = "uav/imu";
         lidarReturnMsg.radiation_type = lidarReturnMsg.INFRARED;
         lidarReturnMsg.field_of_view = 0;
         lidarReturnMsg.min_range = -1.0f*self->lidarMaxRange_;
