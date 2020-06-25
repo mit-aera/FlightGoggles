@@ -105,7 +105,7 @@ node_(nh)
       dragCoeff = 0.1;
   }
 
-  Eigen::Matrix3d aeroMomentCoefficient;
+  Eigen::Matrix3d aeroMomentCoefficient = Eigen::Matrix3d::Zero();
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/aeromoment_coefficient_xx", aeroMomentCoefficient(0,0))) { 
       std::cout << "Did not get the aeromoment (x) from the params, defaulting to 0.003 Nm/(rad/s)^2" << std::endl;
       aeroMomentCoefficient(0,0) = 0.003;
@@ -121,7 +121,7 @@ node_(nh)
       aeroMomentCoefficient(2,2) = 0.003;
   }
 
-  Eigen::Matrix3d vehicleInertia;
+  Eigen::Matrix3d vehicleInertia = Eigen::Matrix3d::Zero();
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/vehicle_inertia_xx", vehicleInertia(0,0))) { 
       std::cout << "Did not get the inertia (x) from the params, defaulting to 0.0049 kg m^2" << std::endl;
       vehicleInertia(0,0) = 0.0049;
