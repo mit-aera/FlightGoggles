@@ -26,6 +26,7 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/Empty.h>
 #include <rosgraph_msgs/Clock.h>
+#include <nav_msgs/Odometry.h>
 
 #include "../libs/multicopterDynamicsSim/multicopterDynamicsSim.hpp"
 
@@ -117,6 +118,7 @@ class Uav_Dynamics {
         /// @name Publishers
         //@{
         ros::Publisher imuPub_;
+        ros::Publisher odomPub_;
         ros::Publisher clockPub_;
 
         void publishState(void);
