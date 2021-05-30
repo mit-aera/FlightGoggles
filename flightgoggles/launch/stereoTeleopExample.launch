@@ -1,5 +1,4 @@
 <launch>
-  <arg name="use_external_renderer" default="0" />
   <arg name="ignore_collisions" default="false" />
   <arg name="render_stereo" default="1" />
 
@@ -19,7 +18,6 @@
 
   <!--include core flightgoggles launch file-->
   <include file="$(find flightgoggles)/launch/core.launch">
-    <arg name="use_external_renderer" value="$(arg use_external_renderer)"/>
     <arg name="render_stereo" value="$(arg render_stereo)"/>
     <arg name="ignore_collisions" value="$(arg ignore_collisions)"/>
   </include>

@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <chrono>
+#include <regex>
 
 // Include ZMQ bindings for comms with Unity.
 #include <iostream>
@@ -26,6 +27,8 @@ using json = nlohmann::json;
 
 // For converting ROS/LCM coordinates to Unity coordinates
 #include "transforms.hpp"
+
+#include <omp.h>
 
 class FlightGogglesClient
 {
@@ -68,8 +71,9 @@ class FlightGogglesClient
     void initializeConnections();
 
     /// Set camera pose using ROS coordinates.
-    void setCameraPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, int cam_index);
-
+    void setCameraPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, int cam_index, double scene_scale=1.0);
+    void setObjectPoseUsingROSCoordinates(Eigen::Affine3d ros_pose, std::string object_name, double scene_scale=1.0);
+    
     /// Send render request to Unity
     bool requestRender();
 

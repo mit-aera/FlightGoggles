@@ -1,0 +1,19 @@
+flightgoggles_car_dynamics:
+    init_position: [0.0, 0.0]
+    init_heading: 0.0
+    # Uncomment clockscale for manual clock scaling rate.
+    # While commented out and use_sim_time=1, FG will auto scale clock
+    # for 60hz camera operation.
+    # clockscale: 1.0
+    ignore_collisions: false
+    max_steering_angle: 1.0
+    max_speed: 5.0
+    min_speed: 0.0
+    velocity_process_noise: [0.001, 0.001] # x, y in body-fixed reference frame.
+    noise_seed: 15248 # Optional: if not defined, time at runtime is used.
+
+flightgoggles_ros_bridge:
+   image_width: 1024
+   image_height: 768
+   baseline: 0.32
+   collider_radius: 0.15

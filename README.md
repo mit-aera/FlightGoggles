@@ -20,15 +20,11 @@ A framework for photorealistic hardware-in-the-loop agile flight simulation usin
 ## Citation
 If you find this work useful for your research, please cite:
 ```bibtex
-@inproceedings{guerra2019flightgoggles,
-  doi = {10.1109/iros40897.2019.8968116},
-  url = {https://doi.org/10.1109/iros40897.2019.8968116},
-  year = {2019},
-  month = nov,
-  publisher = {{IEEE}},
-  author = {Guerra, Winter and Tal, Ezra and Murali, Varun and Ryou, Gilhyun and Karaman, Sertac},
-  title = {{FlightGoggles}: Photorealistic Sensor Simulation for Perception-driven Robotics using Photogrammetry and Virtual Reality},
-  booktitle = {2019 {IEEE}/{RSJ} International Conference on Intelligent Robots and Systems ({IROS})}
+@misc{1905.11377,
+  Title = {FlightGoggles: Photorealistic Sensor Simulation for Perception-driven Robotics using Photogrammetry and Virtual Reality},
+  Author = {Winter Guerra and Ezra Tal and Varun Murali and Gilhyun Ryou and Sertac Karaman},
+  Year = {2019},
+  Eprint = {arXiv:1905.11377},
 }
 ```
 FlightGoggles: [Paper](https://arxiv.org/abs/1905.11377), [Website](http://flightgoggles.mit.edu)

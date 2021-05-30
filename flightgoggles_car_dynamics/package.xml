@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>flightgoggles_environment_creator</name>
+  <name>flightgoggles_car_dynamics</name>
   <version>0.0.0</version>
-  <description>The flightgoggles_environment_creator package</description>
+  <description>The flightgoggles_car_dynamics package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="Guerra@todo.todo">Winter Guerra</maintainer>
+  <maintainer email="winterg@mit.edu">Winter Guerra</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -19,14 +19,15 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/flightgoggles_environment_creator</url> -->
+  <!-- <url type="website">http://wiki.ros.org/flightgoggles_uav_dynamics</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-  <author >Winter Guerra</author>
+  <author>Ezra Tal</author>
+  <author>Winter Guerra</author>
 
 
   <!-- The *depend tags are used to specify dependencies -->
@@ -50,6 +51,22 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <!-- Message types used -->
+  <depend>std_msgs</depend>
+  <depend>mav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <!-- Libraries -->
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+
+  <!-- Other deps -->
+  <build_depend>message_generation</build_depend>
+  <build_export_depend>message_runtime</build_export_depend>
+  <exec_depend>message_runtime</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

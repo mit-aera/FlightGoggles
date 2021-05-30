@@ -1,23 +1,32 @@
 <launch>
   <!-- Launch settings. To be passed into launch file. -->
   <arg name="use_dynamics" default="1" />
-  <arg name="use_external_renderer" default="0" />
   <arg name="ignore_collisions" default="false" />
   <arg name="render_stereo" default="0" />
-  <arg name="run_challenges" default="1" /> 
   <arg name="gate_locations" default=""/>
-  <arg name="render_quality" default="Fastest"/>
+  <arg name="world_frame" default="world/ned"/>
+  <arg name="body_frame" default="uav/imu"/>
+  <arg name="sensor_package" default="simulationSensors"/>
+  <arg name="exit_after_rendering" default="false"/>
+  <arg name="timestampfile_path" default="" />
+  <arg name="scene_filename" default="Stata_GroundFloor" />
 
   <group ns="/uav">
 
-    <!-- Use clock scaling -->
+    <!-- Use clock scaling by default. Can be disabled using drone.yaml config. -->
     <param name="/use_sim_time" value="true" />
+    <param name="/uav/camera/render_stereo" value="$(arg render_stereo)" />
    
-    <!-- Read required yaml files" / --> 
+    <!-- Read required config files" / --> 
     <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/>
     <rosparam command="load" file="$(find flightgoggles)/config/challenges/nominal_gate_locations.yaml"/>
 
-    <!-- Environment Creator -->
+    <!-- Load static transforms for sensors -->
+    <include file="$(find flightgoggles)/config/sensors/$(arg sensor_package).xml">
+      <arg name="render_stereo" value="$(arg render_stereo)"/>
+      <arg name="body_frame" value="$(arg body_frame)"/>
+    </include>
+
     <!-- flightgoggles_uav_dynamics simulator -->
     <!--Will not be run if playing back previous flight from rosbag-->
     <node name="flightgoggles_uav_dynamics" pkg="flightgoggles_uav_dynamics" type="node"
@@ -25,60 +34,20 @@
       <param name="ignore_collisions" type="bool" value="$(arg ignore_collisions)" />
     </node>
 
-    <!-- FlightGoggles Renderer -->
-    <!-- Only run renderer if not using external renderer -->
-    <group unless="$(arg use_external_renderer)">
-        <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" if="$(eval gate_locations == '')" respawn="true"
-        args="-screen-quality $(arg render_quality)"/>
-        <!-- Perturb gate locations if needed -->
-        <node name="flightgogglesRenderer" pkg="flightgoggles" type="FlightGoggles.x86_64" unless="$(eval gate_locations == '')" respawn="true"
-        args="-screen-quality $(arg render_quality) -obstacle-perturbation-file '$(find flightgoggles)/config/perturbations/perturbed_gates_$(arg gate_locations).yaml'"/>
-    </group>
-    
-
     <!-- FlightGoggles ROS Bridge -->
     <node name="flightgoggles_ros_bridge" pkg="flightgoggles_ros_bridge" type="ROSClient" output="screen" >
-    <param name="render_stereo" type="bool" value="$(arg render_stereo)" />
+      <param name="render_stereo" type="bool" value="$(arg render_stereo)" />
+      <param name="timestampfile_path" value="$(arg timestampfile_path)" />
     </node>
 
     <!-- FlightGoggles IR Marker visualizer -->
     <node name="flightgoggles_marker_visualizer" pkg="flightgoggles_marker_visualizer" type="flightgoggles_marker_visualizer" />
 
-    <!--Run RVIZ for visualization-->
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower.rviz" unless="$(arg render_stereo)"/>
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find flightgoggles)/rviz/third_person_drone_follower_stereo.rviz" if="$(arg render_stereo)"/>
-
-    <!--Run rqt_plot for plotting readings from the laser range finder-->
-    <!-- <node type="rqt_plot" name="laser_rangefinder_plotter" pkg="rqt_plot" args="topics /uav/sensors/downward_laser_rangefinder/range"/> -->
-
-    <!--Static transforms for 32cm stereo baseline -->
-    <!-- Left camera is always at center of mass of drone. Right camera is offset by 32cm. -->
+    <param name="/uav/flightgoggles_ros_bridge/scene_filename" value="$(arg scene_filename)" /> 
+    <param name="/uav/flightgoggles_ros_bridge/world_frame" value="$(arg world_frame)"/> 
+    <param name="/uav/flightgoggles_ros_bridge/body_frame" value="$(arg body_frame)"/> 
     <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link" args="0 0 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left"/>
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_right_link" args="0 -0.32 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right" if="$(arg render_stereo)"/>
-
-    <!-- Transforms for internal use by ROS Bridge. Hotfixes #116. DO NOT USE THESE TFs IN ALGORITHMS. -->
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link_internal_hotfix" args="0 0 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left/internal_hotfix" unless="$(arg render_stereo)"/>
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link_internal_hotfix" args="0 0.32 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/left/internal_hotfix" if="$(arg render_stereo)"/>
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_right_link_internal_hotfix" args="0 -0.32 0 -1.57079632679 0 -1.57079632679 uav/imu uav/camera/right/internal_hotfix" if="$(arg render_stereo)"/>
-
-
-      <!-- Add static transforms for each camera that translate camera into X forward config. Hotfixes #116. DO NOT USE THESE TFs IN ALGORITHMS. -->
-      <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_left_link_internal_nwu"  args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/left/internal_hotfix uav/camera/left/internal_nwu  " />
-      <node pkg="tf2_ros" type="static_transform_publisher"
-          name="camera_right_link_internal_nwu" args="0  0 0 1.57079632679 -1.57079632679 0 uav/camera/right/internal_hotfix uav/camera/right/internal_nwu  " if="$(arg render_stereo)"/>
-
-
-    <param name="/uav/camera/render_stereo" value="$(arg render_stereo)" />
-
-    <!--Static transform for ENU to NED world-->
-    <node pkg="tf2_ros" type="static_transform_publisher"
-          name="world_ned_link" args="0 0 0 1.57079632679 3.14159265359 0 'world' 'world/ned'"/>
-
+          name="world_ned_link" args="0 0 -0.5 1.57079 3.14159 0 'world' 'world/ned'"/>
+  
   </group>
 </launch>

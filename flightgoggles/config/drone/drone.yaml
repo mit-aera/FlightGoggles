@@ -1,5 +1,7 @@
+#flightgoggles_ros_bridge:
+    # obstacle_frames: [""]
 flightgoggles_uav_dynamics:
-    init_pose: [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    init_pose: [18.5, 6.5, 1.0, 0.0, 0.0, 0.0, 1.0]
     # Uncomment clockscale for manual clock scaling rate.
     # While commented out and use_sim_time=1, FG will auto scale clock
     # for 60hz camera operation.
@@ -61,7 +63,13 @@ flightgoggles_pid:
     torque_coefficient: 2.6e-7
 
 flightgoggles_ros_bridge:
-   image_width: 1024
-   image_height: 768
+   # For <= v1.7.1, scene_filename: Butterfly_World, Hazelwood_Loft_Full_Day, Hazelwood_Loft_Full_Night, NYC_Subway, Museum_Day, Museum_Day_Small
+   # For >= 2.0.0,  scene_filename: Abandoned_Factory_Morning, Abandoned_Factory_Morning_No_Gates, Abandoned_Factory_Sunset, Abandoned_Factory_Sunset_No_Gates
+   scene_filename: Abandoned_Factory_Morning
+   image_width: 640
+   image_height: 480
+   #image_width: 1920
    baseline: 0.32
    collider_radius: 0.15
+   framerate: 60
+   #world_frame: "world/ned"

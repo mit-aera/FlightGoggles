@@ -159,8 +159,10 @@ node_(nh)
   if (!ros::param::get("/uav/flightgoggles_uav_dynamics/init_pose", initPose)) {
     // Start a few meters above the ground.
     std::cout << "Did NOT find initial pose from param file" << std::endl;
-
-    initPose.at(2) = 1.5;
+    
+    initPose.at(0) = -10.5;
+    initPose.at(1) = -18.5;
+    initPose.at(2) = -1.5;
     initPose.at(6) = 1.0;
   }
 
