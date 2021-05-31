@@ -1,21 +1,13 @@
 # FlightGoggles
 
 ## Documentation, Installation, & Usage Instructions
-Please refer to the [wiki-page](https://github.com/mit-fast/FlightGoggles/wiki) for code documentation, installation, usage instructions. An [FAQ](https://github.com/mit-fast/FlightGoggles/wiki/FAQ) is also available there.
-
-## Downloading Environment Assets / Using FlightGoggles with Unity3D
-
-Please refer to the [Unity3D Usage Guide](https://github.com/mit-fast/FlightGoggles/wiki/Unity3D-Usage_Guide).
+Please refer to the [project website](https://flightgoggles.mit.edu) for project information and our [code documentation](https://flightgoggles-documentation.scrollhelp.site/fg/) for installation and usage instructions. 
 
 ## Description
 
 A framework for photorealistic hardware-in-the-loop agile flight simulation using Unity3D and ROS.
 
-[![Video Link](Images/Abandoned_Factory_2.jpg)](https://www.youtube.com/watch?v=QCnU_M6DhYU)
-
-![](Images/Abandoned_Factory25.jpg)
-
-
+[![Video Link](Images/stata_ground_floor.png)](https://youtu.be/qoUlbSAiRko)
 
 ## Citation
 If you find this work useful for your research, please cite:
@@ -38,6 +30,17 @@ FlightGoggles: [Paper](https://arxiv.org/abs/1905.11377), [Website](http://fligh
   booktitle={International Symposium on Experimental Robotics, {ISER} 2018, Buenos Aires,
                Argentina, November 5-8, 2018.},
   year={2018}
+}
+
+@article{antonini202IJRR,
+author = {Amado Antonini and Winter Guerra and Varun Murali and Thomas Sayre-McCord and Sertac Karaman},
+title ={The Blackbird UAV dataset},
+journal = {The International Journal of Robotics Research},
+volume = {39},
+number = {10-11},
+pages = {1346-1364},
+year = {2020},
+doi = {10.1177/0278364920908331},
 }
 
 @inproceedings{sayremccord2018visual,
@@ -71,5 +74,6 @@ Visual-inertial navigation algorithm development using photorealistic camera sim
 Winter Guerra
 Ezra Tal
 Varun Murali
+Gilhyun Ryou
 Sertac Karaman
 ```
