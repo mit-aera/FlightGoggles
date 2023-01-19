@@ -275,7 +275,9 @@ node_(nh)
 
   if (useSimTime_) {
     clockPub_ = node_.advertise<rosgraph_msgs::Clock>("/clock",1);
-    clockPub_.publish(currentTime_);
+    rosgraph_msgs::Clock time_msg;
+    time_msg.clock = currentTime_;
+    clockPub_.publish(time_msg);
   } else {
     // Get the current time if we are using wall time. Otherwise, use 0 as initial clock.
     currentTime_ = ros::Time::now();
@@ -302,7 +304,9 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
   // Step the time forward
   if (useSimTime_){
     currentTime_ += ros::Duration(dt_secs);
-    clockPub_.publish(currentTime_);
+    rosgraph_msgs::Clock time_msg;
+    time_msg.clock = currentTime_;
+    clockPub_.publish(time_msg);
   } else {
       ros::Time loopStartTime = ros::Time::now();
       dt_secs = (loopStartTime - currentTime_).toSec();

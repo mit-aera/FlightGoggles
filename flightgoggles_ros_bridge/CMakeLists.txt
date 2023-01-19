@@ -42,7 +42,7 @@ if (OPENMP_FOUND)
 endif()
 
 # Find OpenCV
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Find Eigen
