@@ -1,6 +1,6 @@
 [submodule "flightgoggles_uav_dynamics/libs/multicopterDynamicsSim"]
 	path = flightgoggles_uav_dynamics/libs/multicopterDynamicsSim
-	url = https://github.com/mit-fast/multicopterDynamicsSim.git
+	url = git@github.com:mit-fast/multicopterDynamicsSim.git
 [submodule "flightgoggles_car_dynamics/libs/carDynamicsSim"]
 	path = flightgoggles_car_dynamics/libs/carDynamicsSim
 	url = https://github.com/mit-aera/carDynamicsSim.git

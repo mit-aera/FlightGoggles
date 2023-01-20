@@ -266,6 +266,7 @@ node_(nh)
     This should improve IMU integration methods on slow client nodes (see issue #63). */
   imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 96);  
   odomPub_ = node_.advertise<nav_msgs::Odometry>("/uav/odometry", 96);
+  velPub_ = node_.advertise<geometry_msgs::Vector3Stamped>("/uav/velocity",10);
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
   inputMotorspeedCommandSub_ = node_.subscribe("/uav/input/motorspeed", 1, &Uav_Dynamics::inputMotorspeedCallback, this);
   collisionSub_ = node_.subscribe("/uav/collision", 1, &Uav_Dynamics::collisionCallback, this);
@@ -452,10 +453,14 @@ void Uav_Dynamics::publishState(void){
   tfPub_.sendTransform(transform);
 
   nav_msgs::Odometry odometrymsg;
+  geometry_msgs::Vector3Stamped velocitymsg;
 
   odometrymsg.header.stamp = currentTime_;
   odometrymsg.header.frame_id = "world";
   odometrymsg.child_frame_id = "uav/imu";
+
+  velocitymsg.header.stamp = currentTime_;
+  velocitymsg.header.frame_id = "world";
 
   odometrymsg.pose.pose.position.x = position(0);
   odometrymsg.pose.pose.position.y = position(1);
@@ -483,6 +488,11 @@ void Uav_Dynamics::publishState(void){
 
   odometrymsg.twist.covariance[0] = -1.;
 
+  velocitymsg.vector.x = velocity(0);
+  velocitymsg.vector.y = velocity(1);
+  velocitymsg.vector.z = velocity(2);
+
+  velPub_.publish(velocitymsg);
   odomPub_.publish(odometrymsg);
 }
 

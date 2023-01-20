@@ -22,6 +22,7 @@
 #include <mav_msgs/Actuators.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Empty.h>
@@ -119,6 +120,7 @@ class Uav_Dynamics {
         //@{
         ros::Publisher imuPub_;
         ros::Publisher odomPub_;
+        ros::Publisher velPub_;
         ros::Publisher clockPub_;
 
         void publishState(void);
@@ -135,7 +137,7 @@ class Uav_Dynamics {
         ros::Subscriber collisionSub_;
         ros::Subscriber armSub_;
         ros::Subscriber resetSub_;
-	    ros::Subscriber frameRateSub_;
+        ros::Subscriber frameRateSub_;
         //@}
 
         /// @name Timers
@@ -151,7 +153,7 @@ class Uav_Dynamics {
         void armCallback(std_msgs::Empty::Ptr msg);
         void resetCallback(std_msgs::Empty::Ptr msg);
         void collisionCallback(std_msgs::Empty::Ptr msg);
-	    void fpsCallback(std_msgs::Float32::Ptr msg);
+        void fpsCallback(std_msgs::Float32::Ptr msg);
         //@}
 
         /// @name Control inputs
