@@ -1,7 +1,7 @@
 # FlightGoggles
 
 ## Documentation, Installation, & Usage Instructions
-Please refer to the [project website](https://flightgoggles.mit.edu) for project information and our [code documentation](https://flightgoggles-documentation.scrollhelp.site/fg/) for installation and usage instructions. 
+Please refer to the [project website](https://flightgoggles.mit.edu) for project information and our [code documentation](https://mit-aera.github.io/FlightGoggles-Documentation/index.html) for installation and usage instructions. 
 
 ## Description
 
