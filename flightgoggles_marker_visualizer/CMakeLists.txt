@@ -36,6 +36,8 @@ include_directories(${catkin_INCLUDE_DIRS} ${SDL_INCLUDE_DIR})
 
 add_executable(flightgoggles_marker_visualizer src/flightgoggles_marker_visualizer_node.cpp)
 
+add_dependencies(flightgoggles_marker_visualizer ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(flightgoggles_marker_visualizer
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
